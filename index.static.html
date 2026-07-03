@@ -2092,12 +2092,6 @@
   document.body.addEventListener('focusin', (e) => { if (e.target.classList && e.target.classList.contains('tooltip')) showTooltip(e.target); }, true);
   document.body.addEventListener('focusout', (e) => { if (e.target.classList && e.target.classList.contains('tooltip')) hideTooltip(); }, true);
 
-  // Data backend smoke-test: logs whether the API is reachable.
-  // The dashboard still runs from the embedded static dataset; the API will be wired into the UI next.
-  fetch('/api/fleet')
-    .then(r => r.ok ? r.json() : Promise.reject(new Error('status ' + r.status)))
-    .then(data => console.log('[Data backend] API fleet reachable:', data.vessels.length, 'vessels'))
-    .catch(err => console.warn('[Data backend] API not reachable, using static fallback:', err.message));
 </script>
 </body>
 </html>
