@@ -15,7 +15,7 @@ module.exports = (req, res) => {
   const voyage = query.voyage || '';
   const ports = voyage.split('→').map(s => s.replace(/^Last:\s*/i, '').trim());
   const routeKey = ports.join('->');
-  const points = fleet.routes[routeKey] || [];
+  const points = fleet.silver.routes[routeKey] || [];
 
   res.status(200).json({
     voyage,
