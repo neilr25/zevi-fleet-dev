@@ -1,0 +1,1981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fast Fleet — Phase 4 Prototype</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0B1120;
+    --surface: #151E32;
+    --elevated: #1E293B;
+    --border: #2A3A55;
+    --border-light: #3B4D6E;
+    --text: #F8FAFC;
+    --muted: #94A3B8;
+    --accent: #0EA5E9;
+    --accent-dark: #0284C7;
+    --green: #10B981;
+    --amber: #F59E0B;
+    --red: #EF4444;
+    --blue: #6366F1;
+    --cyan: #06B6D4;
+    --shadow: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -2px rgba(0,0,0,0.2);
+    --map-filter: brightness(0.95) contrast(1.1);
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 10px;
+    --status-green: #10B981;
+    --status-green-bg: rgba(16,185,129,0.15);
+    --status-green-border: rgba(16,185,129,0.3);
+    --status-amber: #F59E0B;
+    --status-amber-bg: rgba(245,158,11,0.12);
+    --status-amber-border: rgba(245,158,11,0.3);
+    --status-red: #EF4444;
+    --status-red-bg: rgba(239,68,68,0.08);
+    --status-red-border: rgba(239,68,68,0.3);
+    --status-blue: #6366F1;
+    --status-cyan: #06B6D4;
+    --status-grey: #64748B;
+    --weather-wind: #38BDF8;
+    --weather-wind-bg: rgba(56,189,248,0.12);
+    --weather-rough: #F87171;
+    --weather-calm: #34D399;
+    --weather-alert: #F59E0B;
+  }
+  body.light-mode {
+    --bg: #F8FAFC;
+    --surface: #FFFFFF;
+    --elevated: #F1F5F9;
+    --border: #E2E8F0;
+    --border-light: #CBD5E1;
+    --text: #0F172A;
+    --muted: #64748B;
+    --accent: #0284C7;
+    --accent-dark: #0369A1;
+    --green: #059669;
+    --amber: #D97706;
+    --red: #DC2626;
+    --blue: #4F46E5;
+    --cyan: #0891B2;
+    --shadow: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -2px rgba(0,0,0,0.04);
+    --map-filter: brightness(1.05) contrast(0.98);
+    --status-green: #059669;
+    --status-green-bg: rgba(5,150,105,0.12);
+    --status-green-border: rgba(5,150,105,0.35);
+    --status-amber: #D97706;
+    --status-amber-bg: rgba(217,119,6,0.12);
+    --status-amber-border: rgba(217,119,6,0.35);
+    --status-red: #DC2626;
+    --status-red-bg: rgba(220,38,38,0.08);
+    --status-red-border: rgba(220,38,38,0.3);
+    --status-blue: #4F46E5;
+    --status-cyan: #0891B2;
+    --status-grey: #64748B;
+    --weather-wind: #0284C7;
+    --weather-wind-bg: rgba(2,132,199,0.10);
+    --weather-rough: #DC2626;
+    --weather-calm: #059669;
+    --weather-alert: #D97706;
+  }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; font-size: 13px; transition: background 0.2s, color 0.2s; }
+  .app { display: flex; height: 100vh; }
+
+  .left-panel { width: 280px; min-width: 280px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 1000; overflow-x: hidden; }
+  .left-header { height: 56px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+  .left-logo { display: flex; align-items: center; gap: 10px; }
+  .left-logo-mark { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .left-logo-mark svg { width: 100%; height: 100%; display: block; }
+  .left-logo-text { font-size: 14px; font-weight: 700; letter-spacing: -0.2px; }
+  .theme-toggle { width: 32px; height: 32px; border-radius: var(--radius-md); background: var(--elevated); border: 1px solid var(--border); color: var(--text); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 15px; }
+  .theme-toggle:hover { background: var(--border); }
+  .left-body { flex: 1; display: flex; flex-direction: column; padding: 12px; overflow: hidden; }
+
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 8px; }
+  .stat-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 5px 8px; cursor: pointer; transition: background 0.15s, border-color 0.15s, opacity 0.15s; position: relative; }
+  .stat-card:hover { background: var(--elevated); }
+  .stat-card.active { border-color: var(--accent); }
+  .stat-card.inactive { opacity: 0.45; }
+  .stat-card.summary { cursor: default; }
+  .stat-card.summary:hover { background: var(--bg); }
+  .stat-card.wide { grid-column: 1 / -1; }
+  .stat-card .stat-check { position: absolute; top: 4px; right: 4px; width: 12px; height: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--text); }
+  .stat-card.active .stat-check { background: var(--accent); border-color: var(--accent); }
+  .stat-card.inactive .stat-check { background: transparent; border-color: var(--border-light); color: transparent; }
+  .stat-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 2px; padding-right: 14px; }
+  .stat-value { font-size: 14px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .stat-sub { font-size: 9px; color: var(--muted); margin-top: 1px; }
+  .stat-row { display: flex; justify-content: space-between; align-items: center; }
+  .stat-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .name-filter { margin-bottom: 8px; }
+  .name-filter.compact { margin-bottom: 6px; }
+  .name-filter input { width: 100%; padding: 5px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text); font-size: 12px; outline: none; }
+  .name-filter.compact input { padding: 4px 8px; font-size: 11px; }
+  .name-filter input:focus { border-color: var(--accent); }
+  .name-filter input::placeholder { color: var(--muted); opacity: 0.7; }
+
+  .filter-section { margin-bottom: 6px; }
+  .filter-title { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin: 0 0 5px; }
+  .status-filter { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 5px; margin-bottom: 8px; }
+  .filter-item { display: flex; align-items: center; justify-content: space-between; padding: 4px 6px; border-radius: var(--radius-md); cursor: pointer; transition: background 0.15s; }
+  .filter-item:hover { background: var(--elevated); }
+  .filter-item.disabled { opacity: 0.4; }
+  .filter-left { display: flex; align-items: center; gap: 8px; }
+  .filter-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .filter-label { font-size: 11px; font-weight: 600; }
+  .filter-count { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-right: 6px; }
+  .filter-check { width: 14px; height: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--text); }
+  .filter-check.checked { background: var(--accent); border-color: var(--accent); }
+
+  .alert-filter { display: flex; flex-wrap: wrap; gap: 4px; }
+  .alert-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 7px; border-radius: 12px; font-size: 10px; font-weight: 600; border: 1px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer; transition: background 0.15s, border-color 0.15s, opacity 0.15s; }
+  .alert-chip:hover { background: var(--elevated); }
+  .alert-chip.inactive { opacity: 0.45; }
+  .alert-chip .chip-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .alert-chip .chip-check { font-size: 8px; }
+  .alert-chip.critical { border-color: var(--status-red); }
+  .alert-chip.attention { border-color: var(--status-amber); }
+  .alert-chip.route { border-color: var(--status-cyan); }
+  .alert-chip.offline { border-color: var(--status-grey); }
+  .alert-chip.none { border-color: var(--status-green); }
+
+  .fleet-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: auto; padding-top: 6px; }
+  .fleet-summary .stat-card { cursor: default; }
+  .fleet-summary .stat-card:hover { background: var(--bg); }
+
+  .ship-list-title { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin: 0 0 5px; }
+  .ship-list { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+  .ship-list-item { padding: 4px 8px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
+  .ship-list-item:last-child { border-bottom: none; }
+  .ship-list-item:hover { background: var(--elevated); }
+  .ship-list-row { display: flex; justify-content: space-between; align-items: center; }
+  .ship-list-name { font-size: 11px; font-weight: 600; }
+  .ship-list-status { font-size: 9px; font-weight: 700; text-transform: uppercase; }
+  .ship-list-type { font-size: 10px; color: var(--muted); }
+  .ship-list-saving { font-size: 10px; font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .ship-list-empty { padding: 10px; text-align: center; color: var(--muted); font-size: 11px; }
+
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .topbar { height: 56px; background: var(--bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
+  .topbar-title { font-size: 16px; font-weight: 600; letter-spacing: -0.2px; }
+  .topbar-right { display: flex; gap: 12px; align-items: center; }
+  .role-select { padding: 7px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text); font-size: 12px; }
+  .map-wrap { flex: 1; position: relative; min-width: 0; }
+  #map { width: 100%; height: 100%; }
+  .ship-panel { position: absolute; top: 0; right: 0; bottom: 0; width: 360px; background: var(--surface); border-left: 1px solid var(--border); z-index: 1200; pointer-events: auto; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s ease; overflow-x: hidden; }
+  .ship-panel.open { transform: translateX(0); }
+  .panel-header { padding: 16px 18px; border-bottom: 1px solid var(--border); position: relative; background: var(--bg); pointer-events: auto; }
+  .panel-header h2 { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+  .panel-header p { font-size: 11px; color: var(--muted); }
+  .close-btn { position: absolute; top: 14px; right: 16px; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; line-height: 1; pointer-events: auto; }
+  .panel-tabs { display: flex; gap: 4px; padding: 8px 12px; border-bottom: 1px solid var(--border); background: var(--bg); overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; }
+  .panel-tabs::-webkit-scrollbar { display: none; }
+  .panel-tab { padding: 5px 8px; background: transparent; border: 1px solid var(--border); border-radius: 5px; color: var(--muted); font-size: 9px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .panel-tab:hover { border-color: var(--border-light); color: var(--text); }
+  .panel-tab.active { background: var(--accent); border-color: var(--accent); color: white; }
+  .entity-row { cursor: pointer; }
+  .entity-row:hover { background: rgba(255,255,255,0.03); }
+  body.light-mode .entity-row:hover { background: rgba(0,0,0,0.03); }
+  .section-title { cursor: pointer; }
+  .section-title span { margin-left: 4px; transition: color 0.15s; }
+  .section-title:hover { color: var(--accent); }
+  .section-title:hover span { color: var(--accent); }
+  .breadcrumb { display: flex; gap: 6px; align-items: center; margin-bottom: 12px; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
+  .breadcrumb span { cursor: pointer; }
+  .breadcrumb span:hover { color: var(--accent); }
+  .breadcrumb .current { color: var(--text); font-weight: 600; cursor: default; }
+  .doc-list { font-size: 11px; color: var(--muted); }
+  .doc-list-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .doc-list-item:last-child { border-bottom: none; }
+  .panel-body { flex: 1; overflow-y: auto; padding: 16px; pointer-events: auto; }
+  .badge { display: inline-flex; align-items: center; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+  .badge-verified { background: var(--status-green-bg); color: var(--status-green); border: 1px solid var(--status-green-border); }
+  .badge-provisional { background: var(--status-amber-bg); color: var(--status-amber); border: 1px solid var(--status-amber-border); }
+  .badge-disabled { background: rgba(148,163,184,0.1); color: var(--muted); border: 1px solid var(--border); }
+  body.light-mode .badge-disabled { background: rgba(100,116,139,0.08); }
+  .headline { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 14px; border-left: 3px solid var(--accent); }
+  .headline.red { border-left-color: var(--red); }
+  .headline.amber { border-left-color: var(--amber); }
+  .headline.blue { border-left-color: var(--blue); }
+  .headline.cyan { border-left-color: var(--cyan); }
+  .headline.grey { border-left-color: var(--muted); }
+  .headline-status { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 5px; }
+  .headline-text { font-size: 15px; font-weight: 600; line-height: 1.4; margin-bottom: 12px; }
+  .headline-action { display: flex; gap: 8px; align-items: center; }
+  .btn { padding: 8px 14px; background: var(--accent); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer; pointer-events: auto; }
+  .btn:hover { background: var(--accent-dark); }
+  .btn.secondary { background: transparent; border: 1px solid var(--border-light); color: var(--text); }
+  .btn.disabled { background: var(--elevated); color: var(--muted); cursor: not-allowed; border: 1px solid var(--border); }
+  .thread { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s; pointer-events: auto; }
+  .thread:hover { border-color: var(--accent); }
+  .thread-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .thread-title { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+  .thread-row { display: flex; justify-content: space-between; align-items: flex-end; }
+  .thread-value { font-size: 15px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .thread-caption { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .sparkline { display: flex; align-items: flex-end; gap: 2px; height: 18px; width: 48px; }
+  .sparkbar { flex: 1; background: var(--accent); border-radius: 1px; min-height: 2px; }
+  .sparkbar.amber { background: var(--amber); }
+  .sparkbar.red { background: var(--red); }
+  .chevron { color: var(--muted); font-size: 14px; }
+  .panel-title { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 8px; font-weight: 700; }
+  .card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+  .mini-list-item { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .mini-list-item:last-child { border-bottom: none; }
+  .metric { margin-bottom: 10px; }
+  .metric-value { font-size: 22px; font-weight: 700; font-family: 'JetBrains Mono', monospace; line-height: 1; }
+  .metric-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+  .alert { display: flex; align-items: flex-start; gap: 10px; padding: 10px; background: var(--status-red-bg); border: 1px solid var(--status-red-border); border-radius: 6px; margin-bottom: 10px; }
+  .alert-amber { background: var(--status-amber-bg); border-color: var(--status-amber-border); }
+  .alert-icon { color: var(--red); font-weight: 700; font-size: 12px; flex-shrink: 0; }
+  .alert-amber .alert-icon { color: var(--amber); }
+  .alert-text { font-size: 12px; line-height: 1.4; }
+  .lens { display: none; }
+  .lens.active { display: block; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 6px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; pointer-events: auto; white-space: nowrap; }
+  .tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .sub-lens { display: none; }
+  .sub-lens.active { display: block; }
+  .kanban { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; -ms-overflow-style: none; }
+  .kanban::-webkit-scrollbar { display: none; }
+  .kanban-col { min-width: 100px; flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px; }
+  .kanban-col h4 { font-size: 9px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; letter-spacing: 0.5px; }
+  .kanban-card { background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 8px; margin-bottom: 7px; font-size: 11px; cursor: pointer; pointer-events: auto; }
+  .kanban-card:hover { border-color: var(--accent); }
+  .progress-bar { height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+  .progress-fill { height: 100%; background: var(--green); border-radius: 3px; }
+  .progress-fill.amber { background: var(--amber); }
+  .progress-fill.red { background: var(--red); }
+  .invoice-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 12px; pointer-events: auto; }
+  .invoice-row.disabled { opacity: 0.5; }
+  .invoice-row:last-child { border-bottom: none; }
+  .checkbox { width: 14px; height: 14px; border: 1px solid var(--border-light); border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; margin-right: 8px; }
+  .checkbox.checked { background: var(--green); border-color: var(--green); color: var(--bg); font-size: 9px; font-weight: 700; }
+  .green { color: var(--green); }
+  .amber { color: var(--amber); }
+  .red { color: var(--red); }
+  .marine { color: var(--accent); }
+  .rig-schematic { height: 130px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 12px; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px; }
+  .hidden { display: none !important; }
+  .leaflet-popup-content-wrapper { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 6px; }
+  .leaflet-popup-tip { background: var(--surface); }
+  .ship-marker { background: transparent; border: none; cursor: pointer; }
+  .ship-marker svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .ship-marker:hover svg { filter: drop-shadow(0 0 6px currentColor); }
+  .leaflet-tile-pane { filter: var(--map-filter); }
+  .port-marker { background: transparent; border: none; pointer-events: none; }
+  .route-legend { position: absolute; bottom: 16px; left: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 10px 12px; z-index: 1000; box-shadow: var(--shadow); font-size: 11px; min-width: 140px; pointer-events: auto; }
+  .route-legend-title { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 8px; }
+  .route-legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .route-legend-item:last-child { margin-bottom: 0; }
+  .route-legend-line { width: 20px; height: 3px; border-radius: 2px; }
+  .route-legend-dash { width: 20px; height: 3px; border-radius: 2px; background: repeating-linear-gradient(90deg, var(--line-color), var(--line-color) 4px, transparent 4px, transparent 7px); }
+  .route-panel-legend { display: flex; gap: 12px; flex-wrap: wrap; margin: 8px 0 12px; font-size: 11px; }
+  .route-panel-legend-item { display: flex; align-items: center; gap: 6px; }
+  .route-panel-swatch { width: 18px; height: 3px; border-radius: 2px; }
+  .route-panel-swatch.dashed { background: repeating-linear-gradient(90deg, var(--line-color), var(--line-color) 4px, transparent 4px, transparent 7px); }
+  @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+  .pulse { animation: pulse 1.5s infinite; }
+
+  /* Weather */
+  .weather-summary { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 10px; margin-top: 8px; }
+  .weather-summary-title { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 8px; }
+  .weather-summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+  .weather-summary-item { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 5px 6px; }
+  .weather-summary-label { font-size: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
+  .weather-summary-value { font-size: 12px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--text); margin-top: 2px; }
+  .weather-summary-value.weather-alert { color: var(--weather-rough); }
+  .weather-summary-value.weather-calm { color: var(--weather-calm); }
+  .weather-toggle { margin-top: 8px; width: 100%; padding: 5px 8px; background: var(--weather-wind-bg); border: 1px solid var(--weather-wind); border-radius: var(--radius-md); color: var(--weather-wind); font-size: 10px; font-weight: 600; cursor: pointer; }
+  .weather-toggle:hover { background: var(--elevated); }
+  .weather-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px; margin-bottom: 12px; }
+  .weather-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .weather-card-icon { font-size: 24px; line-height: 1; }
+  .weather-card-title { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+  .weather-card-subtitle { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .weather-card-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .weather-card-metric { display: flex; flex-direction: column; gap: 2px; }
+  .weather-card-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
+  .weather-card-value { font-size: 14px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .weather-card-value.weather-rough { color: var(--weather-rough); }
+  .weather-card-value.weather-calm { color: var(--weather-calm); }
+  .weather-tooltip { color: var(--weather-wind); font-size: 11px; font-weight: 600; }
+  .weather-overlay-marker { background: transparent; border: none; pointer-events: none; }
+  .weather-overlay-marker .wind-arrow { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; color: var(--weather-wind); opacity: 0.85; filter: drop-shadow(0 0 3px var(--weather-wind)); }
+  .route-loading { opacity: 0.7; }
+
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="left-panel">
+    <div class="left-header">
+      <div class="left-logo">
+        <div class="left-logo-mark"><img src="Logo_only.png" alt="SGS logo" width="28" height="28" style="display:block;width:100%;height:100%;object-fit:contain;"></div>
+        <div class="left-logo-text">Fast Fleet</div>
+      </div>
+    </div>
+    <div class="left-body">
+      <div class="stats-grid" id="fleetStats"></div>
+      <div class="name-filter compact">
+        <input type="text" id="nameFilter" placeholder="Filter by name…" autocomplete="off">
+      </div>
+      <div class="filter-section">
+        <div class="filter-title">Alerts</div>
+        <div class="alert-filter" id="alertFilter"></div>
+      </div>
+      <div class="fleet-summary" id="fleetSummary"></div>
+      <div class="weather-summary" id="weatherSummary"></div>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">Fast Fleet <span style="color:var(--muted);font-weight:400;">· Wind as a Service</span></div>
+      <div class="topbar-right">
+        <button class="theme-toggle" id="themeToggle" title="Toggle light/dark mode">🌙</button>
+        <select class="role-select" id="roleSelect">
+          <option value="owner">Ship Owner</option>
+          <option value="internal">SGS Internal</option>
+        </select>
+      </div>
+    </div>
+    <div class="map-wrap">
+      <div id="map"></div>
+      <div class="ship-panel" id="shipPanel">
+        <div class="panel-header">
+          <button class="close-btn" onclick="closePanel()">×</button>
+          <h2 id="shipName">Select a ship</h2>
+          <p id="shipMeta">Click a vessel on the map or in the ship list</p>
+        </div>
+        <div class="panel-tabs" id="panelTabs">
+          <div class="panel-tab active" data-tab="overview" onclick="selectTab('overview')">Overview</div>
+          <div class="panel-tab" data-tab="details" onclick="selectTab('details')">Details</div>
+          <div class="panel-tab" data-tab="fix" onclick="selectTab('fix')">FastFix</div>
+          <div class="panel-tab" data-tab="report" onclick="selectTab('report')">FastReport</div>
+          <div class="panel-tab" data-tab="regs" onclick="selectTab('regs')">FastRegs</div>
+          <div class="panel-tab" data-tab="optimise" onclick="selectTab('optimise')">FastRoute</div>
+        </div>
+        <div class="panel-body" id="panelBody">
+          <div class="lens active" id="lens-overview">
+            <div id="headline" class="headline">
+              <div class="headline-status">Select a ship</div>
+              <div class="headline-text">Click a vessel marker or ship list row to see the headline</div>
+            <div class="headline-action"><button class="btn disabled">No action</button></div>
+          </div>
+          <div class="weather-card" id="shipWeatherCard">
+            <div class="weather-card-header">
+              <span class="weather-card-icon" id="shipWeatherIcon">—</span>
+              <div>
+                <div class="weather-card-title">Current conditions</div>
+                <div class="weather-card-subtitle" id="shipWeatherPosition">Select a vessel to view local weather</div>
+              </div>
+            </div>
+            <div class="weather-card-grid">
+              <div class="weather-card-metric"><span class="weather-card-label">Wind</span><span class="weather-card-value" id="shipWeatherWind">—</span></div>
+              <div class="weather-card-metric"><span class="weather-card-label">Direction</span><span class="weather-card-value" id="shipWeatherDir">—</span></div>
+              <div class="weather-card-metric"><span class="weather-card-label">Sea state</span><span class="weather-card-value" id="shipWeatherSea">—</span></div>
+            </div>
+          </div>
+          <div class="panel-title">Drill into any thread</div>
+            <div class="thread" onclick="showLens('savings')">
+              <div class="thread-header"><span class="thread-title">Performance</span><span id="perfBadge"></span></div>
+              <div class="thread-row">
+                <div><div class="thread-value" id="perfValue">—</div><div class="thread-caption" id="perfCaption">verified saving</div></div>
+                <div class="sparkline" id="perfSpark"></div>
+              </div>
+            </div>
+            <div class="thread" onclick="showLens('cbm')">
+              <div class="thread-header"><span class="thread-title">Condition</span><span id="cbmBadge"></span></div>
+              <div class="thread-row">
+                <div><div class="thread-value" id="cbmValue">—</div><div class="thread-caption" id="cbmCaption">CBM health</div></div>
+                <div class="sparkline" id="cbmSpark"></div>
+              </div>
+            </div>
+            <div class="thread" onclick="showLens('compliance')">
+              <div class="thread-header"><span class="thread-title">Compliance</span><span id="compBadge"></span></div>
+              <div class="thread-row">
+                <div><div class="thread-value" id="compValue">—</div><div class="thread-caption" id="compCaption">CII rating</div></div>
+                <div class="sparkline" id="compSpark"></div>
+              </div>
+            </div>
+            <div class="thread" onclick="showLens('contract')">
+              <div class="thread-header"><span class="thread-title">Contract</span><span id="contractBadge"></span></div>
+              <div class="thread-row">
+                <div><div class="thread-value" id="contractValue">—</div><div class="thread-caption" id="contractCaption">contract status</div></div>
+                <div class="sparkline" id="contractSpark"></div>
+              </div>
+            </div>
+            <div class="card" style="margin-top:12px;">
+              <div class="mini-list-item"><span>Deployment</span><span id="deployStatus">—</span></div>
+              <div class="mini-list-item"><span>Operating hours</span><span id="opHours">—</span></div>
+              <div class="mini-list-item"><span>Current voyage</span><span id="curVoyage">—</span></div>
+              <div class="mini-list-item"><span>Position</span><span id="position">—</span></div>
+            </div>
+            <button class="btn secondary" style="width:100%;margin-top:12px;" onclick="showLens('details')">View full ship details</button>
+          </div>
+
+          <div class="lens" id="lens-details">
+            <div class="panel-title">Object model details</div>
+            <div id="detailsContent"></div>
+            <button class="btn secondary" onclick="showLens('overview')">Back</button>
+          </div>
+
+          <div class="lens" id="lens-entity">
+            <div id="entityBreadcrumb" class="breadcrumb"></div>
+            <div class="panel-title" id="entityTitle">Entity</div>
+            <div id="entityContent"></div>
+            <button class="btn secondary" onclick="popEntity()">Back</button>
+          </div>
+
+          <div class="lens" id="lens-savings">
+            <div class="panel-title">Performance</div>
+            <div class="card">
+              <div class="metric"><div class="metric-value green" id="savingValue">—</div><div class="metric-label">Verified saving</div></div>
+              <div class="metric"><div class="metric-value" id="guaranteeValue">—</div><div class="metric-label">Guarantee floor</div></div>
+              <div class="mini-list-item"><span>Variance</span><span id="varianceValue">—</span></div>
+            </div>
+            <div class="card">
+              <div class="panel-title" style="margin-top:0">30-day trend</div>
+              <div class="sparkline" id="trendSpark" style="width:100%;height:40px;"></div>
+            </div>
+            <button class="btn" onclick="showLens('report')">Investigate in FastReport</button>
+            <button class="btn secondary" onclick="showLens('overview')">Back</button>
+          </div>
+
+          <div class="lens" id="lens-cbm">
+            <div class="panel-title">Condition monitoring</div>
+            <div id="cbmContent"></div>
+            <button class="btn secondary" onclick="showLens('overview')">Back</button>
+          </div>
+
+          <div class="lens" id="lens-compliance">
+            <div class="panel-title">Compliance</div>
+            <div class="card">
+              <div class="metric"><div class="metric-value" id="ciiValue">—</div><div class="metric-label">Current CII rating</div></div>
+              <div class="mini-list-item"><span>Target</span><span id="ciiTarget">—</span></div>
+              <div class="mini-list-item"><span>CO₂ reduction</span><span id="co2Value">—</span></div>
+            </div>
+            <button class="btn" onclick="showLens('regs')">Generate FastRegs report</button>
+            <button class="btn secondary" onclick="showLens('overview')">Back</button>
+          </div>
+
+          <div class="lens" id="lens-contract">
+            <div class="panel-title">Contract</div>
+            <div id="contractContent"></div>
+          </div>
+
+          <div class="lens" id="lens-fix">
+            <div class="panel-title">FastFix</div>
+            <div class="tabs">
+              <div class="tab active" onclick="showFixTab('board')">Work orders</div>
+              <div class="tab" onclick="showFixTab('rul')">RUL</div>
+              <div class="tab" onclick="showFixTab('parts')">Parts</div>
+              <div class="tab" onclick="showFixTab('history')">History</div>
+              <div class="tab" onclick="showFixTab('cert')">Certification</div>
+            </div>
+            <div class="sub-lens active" id="fix-board">
+              <div class="kanban">
+                <div class="kanban-col"><h4>Open</h4><div class="kanban-card" onclick="openWorkOrderFromBoard('HPU-014')">HPU-014<br><span class="amber">Amber</span><br>accumulator</div></div>
+                <div class="kanban-col"><h4>Scheduled</h4><div class="kanban-card">Slew-092<br><span class="amber">Amber</span><br>Rotterdam 4d</div></div>
+                <div class="kanban-col"><h4>In progress</h4><div class="kanban-card">Flap-031<br><span class="green">Green</span><br>sensor swap</div></div>
+                <div class="kanban-col"><h4>Closed</h4><div class="kanban-card">Wing-004<br><span class="green">Green</span><br>NDT passed</div></div>
+              </div>
+            </div>
+            <div class="sub-lens" id="fix-rul">
+              <div class="card">
+                <div class="mini-list-item"><span>HPU accumulator</span><span class="red">41 days</span></div>
+                <div class="progress-bar"><div class="progress-fill red" style="width:92%"></div></div>
+                <div class="mini-list-item" style="margin-top:12px;"><span>Slew bearing</span><span class="green">120 days</span></div>
+                <div class="progress-bar"><div class="progress-fill" style="width:45%"></div></div>
+                <div class="mini-list-item" style="margin-top:12px;"><span>Hydraulic pump</span><span class="green">210 days</span></div>
+                <div class="progress-bar"><div class="progress-fill" style="width:22%"></div></div>
+              </div>
+            </div>
+            <div class="sub-lens" id="fix-parts">
+              <div class="card">
+                <table>
+                  <tr><th>Part</th><th>Stock</th><th>Lead</th></tr>
+                  <tr><td>HPU accumulator</td><td class="green">2</td><td>3d</td></tr>
+                  <tr><td>Slew bearing seal</td><td class="amber">1</td><td>14d</td></tr>
+                  <tr><td>Flap sensor</td><td class="green">5</td><td>7d</td></tr>
+                </table>
+              </div>
+            </div>
+            <div class="sub-lens" id="fix-history">
+              <div class="card">
+                <div class="mini-list-item"><span>2026-05-12</span><span>Wing NDT</span></div>
+                <div class="mini-list-item"><span>2026-03-28</span><span>HPU filter</span></div>
+                <div class="mini-list-item"><span>2026-01-15</span><span>Slew bearing</span></div>
+              </div>
+            </div>
+            <div class="sub-lens" id="fix-cert">
+              <div class="card">
+                <div class="mini-list-item"><span>HPU service</span><span class="green">Within 2 yr</span></div>
+                <div class="mini-list-item"><span>Slew bearing inspect</span><span class="amber">Due in 45d</span></div>
+                <div class="mini-list-item"><span>E-stop test</span><span class="green">Within 1 yr</span></div>
+                <div class="mini-list-item"><span>Load test</span><span class="green">Within 5 yr</span></div>
+              </div>
+            </div>
+            <button class="btn" id="fixCreateBtn" onclick="openWorkOrder()">Create work order</button>
+            <button class="btn secondary" onclick="showLens('overview')">Back</button>
+          </div>
+
+          <div class="lens" id="lens-fixdetail">
+            <div class="panel-title">Work order</div>
+            <div class="card">
+              <div class="mini-list-item"><span>Component</span><span id="woComponent">—</span></div>
+              <div class="mini-list-item"><span>Fault code</span><span id="woFault">—</span></div>
+              <div class="mini-list-item"><span>Anomaly score</span><span id="woScore" class="amber">—</span></div>
+              <div class="mini-list-item"><span>RUL estimate</span><span id="woRul">—</span></div>
+              <div class="mini-list-item"><span>Part in stock</span><span id="woStock" class="green">—</span></div>
+              <div class="mini-list-item"><span>Recommended action</span><span id="woAction">—</span></div>
+            </div>
+            <button class="btn" onclick="alert('Work order approved and scheduled')">Approve work order</button>
+            <button class="btn secondary" onclick="showLens('fix')">Back to board</button>
+          </div>
+
+          <div class="lens" id="lens-invoice">
+            <div class="panel-title">PAYS invoice</div>
+            <div class="card">
+              <div class="invoice-row">
+                <div><span class="checkbox checked">✓</span>Voyage 2026-06-15 <span class="badge badge-verified">Verified</span></div>
+                <div class="green">£42,300</div>
+              </div>
+              <div class="invoice-row">
+                <div><span class="checkbox checked">✓</span>Voyage 2026-05-28 <span class="badge badge-verified">Verified</span></div>
+                <div class="green">£38,900</div>
+              </div>
+              <div class="invoice-row disabled">
+                <div><span class="checkbox"></span>Voyage 2026-07-01 <span class="badge badge-provisional">Provisional</span></div>
+                <div class="amber">£19,400</div>
+              </div>
+              <div class="mini-list-item" style="margin-top:10px;border-top:1px solid var(--border);font-weight:700;">
+                <span>Total verified</span><span class="green">£81,200</span>
+              </div>
+            </div>
+            <div class="alert alert-amber">
+              <div class="alert-icon">!</div>
+              <div class="alert-text">Provisional voyages are excluded from invoicing until batch verification.</div>
+            </div>
+            <button class="btn" onclick="alert('Invoice generated')">Generate verified invoice</button>
+            <button class="btn secondary" onclick="showLens('contract')">Back</button>
+          </div>
+
+          <div class="lens" id="lens-predict">
+            <div class="panel-title">FastRoute Predict</div>
+            <div class="card">
+              <div class="metric"><div class="metric-value green">6.4%</div><div class="metric-label">Predicted fuel saving</div></div>
+              <div class="metric"><div class="metric-value amber">±1.1%</div><div class="metric-label">95% confidence</div></div>
+              <div class="mini-list-item"><span>Simulations</span><span>1,247</span></div>
+              <div class="mini-list-item"><span>Route</span><span>Liverpool → Hamburg</span></div>
+            </div>
+            <div class="card">
+              <div class="panel-title" style="margin-top:0">Savings distribution</div>
+              <div style="height:60px;background:linear-gradient(90deg,var(--red),var(--amber),var(--green),var(--green));border-radius:4px;position:relative;margin:8px 0;">
+                <div style="position:absolute;left:64%;top:0;bottom:0;width:2px;background:white;"></div>
+              </div>
+              <div class="mini-list-item"><span>Mean</span><span class="green">6.4%</span></div>
+              <div class="mini-list-item"><span>P10 / P90</span><span>4.2% / 8.1%</span></div>
+            </div>
+            <button class="btn" onclick="showLens('report')">Build business case</button>
+            <button class="btn secondary" onclick="showLens('overview')">Back</button>
+          </div>
+
+          <div class="lens" id="lens-report">
+            <div class="panel-title">FastReport</div>
+            <div class="card">
+              <div class="metric"><div class="metric-value green">4.2 yr</div><div class="metric-label">Payback</div></div>
+              <div class="metric"><div class="metric-value green">£1.84M</div><div class="metric-label">NPV (10 yr)</div></div>
+              <div class="metric"><div class="metric-value green">1,420 t</div><div class="metric-label">CO₂ avoided / yr</div></div>
+            </div>
+            <div class="card">
+              <div class="panel-title" style="margin-top:0">Scenario comparison</div>
+              <div class="scenario-row"><span>Base</span><span class="scenario-value">4.2 yr</span></div>
+              <div class="scenario-row"><span>+ MEPC83</span><span class="scenario-value">3.5 yr</span></div>
+              <div class="scenario-row"><span>Optimistic</span><span class="scenario-value green">2.8 yr</span></div>
+            </div>
+            <button class="btn" onclick="showLens('contract')">Convert to contract draft</button>
+            <button class="btn secondary" onclick="showLens('overview')">Back</button>
+          </div>
+
+          <div class="lens" id="lens-optimise">
+            <div class="panel-title">FastRoute Optimise</div>
+            <div class="card" style="border-left:3px solid var(--accent);">
+              <div class="headline-status" style="margin-bottom:6px;">Active voyage</div>
+              <div class="headline-text" id="routeName">—</div>
+              <div class="route-panel-legend" id="routePanelLegend" style="margin-top:10px;margin-bottom:12px;">
+                <div class="route-panel-legend-item"><span id="routeDepDot" class="route-panel-swatch" style="--line-color:var(--accent);border-radius:50%;width:10px;height:10px;"></span><span id="routeDep">—</span></div>
+                <div class="route-panel-legend-item"><span id="routePanelSwatch" class="route-panel-swatch" style="--line-color:var(--accent);background:var(--accent);"></span>Route</div>
+                <div class="route-panel-legend-item"><span id="routeDestDot" class="route-panel-swatch" style="--line-color:var(--accent);border-radius:50%;width:10px;height:10px;"></span><span id="routeDest">—</span></div>
+              </div>
+              <div class="mini-list-item"><span>Distance</span><span id="routeDistance">—</span></div>
+              <div class="mini-list-item"><span>ETA</span><span id="routeEta">—</span></div>
+              <div class="mini-list-item"><span>Speed</span><span id="routeSpeed">—</span></div>
+              <div class="mini-list-item"><span>Status</span><span id="routeStatus">—</span></div>
+              <div class="mini-list-item"><span>Data trust</span><span id="routeType">—</span></div>
+            </div>
+            <div class="alert alert-amber">
+              <div class="alert-icon">i</div>
+              <div class="alert-text">Advisory only. Shore does not command the rig.</div>
+            </div>
+            <div class="card" id="routeWeatherCard">
+              <div class="panel-title" style="margin-top:0;">Route weather</div>
+              <div class="weather-card-header">
+                <span class="weather-card-icon" id="routeWeatherIcon">—</span>
+                <div>
+                  <div class="weather-card-title">Current conditions</div>
+                  <div class="weather-card-subtitle" id="routeWeatherPosition">Select a vessel to view local weather</div>
+                </div>
+              </div>
+              <div class="weather-card-grid">
+                <div class="weather-card-metric"><span class="weather-card-label">Wind</span><span class="weather-card-value" id="routeWeatherWind">—</span></div>
+                <div class="weather-card-metric"><span class="weather-card-label">Direction</span><span class="weather-card-value" id="routeWeatherDir">—</span></div>
+                <div class="weather-card-metric"><span class="weather-card-label">Sea state</span><span class="weather-card-value" id="routeWeatherSea">—</span></div>
+              </div>
+            </div>
+            <div class="card" style="background:transparent;border-style:dashed;">
+              <div class="panel-title" style="margin-top:0;">AtoBviaC integration</div>
+              <div style="font-size:11px;color:var(--muted);line-height:1.5;">
+                Live route is generated from mock voyage data. Replace with AtoBviaC by setting <code>ATOBVIAC_API_KEY</code> and calling <code>fetchAtoBviaCRoute([departure, destination])</code>.
+              </div>
+            </div>
+            <div class="rig-schematic">[Live route + weather overlay]</div>
+            <button class="btn" onclick="alert('Recommendation sent to bridge')">Endorse recommendation</button>
+            <button class="btn secondary" onclick="showLens('overview')">Back</button>
+          </div>
+
+          <div class="lens" id="lens-regs">
+            <div class="panel-title">FastRegs</div>
+            <div class="card">
+              <div class="metric"><div class="metric-value">D</div><div class="metric-label">Current CII rating</div></div>
+              <div class="mini-list-item"><span>Target</span><span>C</span></div>
+              <div class="mini-list-item"><span>CO₂ reduction</span><span class="green">8.3%</span></div>
+              <div class="mini-list-item"><span>Verified data</span><span class="green">100%</span></div>
+            </div>
+            <div class="card">
+              <div class="panel-title" style="margin-top:0">CII trajectory</div>
+              <div style="height:80px;display:flex;align-items:flex-end;gap:8px;padding:8px 0;">
+                <div style="flex:1;background:var(--red);height:80%;border-radius:3px 3px 0 0;position:relative;"><span style="position:absolute;bottom:-16px;left:0;right:0;text-align:center;font-size:9px;">2024</span></div>
+                <div style="flex:1;background:var(--amber);height:70%;border-radius:3px 3px 0 0;position:relative;"><span style="position:absolute;bottom:-16px;left:0;right:0;text-align:center;font-size:9px;">2025</span></div>
+                <div style="flex:1;background:var(--accent);height:60%;border-radius:3px 3px 0 0;position:relative;"><span style="position:absolute;bottom:-16px;left:0;right:0;text-align:center;font-size:9px;">2026</span></div>
+                <div style="flex:1;background:var(--green);height:45%;border-radius:3px 3px 0 0;position:relative;"><span style="position:absolute;bottom:-16px;left:0;right:0;text-align:center;font-size:9px;">2027</span></div>
+              </div>
+            </div>
+            <button class="btn" onclick="alert('Report submitted to regulator')">Submit to regulator</button>
+            <button class="btn secondary" onclick="showLens('overview')">Back</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const ships = [
+    { id: 1, name: 'MV Atlantic Star', imo: '9876543', type: 'Bulk Carrier', status: 'amber', sailing: true, atPort: false, lat: 42.1, lon: -32.4, reason: 'Savings 4.2% vs 5.0% guarantee', savings: '4.2%', guarantee: '5.0%', variance: '-0.8%', cii: 'C', ciiTarget: 'B', co2: '8.3%', contract: 'PAYS', nextInvoice: '31 Jul 2026', voyagesReady: 1, deploy: 'Active', hours: '4,820', voyage: 'Liverpool → Baltimore', perfTrust: 'verified', cbmTrust: 'verified', compTrust: 'verified', contractTrust: 'verified', alert: null, alertData: null, heading: 45 },
+    { id: 2, name: 'MV Pacific Star', imo: '9654321', type: 'Container', status: 'red', sailing: true, atPort: false, lat: 35.6, lon: 139.8, reason: 'HPU hydraulic anomaly', savings: '5.4%', guarantee: '5.0%', variance: '+0.4%', cii: 'B', ciiTarget: 'B', co2: '9.1%', contract: 'PAYS', nextInvoice: '15 Jul 2026', voyagesReady: 2, deploy: 'Active', hours: '6,140', voyage: 'Shanghai → Long Beach', perfTrust: 'verified', cbmTrust: 'provisional', compTrust: 'verified', contractTrust: 'verified', alert: 'HPU hydraulic pressure anomaly', alertData: { component: 'HPU accumulator', fault: 'HPU-014', score: '0.82', rul: '41 days', stock: '2 in Rotterdam', action: 'Inspect accumulator within 7 days' }, heading: 85 },
+    { id: 3, name: 'MV Nordic Wind', imo: '9123456', type: 'Tanker', status: 'blue', sailing: false, atPort: true, lat: 58.3, lon: 2.1, reason: 'Prospect, prediction ready', savings: '6.4%', guarantee: '—', variance: '—', cii: '—', ciiTarget: '—', co2: '—', contract: 'Prospect', nextInvoice: '—', voyagesReady: 0, deploy: 'None', hours: '0', voyage: 'Predicted route', perfTrust: 'provisional', cbmTrust: 'provisional', compTrust: 'provisional', contractTrust: 'provisional', alert: null, alertData: null, heading: 120 },
+    { id: 4, name: 'MV Southern Cross', imo: '9789012', type: 'Bulk Carrier', status: 'green', sailing: true, atPort: false, lat: -34.9, lon: 18.4, reason: 'Savings 6.8%, all verified', savings: '6.8%', guarantee: '5.5%', variance: '+1.3%', cii: 'B', ciiTarget: 'C', co2: '11.2%', contract: 'PAYS', nextInvoice: '28 Jul 2026', voyagesReady: 1, deploy: 'Active', hours: '3,920', voyage: 'Cape Town → Singapore', perfTrust: 'verified', cbmTrust: 'verified', compTrust: 'verified', contractTrust: 'verified', alert: null, alertData: null, heading: 70 },
+    { id: 5, name: 'MV Ocean Breeze', imo: '9456789', type: 'RoRo', status: 'green', sailing: true, atPort: false, lat: 35.8, lon: -7.0, reason: 'Savings 5.9%, sensor drift', savings: '5.9%', guarantee: '5.5%', variance: '+0.4%', cii: 'B', ciiTarget: 'B', co2: '7.8%', contract: 'Lease', nextInvoice: '22 Jul 2026', voyagesReady: 1, deploy: 'Active', hours: '5,310', voyage: 'Algeciras → Genoa', perfTrust: 'verified', cbmTrust: 'verified', compTrust: 'verified', contractTrust: 'verified', alert: null, alertData: null, heading: 15 },
+    { id: 6, name: 'MV Trade Wind', imo: '9234567', type: 'Container', status: 'cyan', sailing: true, atPort: false, lat: 15.0, lon: 63.0, reason: 'Live voyage advice', savings: '5.2%', guarantee: '5.0%', variance: '+0.2%', cii: 'B', ciiTarget: 'B', co2: '8.7%', contract: 'PAYS', nextInvoice: '19 Jul 2026', voyagesReady: 0, deploy: 'Active', hours: '2,840', voyage: 'Mombasa → Rotterdam', perfTrust: 'provisional', cbmTrust: 'verified', compTrust: 'verified', contractTrust: 'provisional', alert: 'Route advice available', alertData: { component: 'Route', fault: 'ADV-001', score: '0.34', rul: '—', stock: '—', action: 'Deviate 12nm north, save 0.8t fuel' }, heading: 340 },
+    { id: 7, name: 'MV Aurora', imo: '9678901', type: 'Tanker', status: 'amber', sailing: true, atPort: false, lat: 25.0, lon: 56.3, reason: 'CII D, target C', savings: '5.1%', guarantee: '5.0%', variance: '+0.1%', cii: 'D', ciiTarget: 'C', co2: '6.2%', contract: 'PAYS', nextInvoice: '30 Jul 2026', voyagesReady: 1, deploy: 'Active', hours: '7,050', voyage: 'Fujairah → Rotterdam', perfTrust: 'verified', cbmTrust: 'verified', compTrust: 'verified', contractTrust: 'verified', alert: null, alertData: null, heading: 280 },
+    { id: 8, name: 'MV Horizon', imo: '9345678', type: 'Bulk Carrier', status: 'green', sailing: false, atPort: true, lat: 49.5, lon: -8.0, reason: '1 voyage ready for invoicing', savings: '5.2%', guarantee: '5.0%', variance: '+0.2%', cii: 'B', ciiTarget: 'B', co2: '8.5%', contract: 'PAYS', nextInvoice: '12 Jul 2026', voyagesReady: 1, deploy: 'Active', hours: '4,100', voyage: 'Liverpool → Hamburg', perfTrust: 'verified', cbmTrust: 'verified', compTrust: 'verified', contractTrust: 'verified', alert: null, alertData: null, heading: 60 },
+    { id: 9, name: 'MV Zephyr', imo: '9890123', type: 'Container', status: 'grey', sailing: true, atPort: false, lat: -20.0, lon: 80.0, reason: 'No telemetry 18h', savings: '—', guarantee: '5.0%', variance: '—', cii: 'B', ciiTarget: 'B', co2: '—', contract: 'PAYS', nextInvoice: '—', voyagesReady: 0, deploy: 'Unknown', hours: '—', voyage: 'Last: Singapore → Colombo', perfTrust: 'nodata', cbmTrust: 'nodata', compTrust: 'nodata', contractTrust: 'nodata', alert: null, alertData: null, heading: 200 },
+    { id: 10, name: 'MV Calypso', imo: '9567890', type: 'RoRo', status: 'green', sailing: true, atPort: false, lat: 60.1, lon: -45.2, reason: 'First voyage complete', savings: '7.1%', guarantee: '5.0%', variance: '+2.1%', cii: 'B', ciiTarget: 'C', co2: '10.4%', contract: 'PAYS', nextInvoice: '18 Jul 2026', voyagesReady: 1, deploy: 'Active', hours: '180', voyage: 'Reykjavik → Halifax', perfTrust: 'verified', cbmTrust: 'verified', compTrust: 'verified', contractTrust: 'verified', alert: null, alertData: null, heading: 300 }
+  ];
+
+  function makeFastRigUnit(s, idx, unitCount) {
+    const healthScore = s.status === 'red' ? 62 : s.status === 'amber' ? 78 : s.status === 'cyan' ? 85 : s.status === 'grey' ? 0 : 94;
+    const unitLetter = String.fromCharCode(65 + idx);
+    const baseSerial = `FR-${String(s.id).padStart(4, '0')}-${s.imo.slice(-3)}`;
+    const serial = unitCount > 1 ? `${baseSerial}-${unitLetter}` : baseSerial;
+    const config = ['Mark IV 4-wing', 'Mark V 6-wing', 'Mark IV 4-wing', 'Mark V 6-wing', 'Mark IV 4-wing', 'Mark V 6-wing', 'Mark IV 4-wing', 'Mark IV 4-wing', 'Mark V 6-wing', 'Mark IV 4-wing'][s.id - 1];
+    const buildDate = ['2022-08', '2023-01', '2022-11', '2023-04', '2023-06', '2022-12', '2023-02', '2023-05', '2022-09', '2023-07'][s.id - 1];
+    const lifecycleStage = s.hours === '0' ? 'Commissioned' : parseInt(s.hours.replace(/,/g, '')) < 500 ? 'Early operation' : 'Steady state';
+    const residualValue = ['82%', '79%', '84%', '77%', '81%', '80%', '83%', '78%', '85%', '76%'][s.id - 1];
+    const unitOffset = unitCount > 1 ? ` · Unit ${unitLetter}` : '';
+    return {
+      serialNumber: serial,
+      configuration: config + unitOffset,
+      buildDate: buildDate,
+      lifecycleStage: lifecycleStage,
+      residualValue: residualValue,
+      components: [
+        { type: 'HPU', name: `HPU ${unitLetter}`, health: healthScore, hours: s.hours, rul: s.status === 'red' ? '41 days' : '14 months' },
+        { type: 'Wing', name: `Main wing set ${unitLetter}`, health: s.status === 'red' ? 88 : 94, hours: s.hours, rul: '18 years' },
+        { type: 'Slew', name: `Slew drive ${unitLetter}`, health: s.status === 'red' ? 85 : 92, hours: s.hours, rul: '12 years' },
+        { type: 'Flap', name: `Flap actuators ${unitLetter}`, health: 91, hours: s.hours, rul: '9 years' },
+        { type: 'Lock', name: `Locking mechanism ${unitLetter}`, health: 96, hours: s.hours, rul: '15 years' }
+      ],
+      sensors: [
+        { type: 'Pressure', name: `HPU pressure ${unitLetter}`, status: s.status === 'red' ? 'Alert' : 'Normal', lastReading: '2 min ago', transmission: 'L1' },
+        { type: 'Vibration', name: `Wing vibration ${unitLetter}`, status: 'Normal', lastReading: '2 min ago', transmission: 'L2' },
+        { type: 'Load', name: `Wing load cell ${unitLetter}`, status: 'Normal', lastReading: '2 min ago', transmission: 'L2' },
+        { type: 'Wind', name: `Anemometer ${unitLetter}`, status: 'Normal', lastReading: '2 min ago', transmission: 'L2' },
+        { type: 'Position', name: `GPS/position ${unitLetter}`, status: s.status === 'grey' ? 'Offline' : 'Normal', lastReading: s.status === 'grey' ? '18h ago' : '2 min ago', transmission: 'L2' }
+      ]
+    };
+  }
+
+  ships.forEach(s => {
+    const isProspect = s.contract === 'Prospect';
+    const isActive = s.deploy === 'Active';
+    const hasRig = isActive && !isProspect;
+    const unitCount = hasRig ? ([2, 4, 1, 3, 2, 4, 2, 3, 0, 2][s.id - 1]) : 0;
+    const healthScore = s.status === 'red' ? 62 : s.status === 'amber' ? 78 : s.status === 'cyan' ? 85 : s.status === 'grey' ? 0 : 94;
+    s.details = {
+      deploymentId: isProspect ? null : `DEP-${s.imo}-001`,
+      deploymentStatus: isProspect ? 'Prospect' : s.deploy,
+      installDate: isProspect ? null : '12 Mar 2023',
+      commissioningDate: isProspect ? null : '08 Apr 2023',
+      fastRigUnits: hasRig ? Array.from({ length: unitCount }, (_, i) => makeFastRigUnit(s, i, unitCount)) : [],
+      vessel: {
+        flag: ['Liberia', 'Marshall Is.', 'Panama', 'Singapore', 'Malta', 'Greece', 'Norway', 'UK', 'Hong Kong', 'Cyprus'][s.id - 1],
+        yearBuilt: 2012 + (s.id % 7),
+        dwt: [85000, 145000, 160000, 95000, 47000, 138000, 115000, 82000, 152000, 42000][s.id - 1],
+        lengthOverall: [235, 335, 250, 245, 180, 330, 270, 230, 340, 175][s.id - 1],
+        beam: [38, 42, 44, 39, 32, 43, 45, 38, 44, 31][s.id - 1],
+        propulsion: 'Single screw, slow-speed diesel',
+        sfof: [165, 155, 158, 162, 175, 156, 160, 164, 154, 178][s.id - 1]
+      },
+      contract: isProspect ? null : {
+        contractId: `CTR-${s.imo}-001`,
+        type: s.contract,
+        startDate: '08 Apr 2023',
+        endDate: '07 Apr 2028',
+        paysRate: '80% of verified savings',
+        guaranteeFloor: s.guarantee,
+        nextInvoiceDate: s.nextInvoice,
+        voyagesReady: s.voyagesReady,
+        dataTrust: s.contractTrust
+      },
+      voyage: isProspect ? null : {
+        voyageId: `VY-${s.imo}-${Math.floor(1000 + Math.random() * 9000)}`,
+        source: 'live_ship',
+        departure: s.voyage.split(' → ')[0],
+        destination: s.voyage.split(' → ')[1],
+        eta: '14:30 UTC',
+        distanceRemaining: [1800, 4200, 2200, 3500, 900, 3100, 2800, 1500, 2600, 1100][s.id - 1] + ' nm',
+        speed: [11.5, 12.8, 11.2, 12.5, 14.2, 13.0, 12.1, 11.8, 13.5, 15.0][s.id - 1] + ' kt'
+      },
+      performanceMetrics: hasRig ? {
+        avgThrust: [128, 156, 134, 162, 118, 148, 142, 130, 150, 124][s.id - 1] + ' kN',
+        peakPower: [420, 510, 450, 530, 390, 480, 470, 430, 500, 410][s.id - 1] + ' kW',
+        powerContribution: [12.4, 14.2, 11.8, 15.1, 10.9, 13.6, 13.2, 12.1, 14.5, 11.2][s.id - 1] + '%',
+        loadBandHours: [1240, 1980, 0, 1520, 1890, 980, 2450, 1180, 45, 95][s.id - 1],
+        fuelFlow: [24.2, 31.5, 28.0, 26.1, 21.8, 30.2, 29.4, 25.5, 32.1, 22.4][s.id - 1] + ' t/d'
+      } : null,
+      cii: s.cii === '—' ? null : {
+        currentRating: s.cii,
+        targetRating: s.ciiTarget,
+        operationalCarbonIntensity: [7.2, 6.1, 8.4, 6.8, 5.9, 6.5, 7.8, 6.9, 6.3, 7.1][s.id - 1] + ' g CO₂/t·nm',
+        requiredAttained: [10.2, 8.9, 11.5, 9.8, 8.2, 9.2, 10.8, 9.6, 9.0, 9.9][s.id - 1] + ' g CO₂/t·nm',
+        verifiedDataPct: s.compTrust === 'verified' ? '100%' : '34%'
+      },
+      cbm: hasRig ? {
+        healthScore: healthScore,
+        lastDiagnostic: s.status === 'grey' ? '18h ago' : '2 min ago',
+        edgeEvaluated: true,
+        openFaults: s.status === 'red' ? 1 : 0,
+        rulSummary: s.status === 'red' ? 'HPU: 41 days' : 'All components > 12 months'
+      } : null,
+      events: isProspect ? null : {
+        sensorReadings24h: [8400, 12400, 0, 9800, 11200, 13200, 14600, 8900, 0, 7200][s.id - 1],
+        controlEvents24h: [12, 18, 0, 15, 14, 20, 22, 13, 0, 11][s.id - 1],
+        diagnosticEvents24h: s.status === 'red' ? 3 : s.status === 'amber' ? 1 : 0,
+        downtimeHours30d: [0, 2.5, 0, 0, 0.3, 0, 1.2, 0, 0, 0][s.id - 1]
+      }
+    };
+  });
+
+  const statusVarMap = { green: '--status-green', amber: '--status-amber', red: '--status-red', blue: '--status-blue', cyan: '--status-cyan', grey: '--status-grey' };
+  const statusColors = { green: '#10B981', amber: '#F59E0B', red: '#EF4444', blue: '#6366F1', cyan: '#06B6D4', grey: '#64748B' };
+  function refreshStatusColors() {
+    const style = getComputedStyle(document.body);
+    Object.keys(statusVarMap).forEach(key => {
+      statusColors[key] = style.getPropertyValue(statusVarMap[key]).trim() || statusColors[key];
+    });
+  }
+  refreshStatusColors();
+  const statusLabels = { green: 'Nominal', amber: 'Attention', red: 'Critical', blue: 'Prospect', cyan: 'Advice', grey: 'Offline' };
+  const badgeHtml = { verified: '<span class="badge badge-verified">Verified</span>', provisional: '<span class="badge badge-provisional">Provisional</span>', nodata: '<span class="badge badge-disabled">No data</span>' };
+
+  const DIRECTIONS = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  function degToCompass(deg) { return DIRECTIONS[Math.round(deg / 22.5) % 16]; }
+  function generateWeather(s) {
+    const seed = Math.abs(Math.round((s.lat * 1000 + s.lon * 100 + s.id * 37) % 100000));
+    const rng = mulberry32(seed);
+    const windSpeed = Math.round(8 + rng() * 34);
+    const windDirDeg = Math.round(rng() * 360);
+    const windDir = degToCompass(windDirDeg);
+    const seaState = windSpeed < 12 ? 'Calm' : windSpeed < 22 ? 'Slight' : windSpeed < 32 ? 'Moderate' : windSpeed < 42 ? 'Rough' : 'High';
+    const icon = windSpeed > 35 ? '⛈️' : windSpeed > 28 ? '🌧️' : Math.abs(s.lat) > 60 ? '❄️' : rng() > 0.5 ? '⛅' : '☀️';
+    const alert = windSpeed >= 34 || seaState === 'High';
+    return { windSpeed, windDirDeg, windDir, seaState, icon, alert };
+  }
+  ships.forEach(s => { s.weather = generateWeather(s); });
+
+  const windArrowSVG = `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="22" x2="12" y2="2"/><polyline points="5 9 12 2 19 9"/></svg>`;
+  let weatherLayerVisible = false;
+  let windLayerMarkers = [];
+  function toggleWeatherLayer() {
+    weatherLayerVisible = !weatherLayerVisible;
+    const btn = document.getElementById('weatherToggle');
+    if (btn) btn.textContent = weatherLayerVisible ? 'Hide wind layer' : 'Show wind layer';
+    windLayerMarkers.forEach(m => map.removeLayer(m));
+    windLayerMarkers = [];
+    if (weatherLayerVisible) {
+      ships.forEach(s => {
+        const marker = L.marker([s.lat, s.lon], {
+          icon: L.divIcon({
+            className: 'weather-overlay-marker',
+            html: `<div class="wind-arrow" style="transform:rotate(${s.weather.windDirDeg}deg);">${windArrowSVG}</div>`,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+          })
+        }).addTo(map);
+        windLayerMarkers.push(marker);
+      });
+    }
+  }
+  function renderWeatherSummary() {
+    const avg = Math.round(ships.reduce((sum, s) => sum + s.weather.windSpeed, 0) / ships.length);
+    let ux = 0, vy = 0;
+    ships.forEach(s => {
+      const rad = s.weather.windDirDeg * Math.PI / 180;
+      ux += Math.sin(rad) * s.weather.windSpeed;
+      vy += Math.cos(rad) * s.weather.windSpeed;
+    });
+    const domDeg = (Math.atan2(ux, vy) * 180 / Math.PI + 360) % 360;
+    const domDir = degToCompass(domDeg);
+    const alerts = ships.filter(s => s.weather.alert).length;
+    document.getElementById('weatherSummary').innerHTML = `
+      <div class="weather-summary-title">Weather summary</div>
+      <div class="weather-summary-grid">
+        <div class="weather-summary-item"><span class="weather-summary-label">Avg wind</span><span class="weather-summary-value">${avg} kt</span></div>
+        <div class="weather-summary-item"><span class="weather-summary-label">Dominant</span><span class="weather-summary-value">${domDir}</span></div>
+        <div class="weather-summary-item"><span class="weather-summary-label">Alerts</span><span class="weather-summary-value ${alerts ? 'weather-alert' : 'weather-calm'}">${alerts}</span></div>
+      </div>
+      <button class="weather-toggle" id="weatherToggle" onclick="toggleWeatherLayer()">Show wind layer</button>
+    `;
+  }
+
+  function mulberry32(a) {
+    return function() {
+      let t = a += 0x6D2B79F5;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    }
+  }
+
+  function toRad(deg) { return deg * Math.PI / 180; }
+  function toDeg(rad) { return rad * 180 / Math.PI; }
+  function haversineDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+  function greatCirclePoint(lat1, lon1, lat2, lon2, f) {
+    const lat1r = toRad(lat1), lon1r = toRad(lon1), lat2r = toRad(lat2), lon2r = toRad(lon2);
+    const d = Math.acos(Math.sin(lat1r) * Math.sin(lat2r) + Math.cos(lat1r) * Math.cos(lat2r) * Math.cos(lon2r - lon1r));
+    if (Math.abs(d) < 1e-10) return [lat1, lon1];
+    const A = Math.sin((1 - f) * d) / Math.sin(d);
+    const B = Math.sin(f * d) / Math.sin(d);
+    const x = A * Math.cos(lat1r) * Math.cos(lon1r) + B * Math.cos(lat2r) * Math.cos(lon2r);
+    const y = A * Math.cos(lat1r) * Math.sin(lon1r) + B * Math.cos(lat2r) * Math.sin(lon2r);
+    const z = A * Math.sin(lat1r) + B * Math.sin(lat2r);
+    const lat = toDeg(Math.atan2(z, Math.sqrt(x * x + y * y)));
+    const lon = toDeg(Math.atan2(y, x));
+    return [lat, lon];
+  }
+  function bearing(lat1, lon1, lat2, lon2) {
+    const lat1r = toRad(lat1), lat2r = toRad(lat2), dLon = toRad(lon2 - lon1);
+    const y = Math.sin(dLon) * Math.cos(lat2r);
+    const x = Math.cos(lat1r) * Math.sin(lat2r) - Math.sin(lat1r) * Math.cos(lat2r) * Math.cos(dLon);
+    return (toDeg(Math.atan2(y, x)) + 360) % 360;
+  }
+  function extractPorts(voyageString) {
+    if (!voyageString || typeof voyageString !== 'string') return null;
+    const m = voyageString.match(/([A-Za-z\s]+)\s*→\s*([A-Za-z\s]+)/);
+    if (!m) return null;
+    return [m[1].trim().replace(/^Last:\s*/i, ''), m[2].trim()];
+  }
+  function normalizePort(name) {
+    return name.toLowerCase().replace(/[^a-z]/g, '');
+  }
+  function portHash(name) {
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = ((h << 5) - h) + name.charCodeAt(i);
+    return Math.abs(h);
+  }
+  function generateFallbackPort(name, role) {
+    const h = portHash(name);
+    const baseLat = (h % 140) - 70;
+    const baseLon = ((h >> 8) % 360) - 180;
+    const jitter = 6;
+    return [baseLat + (role === 'departure' ? -jitter : jitter), baseLon + ((h >> 16) % jitter * 2 - jitter)];
+  }
+
+  const ATOBVIAC_API_KEY = '0GhI9a1Sx8wIC+p9mLg4OGVB3Isu76QgQOY1qb2ItNOQcQfB4zN1NmzS5UPoeuoB0';
+  const ROUTE_CACHE_KEY = 'fastFleet_routeCache_v1';
+  const ROUTE_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+  function getRouteCacheKey(ports) {
+    return ports.map(p => normalizePort(p)).join('→');
+  }
+  function loadRouteCache() {
+    try {
+      const raw = localStorage.getItem(ROUTE_CACHE_KEY);
+      if (!raw) return new Map();
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return new Map();
+      const map = new Map();
+      Object.entries(parsed).forEach(([key, value]) => { map.set(key, value); });
+      return map;
+    } catch (e) {
+      console.warn('Failed to load route cache from localStorage:', e.message);
+      return new Map();
+    }
+  }
+  function saveRouteCache() {
+    try {
+      const obj = Object.fromEntries(routeCache.entries());
+      localStorage.setItem(ROUTE_CACHE_KEY, JSON.stringify(obj));
+    } catch (e) {
+      console.warn('Failed to save route cache to localStorage:', e.message);
+    }
+  }
+  function pruneRouteCache() {
+    const now = Date.now();
+    for (const [key, entry] of routeCache) {
+      if (!entry || !entry.ts || (now - entry.ts) > ROUTE_CACHE_TTL_MS) routeCache.delete(key);
+    }
+  }
+  let routeCache = loadRouteCache();
+  pruneRouteCache();
+  const PORT_COORDINATES = {
+    'liverpool': [53.4, -3.0],
+    'baltimore': [39.3, -76.6],
+    'shanghai': [31.2, 121.5],
+    'longbeach': [33.7, -118.2],
+    'capetown': [-33.9, 18.4],
+    'singapore': [1.3, 103.8],
+    'algeciras': [36.1, -5.5],
+    'genoa': [44.4, 8.9],
+    'mombasa': [-4.1, 39.6],
+    'rotterdam': [51.9, 4.1],
+    'fujairah': [25.1, 56.3],
+    'hamburg': [53.5, 9.9],
+    'colombo': [6.9, 79.9],
+    'reykjavik': [64.1, -21.9],
+    'halifax': [44.6, -63.6]
+  };
+  function lookupPortCoords(name) {
+    const key = normalizePort(name);
+    if (PORT_COORDINATES[key]) return PORT_COORDINATES[key];
+    return null;
+  }
+
+  async function fetchAtoBviaCRoute(ports) {
+    if (!ATOBVIAC_API_KEY || ports.length < 2) return null;
+    const portParams = ports.map(p => `port=${encodeURIComponent(p)}`).join('&');
+    const apiKeyParam = `api_key=${encodeURIComponent(ATOBVIAC_API_KEY)}`;
+    const url = `https://api.atobviac.com/v1/Voyage?${portParams}&antipiracy=true&scaneca=true&illustrate=true&${apiKeyParam}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`AtoBviaC API error ${response.status}`);
+      const apiData = await response.json();
+      const points = [];
+      if (apiData && apiData.Legs) {
+        apiData.Legs.forEach((leg, legIndex) => {
+          let illustrative = [];
+          if (leg.Waypoints && Array.isArray(leg.Waypoints) && leg.Waypoints.length) {
+            illustrative = leg.Waypoints.map(p => (p && typeof p === 'object') ? { lat: p.LatGeodetic || p.lat, lon: p.Lon || p.lon } : null).filter(Boolean);
+          }
+          if (!illustrative.length && leg.IllustrativeRoute && Array.isArray(leg.IllustrativeRoute)) {
+            leg.IllustrativeRoute.forEach(item => {
+              if (Array.isArray(item) && item.length >= 2) {
+                if (typeof item[0] === 'number' && typeof item[1] === 'number') {
+                  illustrative.push({ lat: item[0], lon: item[1] });
+                } else if (Array.isArray(item[0]) && item[0].length >= 2) {
+                  illustrative.push({ lat: item[0][0], lon: item[0][1] });
+                }
+              } else if (item && typeof item === 'object') {
+                illustrative.push({ lat: item.lat || item.LatGeodetic, lon: item.lon || item.Lon });
+              }
+            });
+          }
+          illustrative.forEach((point, pointIndex) => {
+            if (legIndex > 0 && pointIndex === 0) return;
+            const lat = point.lat || point.LatGeodetic;
+            const lon = point.lon || point.Lon;
+            if (lat != null && lon != null) points.push([lat, lon]);
+          });
+        });
+      }
+      return points.length >= 2 ? points : null;
+    } catch (err) {
+      console.warn('AtoBviaC route fetch failed:', err.message);
+      return null;
+    }
+  }
+
+  async function loadLiveRoute(s) {
+    const voyage = s.details && s.details.voyage;
+    const ports = voyage ? [voyage.departure, voyage.destination] : extractPorts(s.voyage);
+    if (!ports || ports.length < 2) return;
+    const cacheKey = getRouteCacheKey(ports);
+    const now = Date.now();
+    const cached = routeCache.get(cacheKey);
+    if (cached && cached.points && (now - cached.ts) < ROUTE_CACHE_TTL_MS) {
+      applyLiveRoute(s, cached.points, 'cached-live');
+      return;
+    }
+    const points = await fetchAtoBviaCRoute(ports);
+    if (points && points.length >= 2) {
+      routeCache.set(cacheKey, { points, ts: now });
+      saveRouteCache();
+      applyLiveRoute(s, points, 'verified-live');
+    }
+  }
+
+  function applyLiveRoute(s, points, type) {
+    s.route.points = points;
+    s.route.type = type;
+    let totalKm = 0;
+    for (let i = 1; i < points.length; i++) {
+      totalKm += haversineDistance(points[i - 1][0], points[i - 1][1], points[i][0], points[i][1]);
+    }
+    s.route.distanceNm = Math.round(totalKm / 1.852);
+  }
+
+  function setRouteLoading(loading) {
+    const card = document.querySelector('#lens-optimise .card');
+    if (card) card.classList.toggle('route-loading', loading);
+    const routeName = document.getElementById('routeName');
+    if (loading) {
+      routeName.textContent = 'Fetching live route…';
+      document.getElementById('routeDistance').textContent = '—';
+      document.getElementById('routeEta').textContent = '—';
+      document.getElementById('routeSpeed').textContent = '—';
+      document.getElementById('routeStatus').textContent = '—';
+      document.getElementById('routeType').textContent = 'Loading…';
+    }
+  }
+
+  function generateRoute(s) {
+    const voyage = s.details && s.details.voyage;
+    let ports = voyage ? [voyage.departure, voyage.destination] : extractPorts(s.voyage);
+    if (!ports) ports = ['Predicted start', 'Predicted end'];
+    const departure = ports[0] || 'Start';
+    const destination = ports[1] || 'End';
+    let start = lookupPortCoords(departure);
+    let end = lookupPortCoords(destination);
+    if (!start) start = generateFallbackPort(departure, 'departure');
+    if (!end) end = generateFallbackPort(destination, 'destination');
+    const routeType = s.status === 'blue' ? 'predicted' : s.perfTrust === 'provisional' ? 'provisional' : 'verified-recent';
+    const waypoints = 8 + Math.floor((s.id * 73) % 8);
+    const points = [];
+    for (let i = 0; i <= waypoints; i++) {
+      const f = i / waypoints;
+      const [lat, lon] = greatCirclePoint(start[0], start[1], end[0], end[1], f);
+      const curve = Math.sin(f * Math.PI) * ((s.id % 2 === 0 ? 1 : -1) * (2 + (s.id % 5) * 0.5));
+      const brg = bearing(start[0], start[1], end[0], end[1]);
+      const offsetLat = curve * Math.cos(toRad(brg + 90)) / 111;
+      const offsetLon = curve * Math.sin(toRad(brg + 90)) / (111 * Math.cos(toRad(lat)));
+      points.push([lat + offsetLat, lon + offsetLon]);
+    }
+    const shipPos = [s.lat, s.lon];
+    let inserted = false;
+    if (s.sailing) {
+      for (let i = 0; i < points.length - 1; i++) {
+        const d1 = haversineDistance(points[i][0], points[i][1], shipPos[0], shipPos[1]) +
+                   haversineDistance(shipPos[0], shipPos[1], points[i + 1][0], points[i + 1][1]);
+        const d2 = haversineDistance(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1]) * 1.35;
+        if (d1 < d2) { points.splice(i + 1, 0, shipPos); inserted = true; break; }
+      }
+    }
+    const totalDistanceNm = haversineDistance(start[0], start[1], end[0], end[1]) / 1.852;
+    const speedKts = voyage ? parseFloat(voyage.speed) || 12 : 12;
+    const hours = totalDistanceNm / speedKts;
+    const eta = voyage ? voyage.eta : `${Math.floor(hours / 24)}d ${Math.floor(hours % 24)}h`;
+    return {
+      type: routeType,
+      points,
+      departure,
+      destination,
+      start,
+      end,
+      shipInserted: inserted,
+      distanceNm: Math.round(totalDistanceNm),
+      eta,
+      speed: speedKts + ' kt'
+    };
+  }
+  ships.forEach(s => { s.route = generateRoute(s); });
+
+  const shipSVGs = {
+    default: `<svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="rgba(0,0,0,0.55)"/></filter>
+      </defs>
+      <circle cx="22" cy="22" r="20" fill="rgba(0,0,0,0.42)" stroke="currentColor" stroke-width="2.5" opacity="0.95"/>
+      <line x1="22" y1="22" x2="22" y2="2" stroke="currentColor" stroke-width="2" opacity="0.9"/>
+      <path d="M22 3 L19 9 L25 9 Z" fill="currentColor"/>
+      <path d="M15 32 L15 23 L17 18 L17 15 L27 15 L27 18 L29 23 L29 32 C29 35 22 37 22 37 C22 37 15 35 15 32 Z" fill="white" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
+      <rect x="17" y="28" width="10" height="4" fill="currentColor" rx="0.5"/>
+      <line x1="17" y1="24" x2="27" y2="24" stroke="currentColor" stroke-width="1.5"/>
+    </svg>`
+  };
+
+  const map = L.map('map', { center: [20, 10], zoom: 2, zoomControl: false });
+  let currentTileLayer = null;
+  function refreshTileLayer() {
+    const isLight = document.body.classList.contains('light-mode');
+    const url = isLight
+      ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+      : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+    if (currentTileLayer) map.removeLayer(currentTileLayer);
+    currentTileLayer = L.tileLayer(url, { attribution: '&copy; CARTO' }).addTo(map);
+  }
+  refreshTileLayer();
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+  function shipIcon(s, state) {
+    const colour = statusColors[s.status];
+    const pulse = (s.status === 'red' || s.status === 'cyan') ? 'pulse' : '';
+    const glow = (s.status === 'red' || s.status === 'cyan') ? 'filter: url(#glow);' : '';
+    const scale = state === 'selected' ? 'scale(1.35)' : 'scale(1)';
+    const dim = state === 'dimmed' ? 'filter: grayscale(1) opacity(0.35);' : '';
+    const z = state === 'selected' ? 'z-index: 1000;' : '';
+    return L.divIcon({
+      html: `<div class="${pulse}" style="width:44px;height:44px;transform:rotate(${s.heading}deg) ${scale};color:${colour};${glow}${dim}${z}">${shipSVGs.default}</div>`,
+      iconSize: [44, 44], className: 'ship-marker', iconAnchor: [22, 22]
+    });
+  }
+
+  const markers = [];
+  ships.forEach(s => {
+    const marker = L.marker([s.lat, s.lon], { icon: shipIcon(s) });
+    marker.ship = s;
+    marker.bindTooltip(`<b>${s.name}</b><br>${s.type}<br>${statusLabels[s.status]}<br><span class="weather-tooltip">${s.weather.icon} ${s.weather.windSpeed} kt ${s.weather.windDir}</span>`, { permanent: false, direction: 'top', className: 'ship-tooltip' });
+    marker.on('click', (e) => { L.DomEvent.stopPropagation(e); openShip(s); });
+    marker.addTo(map);
+    markers.push(marker);
+  });
+
+  const categoryOrder = ['Operational', 'Sailing', 'At Port', 'Maintenance'];
+  const categoryColor = { Operational: '--status-green', Sailing: '--status-cyan', 'At Port': '--status-blue', Maintenance: '--status-red' };
+  function shipCategories(s) {
+    const cats = [];
+    if (['green', 'amber', 'cyan', 'blue'].includes(s.status)) cats.push('Operational');
+    if (s.status === 'red') cats.push('Maintenance');
+    if (s.sailing) cats.push('Sailing');
+    if (s.atPort) cats.push('At Port');
+    return cats;
+  }
+  const statusFilter = { Operational: true, Sailing: true, 'At Port': true, Maintenance: true };
+
+  const alertTypes = ['Critical', 'Attention', 'Route Update', 'Offline', 'No alert'];
+  const alertTypeColors = { 'Critical': '--status-red', 'Attention': '--status-amber', 'Route Update': '--status-cyan', 'Offline': '--status-grey', 'No alert': '--status-green' };
+  const alertTypeClasses = { 'Critical': 'critical', 'Attention': 'attention', 'Route Update': 'route', 'Offline': 'offline', 'No alert': 'none' };
+  function getAlertType(s) {
+    if (s.status === 'red') return 'Critical';
+    if (s.status === 'amber') return 'Attention';
+    if (s.status === 'cyan') return 'Route Update';
+    if (s.status === 'grey') return 'Offline';
+    return 'No alert';
+  }
+  const alertFilter = { 'Critical': true, 'Attention': true, 'Route Update': true, 'Offline': true, 'No alert': true };
+
+  let nameFilter = '';
+  function updateMarkerStyles() {
+    markers.forEach(m => {
+      const state = selectedShip ? (m.ship.id === selectedShip.id ? 'selected' : 'dimmed') : null;
+      m.setIcon(shipIcon(m.ship, state));
+    });
+  }
+  function updateMarkers() {
+    markers.forEach(m => {
+      const s = m.ship;
+      const cats = shipCategories(s);
+      const statusMatch = cats.some(c => statusFilter[c]);
+      const alertMatch = alertFilter[getAlertType(s)];
+      const nameMatch = !nameFilter || s.name.toLowerCase().includes(nameFilter);
+      const visible = statusMatch && alertMatch && nameMatch;
+      if (visible) {
+        if (!map.hasLayer(m)) m.addTo(map);
+      } else {
+        if (map.hasLayer(m)) map.removeLayer(m);
+      }
+    });
+    updateMarkerStyles();
+  }
+  function toggleStatus(category) {
+    statusFilter[category] = !statusFilter[category];
+    renderStats();
+    updateMarkers();
+  }
+  function toggleAlert(type) {
+    alertFilter[type] = !alertFilter[type];
+    renderAlertFilter();
+    updateMarkers();
+  }
+  function renderStats() {
+    const style = getComputedStyle(document.body);
+    const tiles = categoryOrder.map(category => {
+      const count = ships.filter(s => shipCategories(s).includes(category)).length;
+      const active = statusFilter[category];
+      const color = style.getPropertyValue(categoryColor[category]).trim();
+      return `
+        <div class="stat-card ${active ? 'active' : 'inactive'}" onclick="toggleStatus('${category}')">
+          <div class="stat-check">${active ? '✓' : ''}</div>
+          <div class="stat-label">${category}</div>
+          <div class="stat-row">
+            <div class="stat-dot" style="background:${color}"></div>
+            <div class="stat-value">${count}</div>
+          </div>
+        </div>`;
+    }).join('');
+    document.getElementById('fleetStats').innerHTML = tiles;
+  }
+  function renderAlertFilter() {
+    const container = document.getElementById('alertFilter');
+    const style = getComputedStyle(document.body);
+    container.innerHTML = alertTypes.map(type => {
+      const count = ships.filter(s => getAlertType(s) === type).length;
+      const active = alertFilter[type];
+      const color = style.getPropertyValue(alertTypeColors[type]).trim();
+      const cls = alertTypeClasses[type];
+      return `
+        <div class="alert-chip ${cls} ${active ? '' : 'inactive'}" onclick="toggleAlert('${type}')">
+          <span class="chip-dot" style="background:${color}"></span>
+          <span>${type}</span>
+          <span class="chip-check">${active ? '✓' : ''}</span>
+        </div>`;
+    }).join('');
+  }
+  function renderFleetSummary() {
+    const activeRigs = ships.reduce((sum, s) => sum + (s.details && s.details.fastRigUnits ? s.details.fastRigUnits.length : 0), 0);
+    document.getElementById('fleetSummary').innerHTML = `
+      <div class="stat-card summary">
+        <div class="stat-label">Active FastRigs</div>
+        <div class="stat-value">${activeRigs}</div>
+      </div>
+      <div class="stat-card summary">
+        <div class="stat-label">Fleet savings</div>
+        <div class="stat-value green">4.8%</div>
+      </div>
+    `;
+  }
+  function renderShipList() {
+    // Ship list removed from left panel; markers are the fleet view.
+  }
+  function openShipById(id) {
+    const s = ships.find(x => x.id === id);
+    if (s) openShip(s);
+  }
+
+  let selectedShip = null;
+  let routeLayers = [];
+  let routeMarkers = [];
+
+  const themeToggle = document.getElementById('themeToggle');
+  function updateThemeUI() {
+    const isLight = document.body.classList.contains('light-mode');
+    themeToggle.textContent = isLight ? '☀️' : '🌙';
+    refreshStatusColors();
+    renderStats();
+    renderAlertFilter();
+    refreshTileLayer();
+    updateMarkerStyles();
+    if (selectedShip && document.getElementById('lens-optimise').classList.contains('active')) {
+      showRoutes(selectedShip);
+    }
+  }
+  themeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('light-mode');
+    const isLight = document.body.classList.contains('light-mode');
+    localStorage.setItem('fastFleetTheme', isLight ? 'light' : 'dark');
+    updateThemeUI();
+  });
+  const savedTheme = localStorage.getItem('fastFleetTheme');
+  if (savedTheme === 'light') {
+    document.body.classList.add('light-mode');
+  }
+  updateThemeUI();
+
+  renderStats();
+  renderAlertFilter();
+  renderFleetSummary();
+  renderWeatherSummary();
+  updateMarkers();
+
+  document.getElementById('nameFilter').addEventListener('input', (e) => {
+    nameFilter = e.target.value.trim().toLowerCase();
+    updateMarkers();
+  });
+
+  const tabTitles = {
+    overview: 'Fast Fleet · Wind as a Service',
+    details: 'Fast Fleet · Ship details',
+    fix: 'FastFix · Condition & maintenance',
+    report: 'FastReport · Techno-economic case',
+    regs: 'FastRegs · Compliance reporting',
+    optimise: 'FastRoute · Voyage routes'
+  };
+
+  function computeHeadline(s) {
+    const role = document.getElementById('roleSelect').value;
+    if (s.status === 'grey') return { text: 'No telemetry for 18 hours', status: 'grey', action: 'Investigate data gap', lens: 'cbm' };
+    if (s.status === 'blue') return { text: `Predicted ${s.savings} fuel saving on typical route`, status: 'blue', action: 'Build business case', lens: 'predict' };
+    if (role === 'regulator' && s.status === 'amber' && s.cii !== '—') return { text: `CII rating ${s.cii} · target ${s.ciiTarget} · compliance at risk`, status: 'amber', action: 'Open FastRegs', lens: 'regs' };
+    if (role === 'financier' && s.status === 'blue') return { text: `Predicted ${s.savings} saving · no contract in place`, status: 'blue', action: 'Build business case', lens: 'predict' };
+    if (s.status === 'red') return { text: `${s.alert} · RUL ${s.alertData.rul}`, status: 'red', action: 'Create work order', lens: 'cbm' };
+    if (s.status === 'cyan') return { text: `Live route advice: ${s.alertData.action}`, status: 'cyan', action: 'Endorse recommendation', lens: 'optimise' };
+    if (s.status === 'amber') return { text: `Savings ${s.savings} vs ${s.guarantee} guarantee · variance ${s.variance}`, status: 'amber', action: 'Investigate variance', lens: 'savings' };
+    if (s.voyagesReady > 0) return { text: `${s.voyagesReady} voyage ready for PAYS invoicing · verified`, status: 'green', action: 'Preview invoice', lens: 'invoice' };
+    return { text: `Savings ${s.savings} vs ${s.guarantee} guarantee · all systems nominal`, status: 'green', action: 'View performance', lens: 'savings' };
+  }
+
+  function sparkline(values, colourClass) {
+    return `<div class="sparkline">${values.map(v => `<div class="sparkbar ${colourClass}" style="height:${v}%"></div>`).join('')}</div>`;
+  }
+
+  function openShip(s) {
+    selectedShip = s;
+    clearRoutes();
+    updateMarkerStyles();
+    document.getElementById('shipName').textContent = s.name;
+    document.getElementById('shipMeta').textContent = `${s.imo} · ${s.type}`;
+    document.getElementById('deployStatus').textContent = s.deploy;
+    document.getElementById('opHours').textContent = s.hours;
+    document.getElementById('curVoyage').textContent = s.voyage;
+    document.getElementById('position').textContent = `${s.lat.toFixed(1)}°, ${Math.abs(s.lon).toFixed(1)}° ${s.lon > 0 ? 'E' : 'W'}`;
+
+    renderDetails(s);
+
+    const w = s.weather;
+    document.getElementById('shipWeatherIcon').textContent = w.icon;
+    document.getElementById('shipWeatherPosition').textContent = `${s.lat.toFixed(1)}°, ${Math.abs(s.lon).toFixed(1)}° ${s.lon > 0 ? 'E' : 'W'}`;
+    document.getElementById('shipWeatherWind').textContent = `${w.windSpeed} kt`;
+    document.getElementById('shipWeatherDir').textContent = w.windDir;
+    const seaEl = document.getElementById('shipWeatherSea');
+    seaEl.textContent = w.seaState;
+    seaEl.className = 'weather-card-value ' + (w.seaState === 'High' || w.seaState === 'Rough' ? 'weather-rough' : 'weather-calm');
+
+    document.getElementById('routeWeatherIcon').textContent = w.icon;
+    document.getElementById('routeWeatherPosition').textContent = `${s.lat.toFixed(1)}°, ${Math.abs(s.lon).toFixed(1)}° ${s.lon > 0 ? 'E' : 'W'}`;
+    document.getElementById('routeWeatherWind').textContent = `${w.windSpeed} kt`;
+    document.getElementById('routeWeatherDir').textContent = w.windDir;
+    const routeSeaEl = document.getElementById('routeWeatherSea');
+    routeSeaEl.textContent = w.seaState;
+    routeSeaEl.className = 'weather-card-value ' + (w.seaState === 'High' || w.seaState === 'Rough' ? 'weather-rough' : 'weather-calm');
+
+    const headline = computeHeadline(s);
+    const headlineEl = document.getElementById('headline');
+    headlineEl.className = 'headline ' + headline.status;
+    headlineEl.innerHTML = `
+      <div class="headline-status">${statusLabels[s.status]}${headline.status === 'red' || headline.status === 'amber' ? ' · requires action' : ''}</div>
+      <div class="headline-text">${headline.text}</div>
+      <div class="headline-action">
+        <button class="btn" onclick="headlineAction()">${headline.action}</button>
+      </div>`;
+
+    document.getElementById('perfValue').textContent = s.status === 'blue' ? s.savings : s.savings + ' vs ' + s.guarantee;
+    document.getElementById('perfCaption').textContent = s.perfTrust === 'verified' ? 'verified saving' : 'predicted saving';
+    document.getElementById('perfBadge').innerHTML = badgeHtml[s.perfTrust];
+    document.getElementById('perfSpark').innerHTML = sparkline([40, 55, 50, 60, 58, 62, 54], s.perfTrust === 'verified' ? '' : 'amber');
+
+    document.getElementById('cbmValue').textContent = s.alert ? (s.status === 'cyan' ? 'Advice' : 'Alert') : 'Healthy';
+    document.getElementById('cbmCaption').textContent = s.alert ? (s.status === 'cyan' ? 'route recommendation' : s.alertData.component) : 'no active alerts';
+    document.getElementById('cbmBadge').innerHTML = badgeHtml[s.cbmTrust];
+    document.getElementById('cbmSpark').innerHTML = s.status === 'red' ? sparkline([20, 35, 45, 55, 70, 82, 88], 'red') : sparkline([30, 25, 20, 15, 10, 5, 2], '');
+
+    document.getElementById('compValue').textContent = s.cii === '—' ? 'No data' : s.cii + ' / ' + s.ciiTarget;
+    document.getElementById('compCaption').textContent = 'CII rating / target';
+    document.getElementById('compBadge').innerHTML = badgeHtml[s.compTrust];
+    document.getElementById('compSpark').innerHTML = sparkline([60, 55, 50, 45, 40, 35, 30], s.cii === 'D' ? 'red' : '');
+
+    document.getElementById('contractValue').textContent = s.contract === 'Prospect' ? 'No contract' : s.contract;
+    document.getElementById('contractCaption').textContent = s.contract === 'Prospect' ? 'build business case' : s.voyagesReady + ' voyage ready';
+    document.getElementById('contractBadge').innerHTML = badgeHtml[s.contractTrust];
+    document.getElementById('contractSpark').innerHTML = sparkline([10, 25, 35, 45, 55, 65, 70], '');
+
+    document.getElementById('savingValue').textContent = s.savings;
+    document.getElementById('guaranteeValue').textContent = s.guarantee;
+    document.getElementById('varianceValue').textContent = s.variance;
+    document.getElementById('trendSpark').innerHTML = sparkline([40, 55, 50, 60, 58, 62, 54], s.perfTrust === 'verified' ? '' : 'amber');
+
+    document.getElementById('ciiValue').textContent = s.cii;
+    document.getElementById('ciiTarget').textContent = s.ciiTarget;
+    document.getElementById('co2Value').textContent = s.co2;
+
+    const contractContent = document.getElementById('contractContent');
+    if (s.contract === 'Prospect') {
+      contractContent.innerHTML = `
+        <div class="card">
+          <div class="mini-list-item"><span>Contract type</span><span>Prospect</span></div>
+          <div class="mini-list-item"><span>Prediction</span><span class="green">${s.savings}</span> ${badgeHtml[s.perfTrust]}</div>
+        </div>
+        <button class="btn" onclick="showLens('predict')">Build business case</button>
+        <button class="btn secondary" onclick="showLens('overview')">Back</button>`;
+    } else {
+      const invoiceDisabled = s.contractTrust !== 'verified' || s.voyagesReady === 0;
+      const btnClass = invoiceDisabled ? 'btn disabled' : 'btn';
+      const btnAction = invoiceDisabled ? '' : `onclick="showLens('invoice')"`;
+      contractContent.innerHTML = `
+        <div class="card">
+          <div class="mini-list-item"><span>Contract type</span><span>${s.contract}</span></div>
+          <div class="mini-list-item"><span>Guarantee floor</span><span>${s.guarantee}</span></div>
+          <div class="mini-list-item"><span>YTD performance</span><span class="green">${s.savings}</span></div>
+          <div class="mini-list-item"><span>Next invoice</span><span>${s.nextInvoice}</span></div>
+          <div class="mini-list-item"><span>Voyages ready</span><span>${s.voyagesReady}</span></div>
+          <div class="mini-list-item"><span>Data trust</span><span>${badgeHtml[s.contractTrust]}</span></div>
+        </div>
+        <button class="${btnClass}" ${btnAction}>Preview PAYS invoice</button>
+        ${invoiceDisabled ? '<div style="font-size:11px;color:var(--muted);margin-top:8px;">No verified voyages ready for invoicing.</div>' : ''}
+        <button class="btn secondary" onclick="showLens('overview')">Back</button>`;
+    }
+
+    const cbmContent = document.getElementById('cbmContent');
+    if (s.alert && s.alertData) {
+      cbmContent.innerHTML = `
+        <div class="alert"><div class="alert-icon">!</div><div class="alert-text">${s.alert}</div></div>
+        <div class="card">
+          <div class="mini-list-item"><span>Component</span><span>${s.alertData.component}</span></div>
+          <div class="mini-list-item"><span>Fault code</span><span>${s.alertData.fault}</span></div>
+          <div class="mini-list-item"><span>Anomaly score</span><span class="amber">${s.alertData.score}</span></div>
+          <div class="mini-list-item"><span>RUL estimate</span><span>${s.alertData.rul}</span></div>
+          <div class="mini-list-item"><span>Parts in stock</span><span class="green">${s.alertData.stock}</span></div>
+        </div>
+        <div class="rig-schematic">[Interactive rig schematic]</div>
+        <button class="btn" onclick="openWorkOrder()">Create work order</button>`;
+      document.getElementById('fixCreateBtn').style.display = 'block';
+    } else if (s.status === 'cyan') {
+      cbmContent.innerHTML = `
+        <div class="alert alert-amber"><div class="alert-icon">i</div><div class="alert-text">Live route advice: ${s.alertData.action}</div></div>
+        <div class="rig-schematic">[Live voyage map + weather overlay]</div>
+        <button class="btn" onclick="showLens('optimise')">Review recommendation</button>`;
+      document.getElementById('fixCreateBtn').style.display = 'none';
+    } else {
+      cbmContent.innerHTML = `
+        <div class="card">
+          <div class="mini-list-item"><span>Wing state</span><span>Deployed</span></div>
+          <div class="mini-list-item"><span>Thrust estimate</span><span>128 kN</span></div>
+          <div class="mini-list-item"><span>Power contribution</span><span class="green">12.4%</span></div>
+          <div class="mini-list-item"><span>Load band</span><span>Band 3</span></div>
+        </div>
+        <div class="rig-schematic">[Interactive rig schematic]</div>
+        <div style="font-size:12px;color:var(--muted);">No active alerts.</div>`;
+      document.getElementById('fixCreateBtn').style.display = 'none';
+    }
+
+    document.getElementById('shipPanel').classList.add('open');
+    document.getElementById('topbarTitle').innerHTML = tabTitles.overview + ' <span style="color:var(--muted);font-weight:400;">· ' + s.name + '</span>';
+    selectTab('overview');
+  }
+
+  function showRoutes(s) {
+    clearRoutes();
+    if (!s || !s.route) return;
+    const r = s.route;
+    const routeColor = statusColors[s.status] || statusColors.cyan;
+    const poly = L.polyline(r.points, {
+      color: routeColor,
+      opacity: 0.95,
+      weight: 4,
+      lineJoin: 'round',
+      lineCap: 'round'
+    }).addTo(map);
+    routeLayers.push(poly);
+    const portIcon = (label, kind) => L.divIcon({
+      className: 'port-marker',
+      html: `<div style="display:flex;flex-direction:column;align-items:center;pointer-events:none;">
+        <div style="width:12px;height:12px;border-radius:50%;background:${routeColor};border:2px solid var(--surface);box-shadow:0 0 0 2px ${routeColor}80;"></div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 5px;font-size:10px;font-weight:600;color:var(--text);white-space:nowrap;box-shadow:var(--shadow);margin-top:3px;">${label}</div>
+      </div>`,
+      iconSize: [100, 36],
+      iconAnchor: [50, 6]
+    });
+    const depMarker = L.marker(r.start, { icon: portIcon(r.departure, 'departure'), zIndexOffset: 500 }).addTo(map);
+    const destMarker = L.marker(r.end, { icon: portIcon(r.destination, 'destination'), zIndexOffset: 500 }).addTo(map);
+    routeMarkers.push(depMarker, destMarker);
+    const bounds = L.latLngBounds(r.points);
+    map.fitBounds(bounds, { padding: [120, 120], maxZoom: 8, animate: true });
+    updateRoutePanel(s);
+  }
+  function clearRoutes() {
+    routeLayers.forEach(p => map.removeLayer(p));
+    routeLayers = [];
+    routeMarkers.forEach(m => map.removeLayer(m));
+    routeMarkers = [];
+  }
+  function updateRoutePanel(s) {
+    const r = s.route;
+    const routeColor = statusColors[s.status] || statusColors.cyan;
+    const isLight = document.body.classList.contains('light-mode');
+    const routeName = `${r.departure} → ${r.destination}`;
+    document.getElementById('routeName').textContent = routeName;
+    document.getElementById('routeDistance').textContent = `${r.distanceNm} nm`;
+    document.getElementById('routeEta').textContent = r.eta;
+    document.getElementById('routeSpeed').textContent = r.speed;
+    document.getElementById('routeStatus').textContent = statusLabels[s.status];
+    document.getElementById('routeStatus').className = s.status === 'green' ? 'green' : s.status === 'amber' ? 'amber' : s.status === 'red' ? 'red' : s.status === 'blue' ? 'marine' : s.status === 'cyan' ? 'marine' : '';
+    document.getElementById('routeType').textContent = r.type === 'verified-live' ? 'Live (AtoBviaC)' : r.type === 'verified-recent' ? 'Verified recent' : r.type === 'provisional' ? 'Provisional' : 'Predicted';
+    document.getElementById('routeDep').textContent = r.departure;
+    document.getElementById('routeDest').textContent = r.destination;
+    const swatch = document.getElementById('routePanelSwatch');
+    if (swatch) swatch.style.setProperty('--line-color', routeColor);
+    const depDot = document.getElementById('routeDepDot');
+    const destDot = document.getElementById('routeDestDot');
+    if (depDot) depDot.style.background = routeColor;
+    if (destDot) destDot.style.background = routeColor;
+  }
+
+  function sectionTitle(title, type, id, label) {
+    return `<div class="panel-title section-title" style="margin-top:14px;" onclick="openEntity('${type}', '${id}', '${label}')">${title} <span style="color:var(--muted);font-weight:400;">›</span></div>`;
+  }
+  function sectionCard(rows) {
+    return `<div class="card">${rows.map(r => `<div class="mini-list-item"><span>${r.label}</span><span>${r.value}</span></div>`).join('')}</div>`;
+  }
+  function section(title, type, id, label, rows) {
+    return sectionTitle(title, type, id, label) + sectionCard(rows);
+  }
+  function componentRow(unitIdx, compIdx, c) {
+    const healthClass = c.health < 70 ? 'red' : c.health < 85 ? 'amber' : 'green';
+    return `<tr class="component-row entity-row" onclick="openComponentEntity(${unitIdx}, ${compIdx})"><td>${c.name}</td><td class="${healthClass}">${c.health}%</td><td>${c.rul}</td></tr>`;
+  }
+  function sensorRow(unitIdx, sensorIdx, sen) {
+    const statusClass = sen.status === 'Normal' ? 'green' : sen.status === 'Alert' ? 'red' : 'amber';
+    return `<tr class="sensor-row entity-row" onclick="openSensorEntity(${unitIdx}, ${sensorIdx})"><td>${sen.name}</td><td class="${statusClass}">${sen.status}</td><td>${sen.transmission}</td></tr>`;
+  }
+
+  function renderDetails(s) {
+    const d = s.details || {};
+    const vessel = d.vessel || {};
+    const contract = d.contract || null;
+    const voyage = d.voyage || null;
+    const perf = d.performanceMetrics || null;
+    const cii = d.cii || null;
+    const cbm = d.cbm || null;
+    const events = d.events || null;
+    const fastRigUnits = d.fastRigUnits || [];
+    const badge = val => val ? `<span class="badge badge-verified">Verified</span>` : `<span class="badge badge-disabled">No data</span>`;
+
+    let html = '';
+    html += section('Deployment', 'Deployment', d.deploymentId || 'unknown', 'Deployment', [
+      { label: 'Deployment ID', value: d.deploymentId || '—' },
+      { label: 'Status', value: d.deploymentStatus || '—' },
+      { label: 'Install date', value: d.installDate || '—' },
+      { label: 'Commissioning', value: d.commissioningDate || '—' },
+      { label: 'FastRig units', value: fastRigUnits.length.toString() }
+    ]);
+    html += section('Vessel', 'Vessel', s.imo, s.name, [
+      { label: 'IMO / Name', value: `${s.imo} / ${s.name}` },
+      { label: 'Type', value: s.type },
+      { label: 'Flag', value: vessel.flag || '—' },
+      { label: 'Year built', value: vessel.yearBuilt || '—' },
+      { label: 'DWT', value: vessel.dwt ? vessel.dwt.toLocaleString() + ' t' : '—' },
+      { label: 'Length × beam', value: vessel.lengthOverall && vessel.beam ? `${vessel.lengthOverall} × ${vessel.beam} m` : '—' },
+      { label: 'Propulsion', value: vessel.propulsion || '—' }
+    ]);
+    fastRigUnits.forEach((rig, unitIdx) => {
+      html += section(`FastRigUnit ${unitIdx + 1}`, 'FastRigUnit', rig.serialNumber, `FastRigUnit ${unitIdx + 1}`, [
+        { label: 'Serial number', value: rig.serialNumber },
+        { label: 'Configuration', value: rig.configuration },
+        { label: 'Build date', value: rig.buildDate },
+        { label: 'Lifecycle stage', value: rig.lifecycleStage },
+        { label: 'Residual value', value: rig.residualValue }
+      ]);
+      html += sectionTitle(`Components · Unit ${unitIdx + 1}`, 'FastRigUnit', rig.serialNumber, `FastRigUnit ${unitIdx + 1}`);
+      html += '<div class="card"><table><tr><th>Component</th><th>Health</th><th>RUL</th></tr>';
+      rig.components.forEach((c, compIdx) => { html += componentRow(unitIdx, compIdx, c); });
+      html += '</table></div>';
+      html += sectionTitle(`Sensors · Unit ${unitIdx + 1}`, 'FastRigUnit', rig.serialNumber, `FastRigUnit ${unitIdx + 1}`);
+      html += '<div class="card"><table><tr><th>Sensor</th><th>Status</th><th>Lane</th></tr>';
+      rig.sensors.forEach((sen, sensorIdx) => { html += sensorRow(unitIdx, sensorIdx, sen); });
+      html += '</table></div>';
+    });
+    if (perf) {
+      html += section('PerformanceMetric', 'PerformanceMetric', `perf-${s.imo}`, 'PerformanceMetric', [
+        { label: 'Avg thrust', value: perf.avgThrust },
+        { label: 'Peak power', value: perf.peakPower },
+        { label: 'Power contribution', value: perf.powerContribution },
+        { label: 'Load-band hours', value: perf.loadBandHours.toLocaleString() },
+        { label: 'Fuel flow', value: perf.fuelFlow }
+      ]);
+    }
+    if (voyage) {
+      html += section('Voyage', 'Voyage', voyage.voyageId, 'Voyage', [
+        { label: 'Voyage ID', value: voyage.voyageId },
+        { label: 'Source', value: voyage.source },
+        { label: 'Route', value: `${voyage.departure} → ${voyage.destination}` },
+        { label: 'ETA', value: voyage.eta },
+        { label: 'Distance remaining', value: voyage.distanceRemaining },
+        { label: 'Speed', value: voyage.speed }
+      ]);
+    }
+    if (contract) {
+      html += section('Contract', 'Contract', contract.contractId, 'Contract', [
+        { label: 'Contract ID', value: contract.contractId },
+        { label: 'Type', value: contract.type },
+        { label: 'Period', value: `${contract.startDate} → ${contract.endDate}` },
+        { label: 'PAYS rate', value: contract.paysRate },
+        { label: 'Guarantee floor', value: contract.guaranteeFloor },
+        { label: 'Next invoice', value: contract.nextInvoiceDate },
+        { label: 'Voyages ready', value: contract.voyagesReady },
+        { label: 'Data trust', value: badge(contract.dataTrust === 'verified') }
+      ]);
+    }
+    if (cii) {
+      html += section('CIIRecord', 'CIIRecord', `cii-${s.imo}`, 'CIIRecord', [
+        { label: 'Current rating', value: cii.currentRating },
+        { label: 'Target rating', value: cii.targetRating },
+        { label: 'Operational carbon intensity', value: cii.operationalCarbonIntensity },
+        { label: 'Required attained', value: cii.requiredAttained },
+        { label: 'Verified data', value: cii.verifiedDataPct }
+      ]);
+    }
+    if (cbm) {
+      html += section('Maintenance / CBM', 'Maintenance', `cbm-${s.imo}`, 'Maintenance', [
+        { label: 'Health score', value: cbm.healthScore + '%' },
+        { label: 'Last diagnostic', value: cbm.lastDiagnostic },
+        { label: 'Edge evaluated', value: cbm.edgeEvaluated ? 'Yes' : 'No' },
+        { label: 'Open faults', value: cbm.openFaults },
+        { label: 'RUL summary', value: cbm.rulSummary }
+      ]);
+    }
+    if (events) {
+      html += section('EventLayer (24h)', 'EventLayer', `evt-${s.imo}`, 'EventLayer', [
+        { label: 'Sensor readings', value: events.sensorReadings24h.toLocaleString() },
+        { label: 'Control events', value: events.controlEvents24h.toLocaleString() },
+        { label: 'Diagnostic events', value: events.diagnosticEvents24h.toLocaleString() },
+        { label: 'Downtime (30d)', value: events.downtimeHours30d + ' h' }
+      ]);
+    }
+    document.getElementById('detailsContent').innerHTML = html;
+  }
+
+  function openEntity(type, id, label) {
+    if (!selectedShip) return;
+    pushEntity(type, id, label);
+  }
+  function openComponentEntity(unitIdx, compIdx) {
+    if (!selectedShip) return;
+    const rig = selectedShip.details.fastRigUnits[unitIdx];
+    const c = rig.components[compIdx];
+    openEntity('Component', `comp-${unitIdx}-${compIdx}`, c.name);
+  }
+  function openSensorEntity(unitIdx, sensorIdx) {
+    if (!selectedShip) return;
+    const rig = selectedShip.details.fastRigUnits[unitIdx];
+    const sen = rig.sensors[sensorIdx];
+    openEntity('Sensor', `sen-${unitIdx}-${sensorIdx}`, sen.name);
+  }
+
+  const entityDocs = {
+    Deployment: [
+      { name: 'Deployment certificate', ref: 'DEP-CERT-001.pdf' },
+      { name: 'Commissioning report', ref: 'COMM-2023-008.pdf' },
+      { name: 'Installation acceptance', ref: 'INST-ACC-014.pdf' },
+      { name: 'Bronze: deployment_events.parquet', ref: 'bronze/deployment_events' },
+      { name: 'Silver: dim_deployment', ref: 'silver/dim_deployment' }
+    ],
+    Vessel: [
+      { name: 'Class certificate', ref: 'CLASS-2023-102.pdf' },
+      { name: 'Safety management certificate', ref: 'SMC-2024-044.pdf' },
+      { name: 'Vessel particulars', ref: 'VP-2024-001.pdf' },
+      { name: 'Bronze: vessel_static.parquet', ref: 'bronze/vessel_static' },
+      { name: 'Silver: dim_vessel', ref: 'silver/dim_vessel' }
+    ],
+    FastRigUnit: [
+      { name: 'Factory acceptance test', ref: 'FAT-2022-056.pdf' },
+      { name: 'Type certificate', ref: 'TC-FR-MKV.pdf' },
+      { name: 'Maintenance manual', ref: 'MM-FR-004.pdf' },
+      { name: 'Bronze: rig_telemetry.parquet', ref: 'bronze/rig_telemetry' },
+      { name: 'Silver: dim_fast_rig_unit', ref: 'silver/dim_fast_rig_unit' }
+    ],
+    Component: [
+      { name: 'Component data sheet', ref: 'CDS-HPU-001.pdf' },
+      { name: 'Inspection report', ref: 'INSP-2024-012.pdf' },
+      { name: 'RUL model card', ref: 'RUL-HPU-v2.pdf' },
+      { name: 'Bronze: component_status.parquet', ref: 'bronze/component_status' },
+      { name: 'Silver: dim_component', ref: 'silver/dim_component' }
+    ],
+    Sensor: [
+      { name: 'Sensor calibration record', ref: 'CAL-PRES-003.pdf' },
+      { name: 'Data sheet', ref: 'DS-PRES-003.pdf' },
+      { name: 'Installation log', ref: 'INST-PRES-003.pdf' },
+      { name: 'Bronze: sensor_readings.parquet', ref: 'bronze/sensor_readings' },
+      { name: 'Silver: dim_sensor', ref: 'silver/dim_sensor' }
+    ],
+    Contract: [
+      { name: 'PAYS agreement', ref: 'PAYS-2023-001.pdf' },
+      { name: 'Guarantee schedule', ref: 'GUAR-2023-001.pdf' },
+      { name: 'Invoice template', ref: 'INV-TPL-001.pdf' },
+      { name: 'Bronze: contract_events.parquet', ref: 'bronze/contract_events' },
+      { name: 'Silver: dim_contract', ref: 'silver/dim_contract' }
+    ],
+    Voyage: [
+      { name: 'Voyage plan', ref: 'VP-2024-001.pdf' },
+      { name: 'Noon reports', ref: 'NOON-2024-001.pdf' },
+      { name: 'Weather routing advice', ref: 'WRA-2024-001.pdf' },
+      { name: 'Bronze: voyage_segments.parquet', ref: 'bronze/voyage_segments' },
+      { name: 'Silver: fact_voyage', ref: 'silver/fact_voyage' }
+    ],
+    PerformanceMetric: [
+      { name: 'Performance report', ref: 'PERF-2024-001.pdf' },
+      { name: 'Savings verification', ref: 'SV-2024-001.pdf' },
+      { name: 'Gold calculation snapshot', ref: 'gold/perf_snapshot' },
+      { name: 'Bronze: operational_telemetry.parquet', ref: 'bronze/operational_telemetry' },
+      { name: 'Silver: fact_performance', ref: 'silver/fact_performance' }
+    ],
+    CIIRecord: [
+      { name: 'CII report', ref: 'CII-2024-001.pdf' },
+      { name: 'Emissions verification', ref: 'EMV-2024-001.pdf' },
+      { name: 'Regulatory submission', ref: 'REG-SUB-2024-001.pdf' },
+      { name: 'Bronze: emissions_data.parquet', ref: 'bronze/emissions_data' },
+      { name: 'Silver: fact_cii', ref: 'silver/fact_cii' }
+    ],
+    Maintenance: [
+      { name: 'CBM diagnostic log', ref: 'CBM-2024-001.pdf' },
+      { name: 'Work order history', ref: 'WO-HIST-2024-001.pdf' },
+      { name: 'Spare parts list', ref: 'SPL-2024-001.pdf' },
+      { name: 'Bronze: diagnostic_events.parquet', ref: 'bronze/diagnostic_events' },
+      { name: 'Silver: fact_maintenance', ref: 'silver/fact_maintenance' }
+    ],
+    EventLayer: [
+      { name: 'Event stream schema', ref: 'EVT-SCHEMA-v1.pdf' },
+      { name: 'Audit trail', ref: 'AUDIT-2024-001.pdf' },
+      { name: 'Bronze: event_layer.parquet', ref: 'bronze/event_layer' },
+      { name: 'Silver: fact_events', ref: 'silver/fact_events' }
+    ]
+  };
+  const entityRelated = {
+    Deployment: ['FastRigUnit', 'Vessel', 'Contract'],
+    Vessel: ['Deployment', 'CIIRecord', 'Voyage', 'Contract'],
+    FastRigUnit: ['Component', 'Sensor', 'Deployment', 'Vessel'],
+    Component: ['Sensor', 'FastRigUnit', 'Maintenance'],
+    Sensor: ['Component', 'FastRigUnit', 'EventLayer'],
+    Contract: ['Deployment', 'Voyage', 'PerformanceMetric'],
+    Voyage: ['Vessel', 'Contract', 'PerformanceMetric'],
+    PerformanceMetric: ['Voyage', 'Deployment', 'FastRigUnit'],
+    CIIRecord: ['Vessel', 'Voyage'],
+    Maintenance: ['Component', 'FastRigUnit', 'EventLayer'],
+    EventLayer: ['Vessel', 'Sensor', 'FastRigUnit']
+  };
+
+  let navStack = [];
+  function getEntityData(type, id) {
+    if (!selectedShip) return null;
+    const d = selectedShip.details;
+    switch (type) {
+      case 'Deployment': return { deploymentId: d.deploymentId, deploymentStatus: d.deploymentStatus, installDate: d.installDate, commissioningDate: d.commissioningDate, fastRigUnits: d.fastRigUnits ? d.fastRigUnits.length : 0 };
+      case 'Vessel': return { name: selectedShip.name, imo: selectedShip.imo, type: selectedShip.type, ...d.vessel };
+      case 'FastRigUnit': return d.fastRigUnits.find(r => r.serialNumber === id);
+      case 'Component': {
+        const parts = id.split('-');
+        const unitIdx = parseInt(parts[1], 10);
+        const compIdx = parseInt(parts[2], 10);
+        return d.fastRigUnits[unitIdx] ? d.fastRigUnits[unitIdx].components[compIdx] : null;
+      }
+      case 'Sensor': {
+        const parts = id.split('-');
+        const unitIdx = parseInt(parts[1], 10);
+        const sensorIdx = parseInt(parts[2], 10);
+        return d.fastRigUnits[unitIdx] ? d.fastRigUnits[unitIdx].sensors[sensorIdx] : null;
+      }
+      case 'Contract': return d.contract;
+      case 'Voyage': return d.voyage;
+      case 'PerformanceMetric': return d.performanceMetrics;
+      case 'CIIRecord': return d.cii;
+      case 'Maintenance': return d.cbm;
+      case 'EventLayer': return d.events;
+      default: return null;
+    }
+  }
+  function getFirstRelatedEntity(type, relatedType, data) {
+    if (!selectedShip) return null;
+    const d = selectedShip.details;
+    const ship = selectedShip;
+    switch (relatedType) {
+      case 'Deployment': return d.deploymentId ? { id: d.deploymentId, label: 'Deployment' } : null;
+      case 'Vessel': return { id: ship.imo, label: ship.name };
+      case 'FastRigUnit': if (d.fastRigUnits && d.fastRigUnits.length) return { id: d.fastRigUnits[0].serialNumber, label: d.fastRigUnits[0].serialNumber }; break;
+      case 'Component': if (d.fastRigUnits && d.fastRigUnits.length && d.fastRigUnits[0].components.length) return { id: `comp-0-0`, label: d.fastRigUnits[0].components[0].name }; break;
+      case 'Sensor': if (d.fastRigUnits && d.fastRigUnits.length && d.fastRigUnits[0].sensors.length) return { id: `sen-0-0`, label: d.fastRigUnits[0].sensors[0].name }; break;
+      case 'Contract': return d.contract ? { id: d.contract.contractId, label: 'Contract' } : null;
+      case 'Voyage': return d.voyage ? { id: d.voyage.voyageId, label: 'Voyage' } : null;
+      case 'PerformanceMetric': return d.performanceMetrics ? { id: `perf-${ship.imo}`, label: 'PerformanceMetric' } : null;
+      case 'CIIRecord': return d.cii ? { id: `cii-${ship.imo}`, label: 'CIIRecord' } : null;
+      case 'Maintenance': return d.cbm ? { id: `cbm-${ship.imo}`, label: 'Maintenance' } : null;
+      case 'EventLayer': return d.events ? { id: `evt-${ship.imo}`, label: 'EventLayer' } : null;
+    }
+    return null;
+  }
+  function renderEntityAttributes(type, data) {
+    if (!data) return '<div class="card">No data available.</div>';
+    const rows = [];
+    const add = (label, value) => rows.push({ label, value: value === undefined || value === null ? '—' : value });
+    switch (type) {
+      case 'Deployment': add('Deployment ID', data.deploymentId); add('Status', data.deploymentStatus); add('Install date', data.installDate); add('Commissioning date', data.commissioningDate); add('FastRig units', data.fastRigUnits); break;
+      case 'Vessel': add('IMO', data.imo); add('Name', data.name); add('Type', data.type); add('Flag', data.flag); add('Year built', data.yearBuilt); add('DWT', data.dwt ? data.dwt.toLocaleString() + ' t' : null); add('Length × beam', data.lengthOverall && data.beam ? `${data.lengthOverall} × ${data.beam} m` : null); add('Propulsion', data.propulsion); add('SFOF', data.sfof); break;
+      case 'FastRigUnit': add('Serial number', data.serialNumber); add('Configuration', data.configuration); add('Build date', data.buildDate); add('Lifecycle stage', data.lifecycleStage); add('Residual value', data.residualValue); add('Components', data.components ? data.components.length : 0); add('Sensors', data.sensors ? data.sensors.length : 0); break;
+      case 'Component': add('Name', data.name); add('Type', data.type); add('Health', data.health + '%'); add('Operating hours', data.hours); add('RUL estimate', data.rul); break;
+      case 'Sensor': add('Name', data.name); add('Type', data.type); add('Status', data.status); add('Last reading', data.lastReading); add('Transmission lane', data.transmission); break;
+      case 'Contract': add('Contract ID', data.contractId); add('Type', data.type); add('Period', `${data.startDate} → ${data.endDate}`); add('PAYS rate', data.paysRate); add('Guarantee floor', data.guaranteeFloor); add('Next invoice', data.nextInvoiceDate); add('Voyages ready', data.voyagesReady); add('Data trust', data.dataTrust); break;
+      case 'Voyage': add('Voyage ID', data.voyageId); add('Source', data.source); add('Route', `${data.departure} → ${data.destination}`); add('ETA', data.eta); add('Distance remaining', data.distanceRemaining); add('Speed', data.speed); break;
+      case 'PerformanceMetric': add('Avg thrust', data.avgThrust); add('Peak power', data.peakPower); add('Power contribution', data.powerContribution); add('Load-band hours', data.loadBandHours ? data.loadBandHours.toLocaleString() : null); add('Fuel flow', data.fuelFlow); break;
+      case 'CIIRecord': add('Current rating', data.currentRating); add('Target rating', data.targetRating); add('Operational carbon intensity', data.operationalCarbonIntensity); add('Required attained', data.requiredAttained); add('Verified data', data.verifiedDataPct); break;
+      case 'Maintenance': add('Health score', data.healthScore + '%'); add('Last diagnostic', data.lastDiagnostic); add('Edge evaluated', data.edgeEvaluated ? 'Yes' : 'No'); add('Open faults', data.openFaults); add('RUL summary', data.rulSummary); break;
+      case 'EventLayer': add('Sensor readings (24h)', data.sensorReadings24h ? data.sensorReadings24h.toLocaleString() : null); add('Control events (24h)', data.controlEvents24h ? data.controlEvents24h.toLocaleString() : null); add('Diagnostic events (24h)', data.diagnosticEvents24h ? data.diagnosticEvents24h.toLocaleString() : null); add('Downtime (30d)', data.downtimeHours30d + ' h'); break;
+    }
+    return sectionCard(rows);
+  }
+  function renderDocsSection(type) {
+    const docs = entityDocs[type] || [];
+    return `
+      <div class="panel-title" style="margin-top:14px;">Documents & base data</div>
+      <div class="card doc-list">
+        ${docs.map(d => `<div class="doc-list-item"><span>${d.name}</span><span style="color:var(--accent);cursor:pointer;" onclick="alert('Open ${d.ref}')">${d.ref}</span></div>`).join('')}
+      </div>`;
+  }
+  function renderRelatedSection(type, data) {
+    const related = entityRelated[type] || [];
+    const chips = related.map(r => {
+      const target = getFirstRelatedEntity(type, r, data);
+      if (!target) return '';
+      return `<span class="panel-tab" style="margin:0 4px 4px 0;" onclick="openEntity('${r}', '${target.id}', '${target.label}')">${r}</span>`;
+    }).filter(Boolean).join('');
+    return chips ? `
+      <div class="panel-title" style="margin-top:14px;">Related entities</div>
+      <div class="card" style="padding:10px;">${chips}</div>
+    ` : '';
+  }
+  function renderBreadcrumbs() {
+    const container = document.getElementById('entityBreadcrumb');
+    if (!navStack.length) { container.innerHTML = ''; return; }
+    container.innerHTML = navStack.map((crumb, idx) => {
+      const isLast = idx === navStack.length - 1;
+      return `<span class="${isLast ? 'current' : ''}" onclick="navigateToEntity(${idx})">${crumb.label}</span>`;
+    }).join(' <span style="color:var(--border-light);">/</span> ');
+  }
+  function navigateToEntity(idx) {
+    navStack = navStack.slice(0, idx + 1);
+    renderEntity();
+  }
+  function renderEntity() {
+    const crumb = navStack[navStack.length - 1];
+    if (!crumb) return;
+    renderBreadcrumbs();
+    const data = getEntityData(crumb.type, crumb.id);
+    document.getElementById('entityTitle').textContent = crumb.label || crumb.type;
+    document.getElementById('entityContent').innerHTML = renderEntityAttributes(crumb.type, data) + renderDocsSection(crumb.type) + renderRelatedSection(crumb.type, data);
+    showLens('entity');
+  }
+  function pushEntity(type, id, label) {
+    const top = navStack[navStack.length - 1];
+    if (!top || top.type !== type || top.id !== id) {
+      navStack.push({ type, id, label });
+    }
+    renderEntity();
+  }
+  function popEntity() {
+    if (navStack.length > 1) {
+      navStack.pop();
+      renderEntity();
+    } else {
+      navStack = [];
+      selectTab('details');
+    }
+  }
+
+  function headlineAction() {
+    if (!selectedShip) return;
+    const headline = computeHeadline(selectedShip);
+    if (headline.lens === 'cbm' && selectedShip.alert && selectedShip.alertData && selectedShip.status === 'red') {
+      openWorkOrder();
+    } else if (headline.lens === 'invoice') {
+      showLens('invoice');
+    } else {
+      showLens(headline.lens);
+    }
+  }
+
+  function closePanel() {
+    document.getElementById('shipPanel').classList.remove('open');
+    clearRoutes();
+    selectedShip = null;
+    updateMarkerStyles();
+    document.getElementById('topbarTitle').innerHTML = tabTitles.overview + ' <span style="color:var(--muted);font-weight:400;">· Wind as a Service</span>';
+  }
+
+  function showLens(name) {
+    document.querySelectorAll('.lens').forEach(l => l.classList.remove('active'));
+    document.getElementById('lens-' + name).classList.add('active');
+  }
+
+  function openWorkOrder() {
+    if (!selectedShip || !selectedShip.alertData) return;
+    document.getElementById('woComponent').textContent = selectedShip.alertData.component;
+    document.getElementById('woFault').textContent = selectedShip.alertData.fault;
+    document.getElementById('woScore').textContent = selectedShip.alertData.score;
+    document.getElementById('woRul').textContent = selectedShip.alertData.rul;
+    document.getElementById('woStock').textContent = selectedShip.alertData.stock;
+    document.getElementById('woAction').textContent = selectedShip.alertData.action;
+    showLens('fixdetail');
+  }
+  function openWorkOrderFromBoard(code) {
+    document.getElementById('woComponent').textContent = 'HPU accumulator';
+    document.getElementById('woFault').textContent = code;
+    document.getElementById('woScore').textContent = '0.82';
+    document.getElementById('woRul').textContent = '41 days';
+    document.getElementById('woStock').textContent = '2 in Rotterdam';
+    document.getElementById('woAction').textContent = 'Inspect accumulator within 7 days';
+    showLens('fixdetail');
+  }
+
+  function showFixTab(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    document.querySelectorAll('.sub-lens').forEach(l => l.classList.remove('active'));
+    document.getElementById('fix-' + name).classList.add('active');
+  }
+
+  async function selectTab(name) {
+    showLens(name);
+    document.querySelectorAll('.panel-tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.tab === name);
+    });
+    document.getElementById('topbarTitle').innerHTML = tabTitles[name] + (selectedShip ? ' <span style="color:var(--muted);font-weight:400;">· ' + selectedShip.name + '</span>' : '');
+    if (name === 'optimise' && selectedShip) {
+      clearRoutes();
+      setRouteLoading(true);
+      await loadLiveRoute(selectedShip);
+      setRouteLoading(false);
+      showRoutes(selectedShip);
+    } else {
+      clearRoutes();
+    }
+  }
+
+  document.getElementById('roleSelect').addEventListener('change', () => {
+    if (selectedShip) openShip(selectedShip);
+  });
+
+</script>
+</body>
+</html>
