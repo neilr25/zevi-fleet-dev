@@ -782,6 +782,7 @@ const STATIC_ROUTES = {
 
   async function initApp() {
   ships.forEach(s => {
+    if (s.details) return; // API already provided details
     const isProspect = s.contract === 'Prospect';
     const isActive = s.deploy === 'Active';
     const hasRig = isActive && !isProspect;
