@@ -287,6 +287,30 @@
   @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
   .pulse { animation: pulse 1.5s infinite; }
 
+  /* Tooltips */
+  .tooltip { position: relative; }
+  .tooltip-popup {
+    position: fixed;
+    padding: 5px 8px;
+    background: var(--elevated);
+    color: var(--text);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1.3;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+    box-shadow: var(--shadow);
+    z-index: 10000;
+    max-width: 240px;
+  }
+  .tooltip-popup.tooltip-wrap { white-space: normal; }
+
+
   /* Weather */
   .weather-summary { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 10px; margin-top: 8px; }
   .weather-summary-title { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 8px; }
@@ -327,7 +351,7 @@
     </div>
     <div class="left-body">
       <div class="stats-grid" id="fleetStats"></div>
-      <div class="name-filter compact">
+      <div class="name-filter compact tooltip" data-tooltip="Filter ships by name">
         <input type="text" id="nameFilter" placeholder="Filter by name…" autocomplete="off">
       </div>
       <div class="filter-section">
@@ -342,28 +366,30 @@
     <div class="topbar">
       <div class="topbar-title" id="topbarTitle">Fast Fleet <span style="color:var(--muted);font-weight:400;">· Wind as a Service</span></div>
       <div class="topbar-right">
-        <button class="theme-toggle" id="themeToggle" title="Toggle light/dark mode">🌙</button>
-        <select class="role-select" id="roleSelect">
-          <option value="owner">Ship Owner</option>
-          <option value="internal">SGS Internal</option>
-        </select>
+        <button class="theme-toggle tooltip tooltip-bottom" id="themeToggle" data-tooltip="Toggle light/dark mode">🌙</button>
+        <div class="tooltip tooltip-bottom" data-tooltip="Switch between Ship Owner and SGS Internal views">
+          <select class="role-select" id="roleSelect">
+            <option value="owner">Ship Owner</option>
+            <option value="internal">SGS Internal</option>
+          </select>
+        </div>
       </div>
     </div>
     <div class="map-wrap">
       <div id="map"></div>
       <div class="ship-panel" id="shipPanel">
         <div class="panel-header">
-          <button class="close-btn" onclick="closePanel()">×</button>
+          <button class="close-btn tooltip tooltip-bottom" data-tooltip="Close ship details" onclick="closePanel()">×</button>
           <h2 id="shipName">Select a ship</h2>
           <p id="shipMeta">Click a vessel on the map or in the ship list</p>
         </div>
         <div class="panel-tabs" id="panelTabs">
-          <div class="panel-tab active" data-tab="overview" onclick="selectTab('overview')">Overview</div>
-          <div class="panel-tab" data-tab="details" onclick="selectTab('details')">Details</div>
-          <div class="panel-tab" data-tab="fix" onclick="selectTab('fix')">FastFix</div>
-          <div class="panel-tab" data-tab="report" onclick="selectTab('report')">FastReport</div>
-          <div class="panel-tab" data-tab="regs" onclick="selectTab('regs')">FastRegs</div>
-          <div class="panel-tab" data-tab="optimise" onclick="selectTab('optimise')">FastRoute</div>
+          <div class="panel-tab active tooltip" data-tooltip="Headline, key threads, and quick actions" data-tab="overview" onclick="selectTab('overview')">Overview</div>
+          <div class="panel-tab tooltip" data-tooltip="Object-model details for this vessel" data-tab="details" onclick="selectTab('details')">Details</div>
+          <div class="panel-tab tooltip" data-tooltip="Maintenance board and work orders" data-tab="fix" onclick="selectTab('fix')">FastFix</div>
+          <div class="panel-tab tooltip" data-tooltip="Payback, NPV, and CO₂ avoided" data-tab="report" onclick="selectTab('report')">FastReport</div>
+          <div class="panel-tab tooltip" data-tooltip="CII rating and regulator submissions" data-tab="regs" onclick="selectTab('regs')">FastRegs</div>
+          <div class="panel-tab tooltip" data-tooltip="Current voyage route and weather" data-tab="optimise" onclick="selectTab('optimise')">FastRoute</div>
         </div>
         <div class="panel-body" id="panelBody">
           <div class="lens active" id="lens-overview">
@@ -387,28 +413,28 @@
             </div>
           </div>
           <div class="panel-title">Drill into any thread</div>
-            <div class="thread" onclick="showLens('savings')">
+            <div class="thread tooltip" data-tooltip="Verified fuel savings and guarantee variance" onclick="showLens('savings')">
               <div class="thread-header"><span class="thread-title">Performance</span><span id="perfBadge"></span></div>
               <div class="thread-row">
                 <div><div class="thread-value" id="perfValue">—</div><div class="thread-caption" id="perfCaption">verified saving</div></div>
                 <div class="sparkline" id="perfSpark"></div>
               </div>
             </div>
-            <div class="thread" onclick="showLens('cbm')">
+            <div class="thread tooltip" data-tooltip="CBM health and active alerts" onclick="showLens('cbm')">
               <div class="thread-header"><span class="thread-title">Condition</span><span id="cbmBadge"></span></div>
               <div class="thread-row">
                 <div><div class="thread-value" id="cbmValue">—</div><div class="thread-caption" id="cbmCaption">CBM health</div></div>
                 <div class="sparkline" id="cbmSpark"></div>
               </div>
             </div>
-            <div class="thread" onclick="showLens('compliance')">
+            <div class="thread tooltip" data-tooltip="CII rating and regulatory compliance" onclick="showLens('compliance')">
               <div class="thread-header"><span class="thread-title">Compliance</span><span id="compBadge"></span></div>
               <div class="thread-row">
                 <div><div class="thread-value" id="compValue">—</div><div class="thread-caption" id="compCaption">CII rating</div></div>
                 <div class="sparkline" id="compSpark"></div>
               </div>
             </div>
-            <div class="thread" onclick="showLens('contract')">
+            <div class="thread tooltip" data-tooltip="Contract status and PAYS invoicing" onclick="showLens('contract')">
               <div class="thread-header"><span class="thread-title">Contract</span><span id="contractBadge"></span></div>
               <div class="thread-row">
                 <div><div class="thread-value" id="contractValue">—</div><div class="thread-caption" id="contractCaption">contract status</div></div>
@@ -866,7 +892,7 @@
         <div class="weather-summary-item"><span class="weather-summary-label">Dominant</span><span class="weather-summary-value">${domDir}</span></div>
         <div class="weather-summary-item"><span class="weather-summary-label">Alerts</span><span class="weather-summary-value ${alerts ? 'weather-alert' : 'weather-calm'}">${alerts}</span></div>
       </div>
-      <button class="weather-toggle" id="weatherToggle" onclick="toggleWeatherLayer()">Show wind layer</button>
+      <button class="weather-toggle tooltip" data-tooltip="Toggle wind-direction overlay on the map" id="weatherToggle" onclick="toggleWeatherLayer()">Show wind layer</button>
     `;
   }
 
@@ -1210,6 +1236,7 @@
 
   const categoryOrder = ['Operational', 'Sailing', 'At Port', 'Maintenance'];
   const categoryColor = { Operational: '--status-green', Sailing: '--status-cyan', 'At Port': '--status-blue', Maintenance: '--status-red' };
+  const categoryTooltip = { Operational: 'Show/hide ships in Operational status', Sailing: 'Show/hide ships currently Sailing', 'At Port': 'Show/hide ships At Port', Maintenance: 'Show/hide ships in Maintenance' };
   function shipCategories(s) {
     const cats = [];
     if (['green', 'amber', 'cyan', 'blue'].includes(s.status)) cats.push('Operational');
@@ -1223,6 +1250,7 @@
   const alertTypes = ['Critical', 'Attention', 'Route Update', 'Offline', 'No alert'];
   const alertTypeColors = { 'Critical': '--status-red', 'Attention': '--status-amber', 'Route Update': '--status-cyan', 'Offline': '--status-grey', 'No alert': '--status-green' };
   const alertTypeClasses = { 'Critical': 'critical', 'Attention': 'attention', 'Route Update': 'route', 'Offline': 'offline', 'No alert': 'none' };
+  const alertTypeTooltips = { 'Critical': 'Show/hide ships with Critical alerts', 'Attention': 'Show/hide ships with Attention alerts', 'Route Update': 'Show/hide ships with Route Update alerts', 'Offline': 'Show/hide ships with Offline status', 'No alert': 'Show/hide ships with No alert' };
   function getAlertType(s) {
     if (s.status === 'red') return 'Critical';
     if (s.status === 'amber') return 'Attention';
@@ -1272,7 +1300,7 @@
       const active = statusFilter[category];
       const color = style.getPropertyValue(categoryColor[category]).trim();
       return `
-        <div class="stat-card ${active ? 'active' : 'inactive'}" onclick="toggleStatus('${category}')">
+        <div class="stat-card ${active ? 'active' : 'inactive'} tooltip" data-tooltip="${categoryTooltip[category]}" onclick="toggleStatus('${category}')">
           <div class="stat-check">${active ? '✓' : ''}</div>
           <div class="stat-label">${category}</div>
           <div class="stat-row">
@@ -1292,7 +1320,7 @@
       const color = style.getPropertyValue(alertTypeColors[type]).trim();
       const cls = alertTypeClasses[type];
       return `
-        <div class="alert-chip ${cls} ${active ? '' : 'inactive'}" onclick="toggleAlert('${type}')">
+        <div class="alert-chip ${cls} ${active ? '' : 'inactive'} tooltip" data-tooltip="${alertTypeTooltips[type]}" onclick="toggleAlert('${type}')">
           <span class="chip-dot" style="background:${color}"></span>
           <span>${type}</span>
           <span class="chip-check">${active ? '✓' : ''}</span>
@@ -1577,8 +1605,21 @@
     if (destDot) destDot.style.background = routeColor;
   }
 
+  const sectionTitleTooltips = {
+    'Deployment': 'Deployment details and commissioning history',
+    'Vessel': 'Vessel particulars and static data',
+    'PerformanceMetric': 'Verified performance and savings metrics',
+    'Voyage': 'Current voyage route and ETA',
+    'Contract': 'Contract terms and invoicing status',
+    'CIIRecord': 'Carbon intensity indicator rating',
+    'Maintenance': 'Condition-based maintenance status',
+    'EventLayer': 'Recent sensor and diagnostic events'
+  };
   function sectionTitle(title, type, id, label) {
-    return `<div class="panel-title section-title" style="margin-top:14px;" onclick="openEntity('${type}', '${id}', '${label}')">${title} <span style="color:var(--muted);font-weight:400;">›</span></div>`;
+    let tooltip = sectionTitleTooltips[type] || sectionTitleTooltips[title] || 'Drill into ' + label;
+    if (title.startsWith('Components')) tooltip = 'Component health and remaining useful life';
+    if (title.startsWith('Sensors')) tooltip = 'Sensor status and transmission lane';
+    return `<div class="panel-title section-title tooltip" data-tooltip="${tooltip}" style="margin-top:14px;" onclick="openEntity('${type}', '${id}', '${label}')">${title} <span style="color:var(--muted);font-weight:400;">›</span></div>`;
   }
   function sectionCard(rows) {
     return `<div class="card">${rows.map(r => `<div class="mini-list-item"><span>${r.label}</span><span>${r.value}</span></div>`).join('')}</div>`;
@@ -1902,7 +1943,8 @@
     if (!navStack.length) { container.innerHTML = ''; return; }
     container.innerHTML = navStack.map((crumb, idx) => {
       const isLast = idx === navStack.length - 1;
-      return `<span class="${isLast ? 'current' : ''}" onclick="navigateToEntity(${idx})">${crumb.label}</span>`;
+      const tooltip = isLast ? 'Current view' : `Go back to ${crumb.label}`;
+      return `<span class="${isLast ? 'current' : ''} tooltip" data-tooltip="${tooltip}" onclick="navigateToEntity(${idx})">${crumb.label}</span>`;
     }).join(' <span style="color:var(--border-light);">/</span> ');
   }
   function navigateToEntity(idx) {
@@ -2007,6 +2049,48 @@
   document.getElementById('roleSelect').addEventListener('change', () => {
     if (selectedShip) openShip(selectedShip);
   });
+
+  // Tooltip system
+  let activeTooltip = null;
+  function showTooltip(el) {
+    const text = el.getAttribute('data-tooltip');
+    if (!text) return;
+    hideTooltip();
+    const tooltip = document.createElement('div');
+    tooltip.className = 'tooltip-popup' + (text.length > 50 ? ' tooltip-wrap' : '');
+    tooltip.textContent = text;
+    document.body.appendChild(tooltip);
+    const rect = el.getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const spaceAbove = rect.top;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const fitsAbove = spaceAbove >= tooltipRect.height + 8;
+    const fitsBelow = spaceBelow >= tooltipRect.height + 8;
+    const placeBelow = !fitsAbove || (fitsBelow && spaceBelow > spaceAbove);
+    let left = rect.left + rect.width / 2;
+    if (left - tooltipRect.width / 2 < 8) left = tooltipRect.width / 2 + 8;
+    if (left + tooltipRect.width / 2 > window.innerWidth - 8) left = window.innerWidth - tooltipRect.width / 2 - 8;
+    tooltip.style.left = left + 'px';
+    if (placeBelow) {
+      tooltip.style.top = rect.bottom + 6 + 'px';
+      tooltip.style.transform = 'translate(-50%, 0)';
+    } else {
+      tooltip.style.top = rect.top - 6 + 'px';
+      tooltip.style.transform = 'translate(-50%, -100%)';
+    }
+    requestAnimationFrame(() => { tooltip.style.opacity = '1'; tooltip.style.visibility = 'visible'; });
+    activeTooltip = tooltip;
+  }
+  function hideTooltip() {
+    if (activeTooltip) {
+      activeTooltip.remove();
+      activeTooltip = null;
+    }
+  }
+  document.body.addEventListener('mouseenter', (e) => { if (e.target.classList && e.target.classList.contains('tooltip')) showTooltip(e.target); }, true);
+  document.body.addEventListener('mouseleave', (e) => { if (e.target.classList && e.target.classList.contains('tooltip')) hideTooltip(); }, true);
+  document.body.addEventListener('focusin', (e) => { if (e.target.classList && e.target.classList.contains('tooltip')) showTooltip(e.target); }, true);
+  document.body.addEventListener('focusout', (e) => { if (e.target.classList && e.target.classList.contains('tooltip')) hideTooltip(); }, true);
 
 </script>
 </body>
