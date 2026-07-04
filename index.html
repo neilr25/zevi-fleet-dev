@@ -496,11 +496,16 @@
           Alerts
           <span class="alerts-badge" id="alertsBadge">0</span>
         </button>
-        <div class="tooltip" data-tooltip="Demo wizards: add a ship or create a sales case">
+        <div class="tooltip" data-tooltip="Demo wizards: guided flows for sales, operations, and compliance">
           <select class="role-select" id="wizardSelect" onchange="runWizard(this.value)">
             <option value="">Wizards…</option>
+            <option value="onboarding">Onboarding tour</option>
             <option value="add-ship">Add ship</option>
             <option value="sales-case">Create sales case</option>
+            <option value="route-deviation">Route deviation</option>
+            <option value="maintenance">Maintenance response</option>
+            <option value="invoice">Verified invoice</option>
+            <option value="regulatory">Regulatory submission</option>
             <option value="scenario">New scenario</option>
           </select>
         </div>
@@ -2764,9 +2769,14 @@ const STATIC_ROUTES = {
   function runWizard(name) {
     const sel = document.getElementById('wizardSelect');
     sel.value = '';
-    if (name === 'add-ship') openAddShipWizard();
+    if (name === 'onboarding') { startTour(); }
+    else if (name === 'add-ship') openAddShipWizard();
     else if (name === 'sales-case') openSalesCaseWizard();
     else if (name === 'scenario') { openShipById(ships[0].id); selectTab('scenarios'); }
+    else if (name === 'route-deviation') startRouteDeviationWizard();
+    else if (name === 'maintenance') startMaintenanceWizard();
+    else if (name === 'invoice') startInvoiceWizard();
+    else if (name === 'regulatory') startRegulatoryWizard();
   }
   function openAddShipWizard() {
     const name = prompt('Ship name:');
@@ -2804,7 +2814,7 @@ const STATIC_ROUTES = {
     alert('Sales case draft generated. Adjust parameters and click Save.');
   }
   // Settings, demo mode, and tour
-  let demoMode = localStorage.getItem('fastFleet_demoMode') === 'true';
+  let demoMode = localStorage.getItem('fastFleet_demoMode') !== 'false';
   let currentRole = localStorage.getItem('fastFleet_role') || 'owner';
   function openSettings() {
     document.getElementById('settingsModal').style.display = 'flex';
