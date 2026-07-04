@@ -4,6 +4,10 @@ function numericId(vesselId) {
   return parseInt(vesselId.replace(/^V0?/, ''), 10);
 }
 
+function round2(n) {
+  return Math.round(n * 100) / 100;
+}
+
 function getDeployment(vesselId) {
   return fleet.silver.deployments.find(d => d.vesselId === vesselId) || null;
 }
@@ -24,10 +28,49 @@ function getSensors(vesselId) {
   return fleet.silver.sensors.filter(s => s.vesselId === vesselId);
 }
 
-function getVoyage(vesselId) {
+function getVoyages(vesselId) {
   return fleet.silver.voyages
     .filter(v => v.vesselId === vesselId)
-    .sort((a, b) => (b.departureDate || '').localeCompare(a.departureDate || ''))[0] || null;
+    .sort((a, b) => (b.departureDate || '').localeCompare(a.departureDate || ''));
+}
+
+function getCurrentVoyage(vesselId) {
+  return getVoyages(vesselId).find(v => v.current) || getVoyages(vesselId)[0] || null;
+}
+
+function bearing(a, b) {
+  const toRad = Math.PI / 180;
+  const lat1 = a[0] * toRad;
+  const lat2 = b[0] * toRad;
+  const dLon = (b[1] - a[1]) * toRad;
+  const y = Math.sin(dLon) * Math.cos(lat2);
+  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+  const theta = Math.atan2(y, x);
+  return (theta * 180 / Math.PI + 360) % 360;
+}
+
+function headingAlongRoute(routeKey, progress) {
+  const points = fleet.silver.routes[routeKey] || [];
+  if (points.length < 2) return 0;
+  const total = points.length - 1;
+  const idx = Math.min(Math.floor(progress * total), total - 1);
+  return Math.round(bearing(points[idx], points[idx + 1]));
+}
+
+function eexi(vessel) {
+  const sizeFactor = vessel.dwt / 100000;
+  const baseline = round2(vessel.sfofBaseline * sizeFactor * 0.42 + (vessel.type === 'Bulk Carrier' ? 0.5 : 0.3));
+  const id = numericId(vessel.id);
+  const improvement = round2(baseline * (0.15 + (id % 5) * 0.02)); // 15-23%
+  const requiredLimit = round2(baseline * 0.80); // IMO-style 20% reduction
+  const withFastRig = round2(baseline - improvement);
+  return {
+    baseline,
+    withFastRig,
+    improvement,
+    status: withFastRig <= requiredLimit ? 'Compliant' : 'Review required',
+    requiredLimit
+  };
 }
 
 function getLatestProduct(vesselId) {
@@ -74,7 +117,9 @@ function buildDetails(vessel) {
   const units = getUnits(vessel.id);
   const components = getComponents(vessel.id);
   const sensors = getSensors(vessel.id);
-  const voyage = getVoyage(vessel.id);
+  const voyage = getCurrentVoyage(vessel.id);
+  const voyages = getVoyages(vessel.id);
+  const historicalVoyages = voyages.filter(v => !v.current);
   const product = getLatestProduct(vessel.id);
   const diagnostic = getLatestDiagnostic(vessel.id);
   const events = getEvents(vessel.id);
@@ -131,6 +176,7 @@ function buildDetails(vessel) {
       propulsion: vessel.propulsion,
       sfof: vessel.sfofBaseline
     },
+    eexi: isProspect ? null : eexi(vessel),
     contract: contract ? {
       contractId: contract.id,
       type: contract.type,
@@ -151,6 +197,15 @@ function buildDetails(vessel) {
       distanceRemaining: `${Math.round((1 - voyage.progress) * 3000)} nm`,
       speed: `${voyage.speedKnots} kt`
     } : null,
+    historicalVoyages: isProspect ? [] : historicalVoyages.map(v => ({
+      voyageId: v.id,
+      route: `${v.departure} → ${v.destination}`,
+      departureDate: v.departureDate,
+      etaDate: v.etaDate,
+      status: v.status,
+      fuelSavedTonnes: v.fuelSavedTonnes,
+      co2SavedTonnes: v.co2SavedTonnes
+    })),
     performanceMetrics: isProspect ? null : {
       avgThrust: `${120 + (id % 5) * 4} kN`,
       peakPower: `${400 + (id % 3) * 30} kW`,
@@ -188,11 +243,17 @@ function deriveFlatVessel(vessel) {
   const contract = getContract(vessel.id);
   const product = getLatestProduct(vessel.id);
   const diagnostic = getLatestDiagnostic(vessel.id);
-  const voyage = getVoyage(vessel.id);
+  const voyage = getCurrentVoyage(vessel.id);
+  const voyages = getVoyages(vessel.id);
+  const historicalVoyages = voyages.filter(v => !v.current);
   const id = numericId(vessel.id);
 
   const isProspect = !deployment;
   const isOffline = deployment && deployment.status === 'Unknown';
+
+  const currentPower = isProspect ? 0 : Math.round((400 + (id % 3) * 30) * (0.6 + (voyage ? voyage.speedKnots / 20 : 0.5)));
+  const fuelSaved = isProspect ? 0 : historicalVoyages.reduce((sum, v) => sum + (v.fuelSavedTonnes || 0), 0);
+  const co2Saved = isProspect ? 0 : historicalVoyages.reduce((sum, v) => sum + (v.co2SavedTonnes || 0), 0);
 
   const status = (() => {
     if (isProspect) return 'blue';
@@ -269,8 +330,11 @@ function deriveFlatVessel(vessel) {
     alertData,
     lat: voyage ? voyage.lat : 0,
     lon: voyage ? voyage.lon : 0,
-    heading: voyage ? voyage.heading : 0,
+    heading: voyage ? headingAlongRoute(voyage.routeKey, voyage.progress) : 0,
     voyage: voyage ? `${voyage.departure} → ${voyage.destination}` : '',
+    currentPower,
+    fuelSaved: round2(fuelSaved),
+    co2Saved: round2(co2Saved),
     details: buildDetails(vessel)
   };
 }

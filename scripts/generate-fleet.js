@@ -300,9 +300,40 @@ for (let i = 0; i < 10; i++) {
       lon,
       heading: Math.floor(rng() * 360),
       speedKnots: round2(10 + rng() * 6),
-      progress
+      progress,
+      current: true
     };
     data.silver.voyages.push(voyage);
+
+    const historicalRouteKeys = Object.keys(existingRoutes).filter(k => k !== routeKey).slice(0, randInt(3, 5));
+    for (const histRouteKey of historicalRouteKeys) {
+      const [histDep, histDest] = histRouteKey.split('->');
+      const histPoints = existingRoutes[histRouteKey] || [];
+      const histProgress = 1;
+      const [histLat, histLon] = histPoints.length ? interpolateRoute(histPoints, histProgress) : [0, 0];
+      const histDepartureDate = formatDate(daysAgo(randInt(60, 180)));
+      const histEtaDate = formatDate(daysAgo(randInt(30, 59)));
+      data.silver.voyages.push({
+        id: `VY-${String(voyageCounter++).padStart(3, '0')}`,
+        deploymentId: deployment.id,
+        vesselId: vessel.id,
+        routeKey: histRouteKey,
+        departure: histDep,
+        destination: histDest,
+        departureDate: histDepartureDate,
+        etaDate: histEtaDate,
+        status: 'completed',
+        source: 'live_ship',
+        lat: histLat,
+        lon: histLon,
+        heading: Math.floor(rng() * 360),
+        speedKnots: round2(10 + rng() * 6),
+        progress: histProgress,
+        current: false,
+        fuelSavedTonnes: round2(rng() * 50 + 20),
+        co2SavedTonnes: round2(rng() * 150 + 60)
+      });
+    }
 
     // Events
     const eventCount = isOffline ? randInt(2, 5) : randInt(20, 45);
