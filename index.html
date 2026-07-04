@@ -398,6 +398,59 @@
   .wizard-trigger.secondary { background: transparent; border: 1px solid var(--border-light); color: var(--text); }
   .last-update { font-size: 10px; color: var(--muted); margin-left: 8px; }
 
+  /* Settings & demo mode */
+  .settings-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text); cursor: pointer; font-size: 15px; }
+  .settings-btn:hover { background: var(--border); }
+  .settings-group { margin-bottom: 16px; }
+  .settings-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 8px; }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-text { font-size: 12px; }
+  .toggle-sub { font-size: 10px; color: var(--muted); }
+  .toggle-switch { position: relative; width: 36px; height: 20px; background: var(--border); border-radius: 10px; cursor: pointer; transition: background 0.2s; }
+  .toggle-switch.on { background: var(--accent); }
+  .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: transform 0.2s; }
+  .toggle-switch.on::after { transform: translateX(16px); }
+  .demo-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; background: var(--accent-dark); color: white; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; margin-left: 6px; }
+  .demo-btn { padding: 6px 12px; background: var(--accent); border: none; border-radius: var(--radius-md); color: white; font-size: 11px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+  .demo-btn.secondary { background: transparent; border: 1px solid var(--border-light); color: var(--text); }
+  .demo-list { display: grid; gap: 8px; }
+  .demo-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); }
+  .demo-item-info { font-size: 12px; }
+  .demo-item-sub { font-size: 10px; color: var(--muted); }
+
+  /* Tour */
+  .tour-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 3000; pointer-events: auto; }
+  .tour-highlight { position: absolute; border: 2px solid var(--accent); border-radius: var(--radius-md); box-shadow: 0 0 0 9999px rgba(0,0,0,0.55); z-index: 3001; transition: all 0.3s ease; pointer-events: none; }
+  .tour-tooltip { position: absolute; background: var(--surface); border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 14px; max-width: 320px; z-index: 3002; box-shadow: var(--shadow); pointer-events: auto; }
+  .tour-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .tour-body { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
+  .tour-actions { display: flex; justify-content: space-between; gap: 8px; }
+  .tour-step { font-size: 10px; color: var(--muted); }
+  .tour-pulse { animation: pulse 1.5s infinite; }
+
+  /* Wizard flows */
+  .wizard-steps { display: flex; gap: 4px; margin-bottom: 12px; }
+  .wizard-step { flex: 1; height: 4px; background: var(--border); border-radius: 2px; }
+  .wizard-step.active { background: var(--accent); }
+  .wizard-step.done { background: var(--green); }
+  .wizard-form { display: grid; gap: 10px; }
+  .wizard-form label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--muted); }
+  .wizard-form input, .wizard-form select, .wizard-form textarea { padding: 6px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text); font-size: 12px; }
+  .wizard-form textarea { resize: vertical; min-height: 60px; }
+  .wizard-actions { display: flex; justify-content: space-between; margin-top: 12px; }
+  .wizard-result { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; margin-top: 12px; }
+  .invoice-list { display: grid; gap: 6px; margin: 10px 0; }
+  .invoice-item { display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 12px; }
+  .invoice-item input { margin-right: 6px; }
+  .role-card { padding: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); cursor: pointer; transition: border-color 0.15s; }
+  .role-card:hover { border-color: var(--accent); }
+  .role-card.active { border-color: var(--accent); background: rgba(14,165,233,0.08); }
+  .role-card-title { font-size: 12px; font-weight: 600; }
+  .role-card-desc { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .panel-hidden { display: none !important; }
+  .panel-dimmed { opacity: 0.35; pointer-events: none; }
+
 </style>
 </head>
 <body>
@@ -452,6 +505,7 @@
           </select>
         </div>
         <button class="theme-toggle tooltip tooltip-bottom" id="themeToggle" data-tooltip="Toggle light/dark mode">🌙</button>
+        <button class="settings-btn tooltip tooltip-bottom" id="settingsBtn" data-tooltip="Settings and demos" onclick="openSettings()">⚙</button>
         <div class="tooltip tooltip-bottom" data-tooltip="Switch between Ship Owner and SGS Internal views">
           <select class="role-select" id="roleSelect">
             <option value="owner">Ship Owner</option>
@@ -654,6 +708,80 @@
             </div>
             <button class="btn" onclick="alert('Work order approved and scheduled')">Approve work order</button>
             <button class="btn secondary" onclick="showLens('fix')">Back to board</button>
+            <div class="card demo-flow-card" id="maintenanceWizardCard" style="display:none;margin-top:10px;">
+              <div class="panel-title" style="margin-top:0;">Maintenance response wizard</div>
+              <div class="wizard-steps">
+                <div class="wizard-step active"></div>
+                <div class="wizard-step"></div>
+                <div class="wizard-step"></div>
+              </div>
+              <div id="maintenanceWizardStep1">
+                <div class="mini-list-item"><span>Fault</span><span id="mwFault">—</span></div>
+                <div class="mini-list-item"><span>Component</span><span id="mwComponent">—</span></div>
+                <div class="mini-list-item"><span>RUL</span><span id="mwRul">—</span></div>
+                <div class="wizard-form">
+                  <label>
+                    Severity assessment
+                    <select id="mwSeverity">
+                      <option>Critical - stop for inspection</option>
+                      <option>Amber - next port</option>
+                      <option>Green - monitor</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="wizard-actions">
+                  <button class="btn secondary" onclick="cancelMaintenanceWizard()">Cancel</button>
+                  <button class="btn" onclick="nextMaintenanceStep()">Next</button>
+                </div>
+              </div>
+              <div id="maintenanceWizardStep2" style="display:none;">
+                <div class="wizard-form">
+                  <label>
+                    Parts required
+                    <select id="mwParts">
+                      <option>HPU accumulator</option>
+                      <option>Slew bearing seal</option>
+                      <option>Flap sensor</option>
+                      <option>Other</option>
+                    </select>
+                  </label>
+                  <label>
+                    Stock location
+                    <select id="mwStock">
+                      <option>Rotterdam - 2 in stock</option>
+                      <option>Singapore - 5 in stock</option>
+                      <option>Order - 14 days</option>
+                    </select>
+                  </label>
+                  <label>
+                    Service window
+                    <select id="mwWindow">
+                      <option>At next port</option>
+                      <option>Within 7 days</option>
+                      <option>During next dry dock</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="wizard-actions">
+                  <button class="btn secondary" onclick="prevMaintenanceStep()">Back</button>
+                  <button class="btn" onclick="nextMaintenanceStep()">Next</button>
+                </div>
+              </div>
+              <div id="maintenanceWizardStep3" style="display:none;">
+                <div class="wizard-result">
+                  <div class="panel-title" style="margin-top:0">Work order summary</div>
+                  <div class="mini-list-item"><span>Action</span><span id="mwAction">—</span></div>
+                  <div class="mini-list-item"><span>Parts</span><span id="mwPartsSummary">—</span></div>
+                  <div class="mini-list-item"><span>Window</span><span id="mwWindowSummary">—</span></div>
+                  <div class="mini-list-item"><span>Estimated cost</span><span class="green">£3,400</span></div>
+                </div>
+                <div class="wizard-actions">
+                  <button class="btn secondary" onclick="prevMaintenanceStep()">Back</button>
+                  <button class="btn" onclick="endMaintenanceWizard()">Approve & schedule</button>
+                </div>
+              </div>
+            </div>
+            <button class="btn demo-flow-trigger" id="maintenanceWizardTrigger" style="display:none;margin-top:10px;" onclick="startMaintenanceWizard()">Open maintenance wizard</button>
           </div>
 
           <div class="lens" id="lens-invoice">
@@ -681,6 +809,64 @@
             </div>
             <button class="btn" onclick="alert('Invoice generated')">Generate verified invoice</button>
             <button class="btn secondary" onclick="showLens('contract')">Back</button>
+            <div class="card demo-flow-card" id="invoiceWizardCard" style="display:none;margin-top:10px;">
+              <div class="panel-title" style="margin-top:0;">Verified invoice wizard</div>
+              <div class="wizard-steps">
+                <div class="wizard-step active"></div>
+                <div class="wizard-step"></div>
+                <div class="wizard-step"></div>
+              </div>
+              <div id="invoiceWizardStep1">
+                <div class="invoice-list">
+                  <label class="invoice-item"><input type="checkbox" checked> Voyage 2026-06-15 · Verified · £42,300</label>
+                  <label class="invoice-item"><input type="checkbox" checked> Voyage 2026-05-28 · Verified · £38,900</label>
+                  <label class="invoice-item"><input type="checkbox"> Voyage 2026-07-01 · Provisional · £19,400</label>
+                </div>
+                <div class="wizard-actions">
+                  <button class="btn secondary" onclick="cancelInvoiceWizard()">Cancel</button>
+                  <button class="btn" onclick="nextInvoiceStep()">Next</button>
+                </div>
+              </div>
+              <div id="invoiceWizardStep2" style="display:none;">
+                <div class="wizard-form">
+                  <label>
+                    Contract type
+                    <select id="iwContract">
+                      <option>PAYS - 80% of verified savings</option>
+                      <option>Lease - fixed monthly</option>
+                      <option>Outright</option>
+                    </select>
+                  </label>
+                  <label>
+                    Invoice period
+                    <input type="text" value="June 2026" readonly>
+                  </label>
+                  <label>
+                    Verified savings total
+                    <input type="text" value="£81,200" readonly>
+                  </label>
+                </div>
+                <div class="wizard-actions">
+                  <button class="btn secondary" onclick="prevInvoiceStep()">Back</button>
+                  <button class="btn" onclick="nextInvoiceStep()">Next</button>
+                </div>
+              </div>
+              <div id="invoiceWizardStep3" style="display:none;">
+                <div class="wizard-result">
+                  <div class="panel-title" style="margin-top:0">Invoice summary</div>
+                  <div class="mini-list-item"><span>Customer</span><span id="iwCustomer">SGS / Ship Owner</span></div>
+                  <div class="mini-list-item"><span>Period</span><span>June 2026</span></div>
+                  <div class="mini-list-item"><span>Verified voyages</span><span>2</span></div>
+                  <div class="mini-list-item"><span>Total due</span><span class="green">£81,200</span></div>
+                  <div class="mini-list-item"><span>Status</span><span class="badge badge-verified">Verified</span></div>
+                </div>
+                <div class="wizard-actions">
+                  <button class="btn secondary" onclick="prevInvoiceStep()">Back</button>
+                  <button class="btn" onclick="endInvoiceWizard()">Generate invoice</button>
+                </div>
+              </div>
+            </div>
+            <button class="btn demo-flow-trigger" id="invoiceWizardTrigger" style="display:none;margin-top:10px;" onclick="startInvoiceWizard()">Open invoice wizard</button>
           </div>
 
           <div class="lens" id="lens-predict">
@@ -740,6 +926,28 @@
               <div class="alert-icon">i</div>
               <div class="alert-text">Advisory only. Shore does not command the rig.</div>
             </div>
+            <div class="card demo-flow-card" id="routeDeviationCard" style="display:none;">
+              <div class="panel-title" style="margin-top:0;">Route deviation wizard</div>
+              <div class="wizard-steps">
+                <div class="wizard-step active"></div>
+                <div class="wizard-step"></div>
+                <div class="wizard-step"></div>
+              </div>
+              <div class="wizard-form" id="routeDeviationForm">
+                <label>
+                  Deviation (nm north/south)
+                  <input type="range" id="routeDeviationSlider" min="-50" max="50" step="1" value="0" oninput="updateRouteDeviationPreview()">
+                </label>
+                <div class="mini-list-item"><span>Added distance</span><span id="routeDeviationExtra">0 nm</span></div>
+                <div class="mini-list-item"><span>Predicted fuel saving</span><span id="routeDeviationSaving" class="green">0%</span></div>
+                <div class="mini-list-item"><span>ETA change</span><span id="routeDeviationEta">0h</span></div>
+              </div>
+              <div class="wizard-actions">
+                <button class="btn secondary" onclick="cancelRouteDeviationWizard()">Cancel</button>
+                <button class="btn" onclick="endRouteDeviationWizard()">Endorse recommendation</button>
+              </div>
+            </div>
+            <button class="btn demo-flow-trigger" id="routeDeviationTrigger" style="display:none;" onclick="startRouteDeviationWizard()">Open route deviation wizard</button>
             <div class="card" id="routeWeatherCard">
               <div class="panel-title" style="margin-top:0;">Route weather</div>
               <div class="weather-card-header">
@@ -793,6 +1001,75 @@
             </div>
             <button class="btn" onclick="alert('Report submitted to regulator')">Submit to regulator</button>
             <button class="btn secondary" onclick="showLens('overview')">Back</button>
+            <div class="card demo-flow-card" id="regulatoryWizardCard" style="display:none;margin-top:10px;">
+              <div class="panel-title" style="margin-top:0;">Regulatory submission wizard</div>
+              <div class="wizard-steps">
+                <div class="wizard-step active"></div>
+                <div class="wizard-step"></div>
+                <div class="wizard-step"></div>
+              </div>
+              <div id="regulatoryWizardStep1">
+                <div class="wizard-form">
+                  <label>
+                    Reporting period
+                    <select id="rwPeriod">
+                      <option>2026 Q2</option>
+                      <option>2026 Q1</option>
+                      <option>2025 Annual</option>
+                    </select>
+                  </label>
+                  <label>
+                    Regulation
+                    <select id="rwRegulation">
+                      <option>EU MRV</option>
+                      <option>IMO DCS</option>
+                      <option>UK MRV</option>
+                    </select>
+                  </label>
+                  <label>
+                    Vessel(s)
+                    <input type="text" value="All active vessels" readonly>
+                  </label>
+                </div>
+                <div class="wizard-actions">
+                  <button class="btn secondary" onclick="cancelRegulatoryWizard()">Cancel</button>
+                  <button class="btn" onclick="nextRegulatoryStep()">Next</button>
+                </div>
+              </div>
+              <div id="regulatoryWizardStep2" style="display:none;">
+                <div class="wizard-result">
+                  <div class="panel-title" style="margin-top:0">Data package</div>
+                  <div class="mini-list-item"><span>CII rating</span><span id="rwCii">D</span></div>
+                  <div class="mini-list-item"><span>EEXI status</span><span id="rwEexi">Compliant</span></div>
+                  <div class="mini-list-item"><span>Verified data</span><span class="green">100%</span></div>
+                  <div class="mini-list-item"><span>Supporting events</span><span>12,400</span></div>
+                </div>
+                <div class="wizard-form">
+                  <label>
+                    Attachments
+                    <textarea readonly>CII report, EEXI technical file, voyage logs</textarea>
+                  </label>
+                </div>
+                <div class="wizard-actions">
+                  <button class="btn secondary" onclick="prevRegulatoryStep()">Back</button>
+                  <button class="btn" onclick="nextRegulatoryStep()">Next</button>
+                </div>
+              </div>
+              <div id="regulatoryWizardStep3" style="display:none;">
+                <div class="wizard-result">
+                  <div class="panel-title" style="margin-top:0">Submission summary</div>
+                  <div class="mini-list-item"><span>Portal</span><span id="rwPortal">EU MRV</span></div>
+                  <div class="mini-list-item"><span>Period</span><span id="rwPeriodSummary">2026 Q2</span></div>
+                  <div class="mini-list-item"><span>Vessels</span><span>All active</span></div>
+                  <div class="mini-list-item"><span>Status</span><span class="green">Ready</span></div>
+                </div>
+                <div class="wizard-actions">
+                  <button class="btn secondary" onclick="prevRegulatoryStep()">Back</button>
+                  <button class="btn" onclick="endRegulatoryWizard()">Submit to regulator</button>
+                </div>
+              </div>
+            </div>
+            <button class="btn demo-flow-trigger" id="regulatoryWizardTrigger" style="display:none;margin-top:10px;" onclick="startRegulatoryWizard()">Open regulatory submission wizard</button>
           </div>
 
           <div class="lens" id="lens-scenarios">
@@ -833,6 +1110,98 @@
             <div id="scenarioComparison" class="scenario-comparison"></div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="settingsModal" class="modal-overlay" style="display:none;" onclick="closeSettings(event)">
+  <div class="modal" style="max-width:500px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div style="font-size:14px;font-weight:600;">Settings & Demos</div>
+      <button class="close-btn" onclick="closeSettings()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="settings-group">
+        <div class="settings-label">Demo mode</div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-text">Enable demo wizards</div>
+            <div class="toggle-sub">Adds guided flows and demo badges across the app</div>
+          </div>
+          <div class="toggle-switch" id="demoModeToggle" onclick="toggleDemoMode()"></div>
+        </div>
+      </div>
+      <div class="settings-group">
+        <div class="settings-label">Role presets</div>
+        <div class="demo-list" id="rolePresetList">
+          <div class="role-card" data-role="owner" onclick="setRolePreset('owner')">
+            <div class="role-card-title">Ship Owner</div>
+            <div class="role-card-desc">Savings, guarantees, invoices, CII</div>
+          </div>
+          <div class="role-card" data-role="internal" onclick="setRolePreset('internal')">
+            <div class="role-card-title">SGS Internal</div>
+            <div class="role-card-desc">Alerts, diagnostics, route advice, work orders</div>
+          </div>
+          <div class="role-card" data-role="regulator" onclick="setRolePreset('regulator')">
+            <div class="role-card-title">Regulator</div>
+            <div class="role-card-desc">Compliance, verified data, EEXI, submissions</div>
+          </div>
+          <div class="role-card" data-role="prospect" onclick="setRolePreset('prospect')">
+            <div class="role-card-title">Prospect / Charterer</div>
+            <div class="role-card-desc">Scenario planning, sales case, predicted savings</div>
+          </div>
+        </div>
+      </div>
+      <div class="settings-group" id="demoFlows" style="display:none;">
+        <div class="settings-label">Demo flows</div>
+        <div class="demo-list">
+          <div class="demo-item">
+            <div class="demo-item-info">Onboarding tour<br><span class="demo-item-sub">Step-by-step introduction to the UI</span></div>
+            <button class="demo-btn" onclick="startTour(); closeSettings();">Start tour</button>
+          </div>
+          <div class="demo-item">
+            <div class="demo-item-info">Add ship wizard<br><span class="demo-item-sub">Create a new prospect vessel</span></div>
+            <button class="demo-btn" onclick="closeSettings(); runWizard('add-ship');">Run</button>
+          </div>
+          <div class="demo-item">
+            <div class="demo-item-info">Create sales case<br><span class="demo-item-sub">Build a FastReport business case</span></div>
+            <button class="demo-btn" onclick="closeSettings(); runWizard('sales-case');">Run</button>
+          </div>
+          <div class="demo-item">
+            <div class="demo-item-info">Route deviation wizard<br><span class="demo-item-sub">Optimise a live voyage</span></div>
+            <button class="demo-btn" onclick="closeSettings(); startRouteDeviationWizard();">Run</button>
+          </div>
+          <div class="demo-item">
+            <div class="demo-item-info">Maintenance response wizard<br><span class="demo-item-sub">Acknowledge and resolve an alert</span></div>
+            <button class="demo-btn" onclick="closeSettings(); startMaintenanceWizard();">Run</button>
+          </div>
+          <div class="demo-item">
+            <div class="demo-item-info">Verified invoice wizard<br><span class="demo-item-sub">Generate PAYS invoices</span></div>
+            <button class="demo-btn" onclick="closeSettings(); startInvoiceWizard();">Run</button>
+          </div>
+          <div class="demo-item">
+            <div class="demo-item-info">Regulatory submission wizard<br><span class="demo-item-sub">Submit CII/EEXI to regulator</span></div>
+            <button class="demo-btn" onclick="closeSettings(); startRegulatoryWizard();">Run</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn secondary" onclick="closeSettings()">Close</button>
+      <button class="btn" onclick="closeSettings(); startTour();">Start onboarding</button>
+    </div>
+  </div>
+</div>
+<div id="tourOverlay" class="tour-overlay" style="display:none;" onclick="nextTourStep()">
+  <div id="tourHighlight" class="tour-highlight"></div>
+  <div id="tourTooltip" class="tour-tooltip">
+    <div class="tour-title" id="tourTitle">Welcome</div>
+    <div class="tour-body" id="tourBody">Tour body</div>
+    <div class="tour-actions">
+      <span class="tour-step" id="tourStep">1 / 5</span>
+      <div>
+        <button class="btn secondary" onclick="event.stopPropagation(); endTour();">Skip</button>
+        <button class="btn" onclick="event.stopPropagation(); nextTourStep();" id="tourNextBtn">Next</button>
       </div>
     </div>
   </div>
@@ -2434,6 +2803,263 @@ const STATIC_ROUTES = {
     runScenario();
     alert('Sales case draft generated. Adjust parameters and click Save.');
   }
+  // Settings, demo mode, and tour
+  let demoMode = localStorage.getItem('fastFleet_demoMode') === 'true';
+  let currentRole = localStorage.getItem('fastFleet_role') || 'owner';
+  function openSettings() {
+    document.getElementById('settingsModal').style.display = 'flex';
+    document.getElementById('demoModeToggle').classList.toggle('on', demoMode);
+    document.getElementById('demoFlows').style.display = demoMode ? 'block' : 'none';
+    document.querySelectorAll('#rolePresetList .role-card').forEach(c => c.classList.toggle('active', c.dataset.role === currentRole));
+  }
+  function closeSettings(e) {
+    if (e && e.target !== e.currentTarget) return;
+    document.getElementById('settingsModal').style.display = 'none';
+  }
+  function toggleDemoMode() {
+    demoMode = !demoMode;
+    localStorage.setItem('fastFleet_demoMode', demoMode);
+    document.getElementById('demoModeToggle').classList.toggle('on', demoMode);
+    document.getElementById('demoFlows').style.display = demoMode ? 'block' : 'none';
+    applyDemoMode();
+  }
+  function applyDemoMode() {
+    document.querySelectorAll('.demo-flow-trigger').forEach(el => el.style.display = demoMode ? 'block' : 'none');
+    document.querySelectorAll('.demo-badge').forEach(el => el.style.display = demoMode ? 'inline-flex' : 'none');
+    if (demoMode && selectedShip) {
+      document.getElementById('routeDeviationTrigger').style.display = 'block';
+      document.getElementById('maintenanceWizardTrigger').style.display = 'block';
+      document.getElementById('invoiceWizardTrigger').style.display = 'block';
+      document.getElementById('regulatoryWizardTrigger').style.display = 'block';
+    }
+  }
+  function setRolePreset(role) {
+    currentRole = role;
+    localStorage.setItem('fastFleet_role', role);
+    document.getElementById('roleSelect').value = role === 'prospect' ? 'owner' : role;
+    document.querySelectorAll('#rolePresetList .role-card').forEach(c => c.classList.toggle('active', c.dataset.role === role));
+    applyRolePreset();
+    if (selectedShip) openShip(selectedShip);
+  }
+  function applyRolePreset() {
+    const role = currentRole;
+    document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('panel-hidden', 'panel-dimmed'));
+    const order = {
+      owner: ['overview', 'report', 'regs', 'invoice', 'contract', 'details', 'fix', 'optimise', 'scenarios'],
+      internal: ['overview', 'fix', 'optimise', 'alerts', 'report', 'regs', 'contract', 'details', 'scenarios'],
+      regulator: ['regs', 'report', 'overview', 'details', 'fix', 'optimise', 'contract', 'scenarios'],
+      prospect: ['scenarios', 'report', 'overview', 'optimise', 'details', 'fix', 'regs', 'contract']
+    }[role] || ['overview', 'details', 'fix', 'report', 'regs', 'optimise', 'scenarios'];
+    const tabs = Array.from(document.querySelectorAll('.panel-tab'));
+    const container = document.getElementById('panelTabs');
+    tabs.sort((a, b) => order.indexOf(a.dataset.tab) - order.indexOf(b.dataset.tab));
+    tabs.forEach(t => container.appendChild(t));
+    const dim = {
+      owner: ['fix', 'optimise'],
+      internal: ['report', 'scenarios'],
+      regulator: ['fix', 'optimise', 'scenarios'],
+      prospect: ['fix', 'regs']
+    }[role] || [];
+    tabs.forEach(t => {
+      t.classList.toggle('panel-dimmed', dim.includes(t.dataset.tab));
+    });
+  }
+
+  // Onboarding tour
+  const tourSteps = [
+    { target: '.left-panel', title: 'Fleet summary', body: 'Filter by status, alert type, or name. The fleet performance counter shows fuel saved, CO₂ saved, and current power generation.', position: 'right' },
+    { target: '#map', title: 'Live map', body: 'Click any vessel to open its detail panel. Selected ships are highlighted; others are dimmed.', position: 'center' },
+    { target: '#shipPanel', title: 'Product lenses', body: 'Switch between Overview, Details, FastFix, FastReport, FastRegs, FastRoute, and Scenarios.', position: 'left' },
+    { target: '#liveBtn', title: 'Live simulation', body: 'Toggle live mode to watch vessels move along their routes. Choose speed and see the last update time.', position: 'bottom' },
+    { target: '#alertsBtn', title: 'Alerts centre', body: 'Open the alerts centre to see critical, attention, route, and offline alerts across the fleet.', position: 'bottom' },
+    { target: '#settingsBtn', title: 'Settings & demos', body: 'Enable demo mode to access guided wizards and role presets.', position: 'bottom' }
+  ];
+  let tourIndex = 0;
+  function startTour() {
+    tourIndex = 0;
+    document.getElementById('tourOverlay').style.display = 'block';
+    positionTourElements();
+  }
+  function nextTourStep() {
+    tourIndex++;
+    if (tourIndex >= tourSteps.length) { endTour(); return; }
+    positionTourElements();
+  }
+  function endTour() {
+    document.getElementById('tourOverlay').style.display = 'none';
+  }
+  function positionTourElements() {
+    const step = tourSteps[tourIndex];
+    const overlay = document.getElementById('tourOverlay');
+    const highlight = document.getElementById('tourHighlight');
+    const tooltip = document.getElementById('tourTooltip');
+    document.getElementById('tourTitle').textContent = step.title;
+    document.getElementById('tourBody').textContent = step.body;
+    document.getElementById('tourStep').textContent = `${tourIndex + 1} / ${tourSteps.length}`;
+    document.getElementById('tourNextBtn').textContent = tourIndex === tourSteps.length - 1 ? 'Finish' : 'Next';
+    const target = document.querySelector(step.target);
+    if (target && step.position !== 'center') {
+      const rect = target.getBoundingClientRect();
+      highlight.style.left = rect.left - 8 + 'px';
+      highlight.style.top = rect.top - 8 + 'px';
+      highlight.style.width = rect.width + 16 + 'px';
+      highlight.style.height = rect.height + 16 + 'px';
+      highlight.style.display = 'block';
+      let tleft = rect.left + rect.width / 2 - 160;
+      let ttop = rect.bottom + 16;
+      if (step.position === 'left') { tleft = rect.left - 340; ttop = rect.top; }
+      if (step.position === 'right') { tleft = rect.right + 16; ttop = rect.top; }
+      if (step.position === 'bottom') { tleft = rect.left + rect.width / 2 - 160; ttop = rect.bottom + 16; }
+      tooltip.style.left = Math.max(10, Math.min(window.innerWidth - 330, tleft)) + 'px';
+      tooltip.style.top = Math.max(10, ttop) + 'px';
+    } else {
+      highlight.style.display = 'none';
+      tooltip.style.left = '50%';
+      tooltip.style.top = '50%';
+      tooltip.style.transform = 'translate(-50%, -50%)';
+    }
+  }
+
+  // Route deviation wizard
+  function startRouteDeviationWizard() {
+    if (!selectedShip) { openShipById(ships.find(s => s.sailing && s.status !== 'blue')?.id || ships[0].id); }
+    selectTab('optimise');
+    document.getElementById('routeDeviationCard').style.display = 'block';
+    document.getElementById('routeDeviationTrigger').style.display = 'none';
+    updateRouteDeviationPreview();
+  }
+  function updateRouteDeviationPreview() {
+    const dev = parseInt(document.getElementById('routeDeviationSlider').value) || 0;
+    const extra = Math.abs(dev) * 0.8;
+    const saving = Math.max(0, (dev > 0 ? dev * 0.08 : 0));
+    const eta = dev === 0 ? 0 : dev > 0 ? Math.round(extra / 12) : -Math.round(extra / 12);
+    document.getElementById('routeDeviationExtra').textContent = `${extra.toFixed(1)} nm`;
+    document.getElementById('routeDeviationSaving').textContent = `${saving.toFixed(1)}%`;
+    document.getElementById('routeDeviationEta').textContent = `${eta >= 0 ? '+' : ''}${eta}h`;
+  }
+  function endRouteDeviationWizard() {
+    const dev = document.getElementById('routeDeviationSlider').value;
+    alert(`Route deviation of ${dev} nm endorsed. Recommendation logged and sent to bridge.`);
+    document.getElementById('routeDeviationCard').style.display = 'none';
+    if (demoMode) document.getElementById('routeDeviationTrigger').style.display = 'block';
+  }
+  function cancelRouteDeviationWizard() {
+    document.getElementById('routeDeviationCard').style.display = 'none';
+    if (demoMode) document.getElementById('routeDeviationTrigger').style.display = 'block';
+  }
+
+  // Maintenance response wizard
+  let maintenanceStep = 1;
+  function startMaintenanceWizard() {
+    if (!selectedShip || !selectedShip.alertData) {
+      const red = ships.find(s => s.status === 'red');
+      if (red) openShipById(red.id);
+      else { alert('No active maintenance alerts. Select a red-status vessel first.'); return; }
+    }
+    showLens('fixdetail');
+    document.getElementById('maintenanceWizardCard').style.display = 'block';
+    document.getElementById('maintenanceWizardTrigger').style.display = 'none';
+    maintenanceStep = 1;
+    showMaintenanceStep(1);
+    if (selectedShip && selectedShip.alertData) {
+      document.getElementById('mwFault').textContent = selectedShip.alertData.fault || selectedShip.alertData.faultCode;
+      document.getElementById('mwComponent').textContent = selectedShip.alertData.component;
+      document.getElementById('mwRul').textContent = selectedShip.alertData.rul;
+    }
+  }
+  function showMaintenanceStep(n) {
+    maintenanceStep = n;
+    [1, 2, 3].forEach(i => document.getElementById('maintenanceWizardStep' + i).style.display = i === n ? 'block' : 'none');
+    document.querySelectorAll('#maintenanceWizardCard .wizard-step').forEach((s, i) => {
+      s.classList.toggle('active', i === n - 1);
+      s.classList.toggle('done', i < n - 1);
+    });
+    if (n === 3) {
+      document.getElementById('mwAction').textContent = document.getElementById('mwSeverity').value;
+      document.getElementById('mwPartsSummary').textContent = document.getElementById('mwParts').value + ' · ' + document.getElementById('mwStock').value;
+      document.getElementById('mwWindowSummary').textContent = document.getElementById('mwWindow').value;
+    }
+  }
+  function nextMaintenanceStep() { if (maintenanceStep < 3) showMaintenanceStep(maintenanceStep + 1); }
+  function prevMaintenanceStep() { if (maintenanceStep > 1) showMaintenanceStep(maintenanceStep - 1); }
+  function endMaintenanceWizard() {
+    alert('Work order approved and scheduled. Alert acknowledged.');
+    document.getElementById('maintenanceWizardCard').style.display = 'none';
+    if (selectedShip) selectedShip.alertAcknowledged = true;
+    updateAlertsBadge();
+    if (demoMode) document.getElementById('maintenanceWizardTrigger').style.display = 'block';
+  }
+  function cancelMaintenanceWizard() {
+    document.getElementById('maintenanceWizardCard').style.display = 'none';
+    if (demoMode) document.getElementById('maintenanceWizardTrigger').style.display = 'block';
+  }
+
+  // Verified invoice wizard
+  let invoiceStep = 1;
+  function startInvoiceWizard() {
+    if (!selectedShip) openShipById(1);
+    showLens('invoice');
+    document.getElementById('invoiceWizardCard').style.display = 'block';
+    document.getElementById('invoiceWizardTrigger').style.display = 'none';
+    invoiceStep = 1;
+    showInvoiceStep(1);
+  }
+  function showInvoiceStep(n) {
+    invoiceStep = n;
+    [1, 2, 3].forEach(i => document.getElementById('invoiceWizardStep' + i).style.display = i === n ? 'block' : 'none');
+    document.querySelectorAll('#invoiceWizardCard .wizard-step').forEach((s, i) => {
+      s.classList.toggle('active', i === n - 1);
+      s.classList.toggle('done', i < n - 1);
+    });
+  }
+  function nextInvoiceStep() { if (invoiceStep < 3) showInvoiceStep(invoiceStep + 1); }
+  function prevInvoiceStep() { if (invoiceStep > 1) showInvoiceStep(invoiceStep - 1); }
+  function endInvoiceWizard() {
+    alert('Verified invoice generated for £81,200. Draft sent to finance.');
+    document.getElementById('invoiceWizardCard').style.display = 'none';
+    if (demoMode) document.getElementById('invoiceWizardTrigger').style.display = 'block';
+  }
+  function cancelInvoiceWizard() {
+    document.getElementById('invoiceWizardCard').style.display = 'none';
+    if (demoMode) document.getElementById('invoiceWizardTrigger').style.display = 'block';
+  }
+
+  // Regulatory submission wizard
+  let regulatoryStep = 1;
+  function startRegulatoryWizard() {
+    if (!selectedShip) openShipById(1);
+    selectTab('regs');
+    document.getElementById('regulatoryWizardCard').style.display = 'block';
+    document.getElementById('regulatoryWizardTrigger').style.display = 'none';
+    regulatoryStep = 1;
+    showRegulatoryStep(1);
+  }
+  function showRegulatoryStep(n) {
+    regulatoryStep = n;
+    [1, 2, 3].forEach(i => document.getElementById('regulatoryWizardStep' + i).style.display = i === n ? 'block' : 'none');
+    document.querySelectorAll('#regulatoryWizardCard .wizard-step').forEach((s, i) => {
+      s.classList.toggle('active', i === n - 1);
+      s.classList.toggle('done', i < n - 1);
+    });
+    if (n === 3) {
+      document.getElementById('rwPortal').textContent = document.getElementById('rwRegulation').value;
+      document.getElementById('rwPeriodSummary').textContent = document.getElementById('rwPeriod').value;
+    }
+  }
+  function nextRegulatoryStep() { if (regulatoryStep < 3) showRegulatoryStep(regulatoryStep + 1); }
+  function prevRegulatoryStep() { if (regulatoryStep > 1) showRegulatoryStep(regulatoryStep - 1); }
+  function endRegulatoryWizard() {
+    const reg = document.getElementById('rwRegulation').value;
+    const period = document.getElementById('rwPeriod').value;
+    alert(`Regulatory submission sent to ${reg} for ${period}. Submission ID: REG-${Date.now().toString().slice(-6)}`);
+    document.getElementById('regulatoryWizardCard').style.display = 'none';
+    if (demoMode) document.getElementById('regulatoryWizardTrigger').style.display = 'block';
+  }
+  function cancelRegulatoryWizard() {
+    document.getElementById('regulatoryWizardCard').style.display = 'none';
+    if (demoMode) document.getElementById('regulatoryWizardTrigger').style.display = 'block';
+  }
+
   // Expose scenario helpers referenced by inline onclick
   Object.assign(window, { loadScenario, ackAlert });
 
@@ -2441,6 +3067,8 @@ const STATIC_ROUTES = {
   populateScenarioVessels();
   renderSavedScenarios();
   renderScenarioComparison();
+  applyDemoMode();
+  applyRolePreset();
 
   // Expose handlers that the inline HTML onclick attributes reference.
   Object.assign(window, {
@@ -2450,7 +3078,12 @@ const STATIC_ROUTES = {
     openComponentEntity, openSensorEntity, openShip, openShipById,
     toggleMenu, toggleLiveMode, setLiveSpeed, openAlertsCentre, closeAlertsCentre,
     filterAlerts, acknowledgeAllAlerts, runScenario, saveScenario, clearScenarios,
-    runWizard, loadScenario, ackAlert
+    runWizard, loadScenario, ackAlert,
+    openSettings, closeSettings, toggleDemoMode, setRolePreset, startTour, nextTourStep, endTour,
+    startRouteDeviationWizard, updateRouteDeviationPreview, endRouteDeviationWizard, cancelRouteDeviationWizard,
+    startMaintenanceWizard, nextMaintenanceStep, prevMaintenanceStep, endMaintenanceWizard, cancelMaintenanceWizard,
+    startInvoiceWizard, nextInvoiceStep, prevInvoiceStep, endInvoiceWizard, cancelInvoiceWizard,
+    startRegulatoryWizard, nextRegulatoryStep, prevRegulatoryStep, endRegulatoryWizard, cancelRegulatoryWizard
   });
   }
 
