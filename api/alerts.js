@@ -26,7 +26,8 @@ module.exports = (req, res) => {
         faultCode: e.faultCode,
         anomalyScore: e.anomalyScore,
         action: e.action,
-        qualityFlag: e.qualityFlag
+        qualityFlag: e.qualityFlag,
+        timestamp: e.ts ? new Date(e.ts).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Just now'
       };
     })
     .sort((a, b) => b.ts.localeCompare(a.ts));

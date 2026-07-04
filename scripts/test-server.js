@@ -7,6 +7,7 @@ const routeHandler = require('../api/route');
 const alertsHandler = require('../api/alerts');
 const vesselHandler = require('../api/vessel/[id]');
 const deploymentHandler = require('../api/deployment/[id]');
+const scenariosHandler = require('../api/scenarios');
 
 const PORT = 3000;
 const ROOT = path.join(__dirname, '..');
@@ -47,6 +48,7 @@ const server = http.createServer((req, res) => {
   if (pathname === '/api/fleet') return serveHandler(req, res, fleetHandler);
   if (pathname === '/api/route') return serveHandler(req, res, routeHandler);
   if (pathname === '/api/alerts') return serveHandler(req, res, alertsHandler);
+  if (pathname === '/api/scenarios') return serveHandler(req, res, scenariosHandler);
   if (pathname.startsWith('/api/vessel/')) return serveHandler(req, res, vesselHandler);
   if (pathname.startsWith('/api/deployment/')) return serveHandler(req, res, deploymentHandler);
 

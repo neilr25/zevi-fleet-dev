@@ -343,6 +343,61 @@
   .weather-overlay-marker .wind-arrow { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; color: var(--weather-wind); opacity: 0.85; filter: drop-shadow(0 0 3px var(--weather-wind)); }
   .route-loading { opacity: 0.7; }
 
+  /* Responsive layout */
+  @media (max-width: 768px) {
+    .left-panel { position: fixed; top: 0; left: 0; transform: translateX(-100%); width: 260px; height: 100vh; transition: transform 0.25s ease; }
+    .left-panel.open { transform: translateX(0); }
+    .left-panel-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; }
+    .left-panel-overlay.open { display: block; }
+    .menu-toggle { display: flex; }
+    .topbar { padding: 0 12px; }
+    .topbar-title { font-size: 13px; }
+    .topbar-right { gap: 8px; }
+    .ship-panel { width: 100%; }
+    .stats-grid { grid-template-columns: 1fr; }
+    .weather-summary-grid { grid-template-columns: 1fr; }
+    .fleet-summary { grid-template-columns: 1fr; }
+    .route-legend { display: none; }
+    .panel-tabs { padding: 8px; }
+    .panel-tab { padding: 5px 6px; font-size: 8px; }
+  }
+  .menu-toggle { display: none; width: 32px; height: 32px; align-items: center; justify-content: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text); cursor: pointer; }
+  .live-controls { display: flex; align-items: center; gap: 6px; }
+  .live-btn { padding: 5px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text); font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+  .live-btn.active { background: var(--green); color: white; border-color: var(--green); }
+  .live-btn.active::before { content: '⏸'; }
+  .live-btn:not(.active)::before { content: '▶'; }
+  .live-speed { padding: 4px 7px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text); font-size: 11px; }
+  .alerts-btn { position: relative; padding: 5px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text); font-size: 11px; font-weight: 600; cursor: pointer; }
+  .alerts-badge { position: absolute; top: -5px; right: -5px; background: var(--red); color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; display: flex; align-items: center; justify-content: center; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); width: 90%; max-width: 700px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; }
+  .modal-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .modal-body { flex: 1; overflow-y: auto; padding: 16px; }
+  .modal-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+  .alert-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 8px; cursor: pointer; }
+  .alert-row:hover { border-color: var(--accent); }
+  .alert-row.critical { border-left: 3px solid var(--red); }
+  .alert-row.attention { border-left: 3px solid var(--amber); }
+  .alert-row.route { border-left: 3px solid var(--cyan); }
+  .alert-row.offline { border-left: 3px solid var(--status-grey); }
+  .alert-row.none { border-left: 3px solid var(--green); }
+  .alert-filter-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .alert-filter-row button { padding: 4px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text); font-size: 11px; cursor: pointer; }
+  .alert-filter-row button.active { background: var(--accent); border-color: var(--accent); color: white; }
+  .scenario-form { display: grid; gap: 10px; }
+  .scenario-form label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--muted); }
+  .scenario-form input, .scenario-form select { padding: 6px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text); font-size: 12px; }
+  .scenario-result { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; margin-top: 12px; }
+  .scenario-comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .scenario-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; }
+  .scenario-card h4 { font-size: 11px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+  .scenario-metric { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .scenario-metric:last-child { border-bottom: none; }
+  .wizard-trigger { padding: 6px 12px; background: var(--accent); border: none; border-radius: var(--radius-md); color: white; font-size: 11px; font-weight: 600; cursor: pointer; }
+  .wizard-trigger.secondary { background: transparent; border: 1px solid var(--border-light); color: var(--text); }
+  .last-update { font-size: 10px; color: var(--muted); margin-left: 8px; }
+
 </style>
 </head>
 <body>
@@ -367,10 +422,35 @@
       <div class="weather-summary" id="weatherSummary"></div>
     </div>
   </aside>
+  <div class="left-panel-overlay" id="leftPanelOverlay" onclick="toggleMenu()"></div>
   <div class="main">
     <div class="topbar">
-      <div class="topbar-title" id="topbarTitle">Fast Fleet <span style="color:var(--muted);font-weight:400;">· Wind as a Service</span></div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="menu-toggle tooltip" id="menuToggle" data-tooltip="Open fleet menu" onclick="toggleMenu()">☰</button>
+        <div class="topbar-title" id="topbarTitle">Fast Fleet <span style="color:var(--muted);font-weight:400;">· Wind as a Service</span></div>
+      </div>
       <div class="topbar-right">
+        <div class="live-controls tooltip" data-tooltip="Simulate live vessel movement along routes">
+          <button class="live-btn" id="liveBtn" onclick="toggleLiveMode()">Live</button>
+          <select class="live-speed" id="liveSpeed" onchange="setLiveSpeed(this.value)">
+            <option value="1">1x</option>
+            <option value="5">5x</option>
+            <option value="10">10x</option>
+          </select>
+          <span class="last-update" id="lastUpdate"></span>
+        </div>
+        <button class="alerts-btn tooltip" id="alertsBtn" data-tooltip="Open alerts centre" onclick="openAlertsCentre()">
+          Alerts
+          <span class="alerts-badge" id="alertsBadge">0</span>
+        </button>
+        <div class="tooltip" data-tooltip="Demo wizards: add a ship or create a sales case">
+          <select class="role-select" id="wizardSelect" onchange="runWizard(this.value)">
+            <option value="">Wizards…</option>
+            <option value="add-ship">Add ship</option>
+            <option value="sales-case">Create sales case</option>
+            <option value="scenario">New scenario</option>
+          </select>
+        </div>
         <button class="theme-toggle tooltip tooltip-bottom" id="themeToggle" data-tooltip="Toggle light/dark mode">🌙</button>
         <div class="tooltip tooltip-bottom" data-tooltip="Switch between Ship Owner and SGS Internal views">
           <select class="role-select" id="roleSelect">
@@ -395,6 +475,7 @@
           <div class="panel-tab tooltip" data-tooltip="Payback, NPV, and CO₂ avoided" data-tab="report" onclick="selectTab('report')">FastReport</div>
           <div class="panel-tab tooltip" data-tooltip="CII rating and regulator submissions" data-tab="regs" onclick="selectTab('regs')">FastRegs</div>
           <div class="panel-tab tooltip" data-tooltip="Current voyage route and weather" data-tab="optimise" onclick="selectTab('optimise')">FastRoute</div>
+          <div class="panel-tab tooltip" data-tooltip="What-if scenario planning and comparisons" data-tab="scenarios" onclick="selectTab('scenarios')">Scenarios</div>
         </div>
         <div class="panel-body" id="panelBody">
           <div class="lens active" id="lens-overview">
@@ -713,8 +794,68 @@
             <button class="btn" onclick="alert('Report submitted to regulator')">Submit to regulator</button>
             <button class="btn secondary" onclick="showLens('overview')">Back</button>
           </div>
+
+          <div class="lens" id="lens-scenarios">
+            <div class="panel-title">Scenarios · What-if planning</div>
+            <div class="card">
+              <div class="scenario-form">
+                <label>
+                  Vessel
+                  <select id="scenarioVessel"></select>
+                </label>
+                <label>
+                  FastRig units
+                  <input type="number" id="scenarioRigs" min="0" max="6" value="2">
+                </label>
+                <label>
+                  Route deviation (nm north/south)
+                  <input type="number" id="scenarioDeviation" min="-50" max="50" value="0">
+                </label>
+                <label>
+                  Wind boost factor
+                  <input type="range" id="scenarioWind" min="0.8" max="1.5" step="0.05" value="1.0">
+                </label>
+                <label>
+                  Fuel price ($/t)
+                  <input type="number" id="scenarioFuelPrice" min="300" max="1200" value="650">
+                </label>
+                <div style="display:flex;gap:8px;">
+                  <button class="btn" onclick="runScenario()">Run scenario</button>
+                  <button class="btn secondary" onclick="saveScenario()">Save</button>
+                  <button class="btn secondary" onclick="clearScenarios()">Clear all</button>
+                </div>
+              </div>
+            </div>
+            <div id="scenarioResult" class="scenario-result" style="display:none;"></div>
+            <div class="panel-title">Saved scenarios</div>
+            <div id="savedScenarios"></div>
+            <div class="panel-title">Comparison</div>
+            <div id="scenarioComparison" class="scenario-comparison"></div>
+          </div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+<div id="alertsModal" class="modal-overlay" style="display:none;" onclick="closeAlertsCentre(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div style="font-size:14px;font-weight:600;">Alerts centre</div>
+      <button class="close-btn" onclick="closeAlertsCentre()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert-filter-row" id="alertsModalFilter">
+        <button class="active" data-filter="all" onclick="filterAlerts('all')">All</button>
+        <button data-filter="Critical" onclick="filterAlerts('Critical')">Critical</button>
+        <button data-filter="Attention" onclick="filterAlerts('Attention')">Attention</button>
+        <button data-filter="Route Update" onclick="filterAlerts('Route Update')">Route</button>
+        <button data-filter="Offline" onclick="filterAlerts('Offline')">Offline</button>
+      </div>
+      <div id="alertsModalList"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn secondary" onclick="closeAlertsCentre()">Close</button>
+      <button class="btn" onclick="acknowledgeAllAlerts()">Acknowledge all</button>
     </div>
   </div>
 </div>
@@ -1309,7 +1450,8 @@ const STATIC_ROUTES = {
     fix: 'FastFix · Condition & maintenance',
     report: 'FastReport · Techno-economic case',
     regs: 'FastRegs · Compliance reporting',
-    optimise: 'FastRoute · Voyage routes'
+    optimise: 'FastRoute · Voyage routes',
+    scenarios: 'Scenarios · What-if planning'
   };
 
   function computeHeadline(s) {
@@ -2017,12 +2159,298 @@ const STATIC_ROUTES = {
   document.body.addEventListener('focusin', (e) => { if (e.target.classList && e.target.classList.contains('tooltip')) showTooltip(e.target); }, true);
   document.body.addEventListener('focusout', (e) => { if (e.target.classList && e.target.classList.contains('tooltip')) hideTooltip(); }, true);
 
+  // Responsive menu
+  function toggleMenu() {
+    const left = document.querySelector('.left-panel');
+    const overlay = document.getElementById('leftPanelOverlay');
+    left.classList.toggle('open');
+    overlay.classList.toggle('open');
+  }
+
+  // Live vessel position simulation
+  let liveMode = false;
+  let liveInterval = null;
+  let liveSpeed = 1;
+  const baseProgressPerTick = 0.0005;
+  function setLiveSpeed(speed) {
+    liveSpeed = parseFloat(speed) || 1;
+  }
+  function toggleLiveMode() {
+    liveMode = !liveMode;
+    const btn = document.getElementById('liveBtn');
+    if (liveMode) {
+      btn.classList.add('active');
+      btn.textContent = 'Live';
+      ships.forEach(s => { if (s.route && s.route.points && s.route.points.length >= 2 && s.sailing && !s.atPort && s.status !== 'blue' && s.status !== 'grey') { if (s.routeProgress == null) s.routeProgress = 0.2 + Math.random() * 0.4; } });
+      liveInterval = setInterval(simulateLiveTick, 1000);
+      simulateLiveTick();
+    } else {
+      btn.classList.remove('active');
+      btn.textContent = 'Live';
+      if (liveInterval) clearInterval(liveInterval);
+      liveInterval = null;
+    }
+  }
+  function simulateLiveTick() {
+    const now = new Date().toISOString();
+    document.getElementById('lastUpdate').textContent = 'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    markers.forEach(m => {
+      const s = m.ship;
+      if (!s.route || !s.route.points || s.route.points.length < 2 || !s.sailing || s.atPort || s.status === 'blue' || s.status === 'grey') return;
+      const totalSegments = s.route.points.length - 1;
+      s.routeProgress = Math.min(1, (s.routeProgress || 0) + baseProgressPerTick * liveSpeed * (1 + (s.id % 3) * 0.1));
+      const idx = Math.min(Math.floor(s.routeProgress * totalSegments), totalSegments - 1);
+      const f = (s.routeProgress * totalSegments) - idx;
+      const a = s.route.points[idx];
+      const b = s.route.points[idx + 1];
+      const [lat, lon] = greatCirclePoint(a[0], a[1], b[0], b[1], f);
+      s.lat = lat; s.lon = lon; s.heading = Math.round(bearing(a[0], a[1], b[0], b[1]));
+      m.setLatLng([lat, lon]);
+      m.setIcon(shipIcon(s, selectedShip && selectedShip.id === s.id ? 'selected' : (selectedShip ? 'dimmed' : null)));
+    });
+    if (selectedShip) {
+      const m = markers.find(m => m.ship.id === selectedShip.id);
+      if (m) selectedShip = m.ship;
+      renderShipPosition(selectedShip);
+    }
+    renderStats();
+    renderFleetSummary();
+  }
+  function renderShipPosition(s) {
+    const voyage = s.details && s.details.voyage;
+    if (voyage) {
+      voyage.distanceRemaining = `${Math.round((1 - (s.routeProgress || 0.5)) * (s.route.distanceNm || 3000))} nm`;
+      voyage.speed = s.route && s.route.speed ? s.route.speed : '12 kt';
+    }
+    if (selectedShip && selectedShip.id === s.id) {
+      const routeDistance = document.getElementById('routeDistance');
+      if (routeDistance && s.route) routeDistance.textContent = `${s.route.distanceNm} nm`;
+    }
+  }
+
+  // Alerts centre
+  let alertsCache = [];
+  let alertsFilter = 'all';
+  function openAlertsCentre() {
+    document.getElementById('alertsModal').style.display = 'flex';
+    fetch('/api/alerts').then(r => r.json()).then(data => {
+      alertsCache = (data.alerts || []).map(a => ({ ...a, acknowledged: false }));
+      renderAlertsModal();
+      updateAlertsBadge();
+    }).catch(err => {
+      console.warn('Alerts fetch failed:', err);
+      alertsCache = [];
+      ships.forEach(s => {
+        if (s.alert) alertsCache.push({ vesselId: s.id, vesselName: s.name, type: getAlertType(s), severity: getAlertType(s), message: s.alert, timestamp: 'Just now', acknowledged: false });
+      });
+      renderAlertsModal();
+      updateAlertsBadge();
+    });
+  }
+  function closeAlertsCentre(e) {
+    if (e && e.target !== e.currentTarget) return;
+    document.getElementById('alertsModal').style.display = 'none';
+  }
+  function filterAlerts(type) {
+    alertsFilter = type;
+    document.querySelectorAll('#alertsModalFilter button').forEach(b => b.classList.toggle('active', b.dataset.filter === type));
+    renderAlertsModal();
+  }
+  function renderAlertsModal() {
+    const list = document.getElementById('alertsModalList');
+    const filtered = alertsFilter === 'all' ? alertsCache : alertsCache.filter(a => a.severity === alertsFilter || a.type === alertsFilter);
+    const visible = filtered.filter(a => !a.acknowledged);
+    if (visible.length === 0) { list.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px 0;">No active alerts.</div>'; return; }
+    list.innerHTML = visible.map(a => `
+      <div class="alert-row ${a.severity.toLowerCase().replace(' ', '-')}" onclick="openAlertShip(${a.vesselId})">
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:12px;">${a.vesselName}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">${a.message || a.action || (a.faultCode + ' · ' + a.component) || 'Alert'}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;">${a.severity} · ${a.timestamp || 'Just now'}</div>
+        </div>
+        <button class="btn secondary" style="padding:4px 10px;font-size:10px;" onclick="event.stopPropagation();ackAlert(${a.vesselId}, '${a.message}')">Ack</button>
+      </div>
+    `).join('');
+  }
+  function ackAlert(vesselId, message) {
+    const a = alertsCache.find(x => x.vesselId === vesselId && x.message === message);
+    if (a) a.acknowledged = true;
+    renderAlertsModal();
+    updateAlertsBadge();
+  }
+  function acknowledgeAllAlerts() {
+    alertsCache.forEach(a => a.acknowledged = true);
+    renderAlertsModal();
+    updateAlertsBadge();
+  }
+  function openAlertShip(id) {
+    closeAlertsCentre();
+    openShipById(id);
+  }
+  function updateAlertsBadge() {
+    const unack = alertsCache.filter(a => !a.acknowledged).length || ships.filter(s => s.alert && !s.alertAcknowledged).length;
+    const badge = document.getElementById('alertsBadge');
+    badge.textContent = unack;
+    badge.style.display = unack > 0 ? 'flex' : 'none';
+  }
+  updateAlertsBadge();
+
+  // Scenario planning
+  function populateScenarioVessels() {
+    const sel = document.getElementById('scenarioVessel');
+    if (!sel) return;
+    sel.innerHTML = ships.map(s => `<option value="${s.id}">${s.name} (${s.type})</option>`).join('');
+  }
+  function runScenario() {
+    const id = parseInt(document.getElementById('scenarioVessel').value);
+    const s = ships.find(x => x.id === id);
+    if (!s) return;
+    const rigs = parseInt(document.getElementById('scenarioRigs').value) || 0;
+    const deviation = parseFloat(document.getElementById('scenarioDeviation').value) || 0;
+    const wind = parseFloat(document.getElementById('scenarioWind').value) || 1;
+    const fuelPrice = parseFloat(document.getElementById('scenarioFuelPrice').value) || 650;
+    const baseSaving = s.savings && s.savings !== '—' ? parseFloat(s.savings) : 0;
+    const rigBoost = rigs * 1.8;
+    const windBoost = (wind - 1) * 8;
+    const devPenalty = Math.abs(deviation) * 0.03;
+    const predictedSaving = Math.max(0, baseSaving + rigBoost + windBoost - devPenalty);
+    const annualFuel = 2500 + (s.type === 'Bulk Carrier' ? 1500 : s.type === 'Container' ? 1200 : 800);
+    const fuelSavedT = annualFuel * predictedSaving / 100;
+    const co2SavedT = fuelSavedT * 3.15;
+    const valueGBP = fuelSavedT * fuelPrice * 0.8;
+    const result = { vesselId: id, vesselName: s.name, rigs, deviation, wind, fuelPrice, predictedSaving, fuelSavedT, co2SavedT, valueGBP };
+    window.currentScenario = result;
+    document.getElementById('scenarioResult').style.display = 'block';
+    document.getElementById('scenarioResult').innerHTML = `
+      <div class="panel-title" style="margin-top:0">Scenario result</div>
+      <div class="metric"><div class="metric-value green">${predictedSaving.toFixed(1)}%</div><div class="metric-label">Predicted fuel saving</div></div>
+      <div class="mini-list-item"><span>Fuel saved / yr</span><span>${fuelSavedT.toFixed(0)} t</span></div>
+      <div class="mini-list-item"><span>CO₂ avoided / yr</span><span>${co2SavedT.toFixed(0)} t</span></div>
+      <div class="mini-list-item"><span>Value / yr</span><span>£${(valueGBP / 1e6).toFixed(2)}M</span></div>
+    `;
+    renderScenarioComparison();
+  }
+  function saveScenario() {
+    if (!window.currentScenario) { runScenario(); }
+    const saved = JSON.parse(localStorage.getItem('fastFleet_scenarios') || '[]');
+    saved.push({ ...window.currentScenario, id: Date.now(), name: `${window.currentScenario.vesselName} · ${window.currentScenario.rigs} rigs` });
+    localStorage.setItem('fastFleet_scenarios', JSON.stringify(saved));
+    renderSavedScenarios();
+    renderScenarioComparison();
+  }
+  function clearScenarios() {
+    localStorage.removeItem('fastFleet_scenarios');
+    renderSavedScenarios();
+    renderScenarioComparison();
+  }
+  function renderSavedScenarios() {
+    const saved = JSON.parse(localStorage.getItem('fastFleet_scenarios') || '[]');
+    const el = document.getElementById('savedScenarios');
+    if (saved.length === 0) { el.innerHTML = '<div style="color:var(--muted);font-size:11px;">No saved scenarios.</div>'; return; }
+    el.innerHTML = saved.map(s => `
+      <div class="scenario-card" style="margin-bottom:8px;">
+        <h4>${s.name}</h4>
+        <div class="scenario-metric"><span>Saving</span><span class="green">${s.predictedSaving.toFixed(1)}%</span></div>
+        <div class="scenario-metric"><span>Fuel</span><span>${s.fuelSavedT.toFixed(0)} t/yr</span></div>
+        <div class="scenario-metric"><span>Value</span><span>£${(s.valueGBP/1e6).toFixed(2)}M</span></div>
+        <button class="btn secondary" style="margin-top:8px;width:100%;" onclick="loadScenario(${s.id})">Load</button>
+      </div>
+    `).join('');
+  }
+  function loadScenario(id) {
+    const saved = JSON.parse(localStorage.getItem('fastFleet_scenarios') || '[]');
+    const s = saved.find(x => x.id === id);
+    if (!s) return;
+    document.getElementById('scenarioVessel').value = s.vesselId;
+    document.getElementById('scenarioRigs').value = s.rigs;
+    document.getElementById('scenarioDeviation').value = s.deviation;
+    document.getElementById('scenarioWind').value = s.wind;
+    document.getElementById('scenarioFuelPrice').value = s.fuelPrice;
+    window.currentScenario = s;
+    document.getElementById('scenarioResult').style.display = 'block';
+    document.getElementById('scenarioResult').innerHTML = `
+      <div class="panel-title" style="margin-top:0">Scenario result</div>
+      <div class="metric"><div class="metric-value green">${s.predictedSaving.toFixed(1)}%</div><div class="metric-label">Predicted fuel saving</div></div>
+      <div class="mini-list-item"><span>Fuel saved / yr</span><span>${s.fuelSavedT.toFixed(0)} t</span></div>
+      <div class="mini-list-item"><span>CO₂ avoided / yr</span><span>${s.co2SavedT.toFixed(0)} t</span></div>
+      <div class="mini-list-item"><span>Value / yr</span><span>£${(s.valueGBP / 1e6).toFixed(2)}M</span></div>
+    `;
+    renderScenarioComparison();
+  }
+  function renderScenarioComparison() {
+    const saved = JSON.parse(localStorage.getItem('fastFleet_scenarios') || '[]');
+    const el = document.getElementById('scenarioComparison');
+    if (saved.length === 0) { el.innerHTML = ''; return; }
+    el.innerHTML = saved.map(s => `
+      <div class="scenario-card">
+        <h4>${s.name}</h4>
+        <div class="scenario-metric"><span>Fuel saving</span><span class="green">${s.predictedSaving.toFixed(1)}%</span></div>
+        <div class="scenario-metric"><span>CO₂ / yr</span><span>${s.co2SavedT.toFixed(0)} t</span></div>
+        <div class="scenario-metric"><span>Value / yr</span><span>£${(s.valueGBP/1e6).toFixed(2)}M</span></div>
+      </div>
+    `).join('');
+  }
+
+  // Demo wizards
+  function runWizard(name) {
+    const sel = document.getElementById('wizardSelect');
+    sel.value = '';
+    if (name === 'add-ship') openAddShipWizard();
+    else if (name === 'sales-case') openSalesCaseWizard();
+    else if (name === 'scenario') { openShipById(ships[0].id); selectTab('scenarios'); }
+  }
+  function openAddShipWizard() {
+    const name = prompt('Ship name:');
+    if (!name) return;
+    const type = prompt('Type (Bulk Carrier / Container / Tanker / RoRo):', 'Bulk Carrier') || 'Bulk Carrier';
+    const newId = Math.max(...ships.map(s => s.id)) + 1;
+    const s = {
+      id: newId, name, imo: '99' + String(newId).padStart(5, '0'), type, status: 'blue', sailing: false, atPort: true,
+      reason: 'Prospect, prediction ready', savings: '—', guarantee: '—', variance: '—', cii: '—', ciiTarget: '—', co2: '—',
+      contract: 'Prospect', nextInvoice: '—', voyagesReady: 0, deploy: 'None', hours: '0', perfTrust: 'provisional', cbmTrust: 'provisional', compTrust: 'provisional', contractTrust: 'provisional',
+      alert: null, alertData: null, lat: 51.9, lon: 4.1, heading: 0, voyage: 'Rotterdam → New York'
+    };
+    s.route = generateRoute(s);
+    ships.push(s);
+    const marker = L.marker([s.lat, s.lon], { icon: shipIcon(s) });
+    marker.ship = s;
+    marker.bindTooltip(`<b>${s.name}</b><br>${s.type}<br>${statusLabels[s.status]}`, { permanent: false, direction: 'top', className: 'ship-tooltip' });
+    marker.on('click', (e) => { L.DomEvent.stopPropagation(e); openShip(s); });
+    marker.addTo(map);
+    markers.push(marker);
+    renderStats(); renderAlertFilter(); updateMarkers(); renderFleetSummary();
+    populateScenarioVessels();
+    alert(`Added ${name} as a prospect. Open Scenarios to build a case.`);
+  }
+  function openSalesCaseWizard() {
+    const prospects = ships.filter(s => s.contract === 'Prospect');
+    const id = parseInt(prompt('Prospect ship ID:' + prospects.map(s => `\n${s.id} = ${s.name}`).join('')));
+    const s = ships.find(x => x.id === id);
+    if (!s) return alert('No prospect found with that ID');
+    openShipById(s.id);
+    selectTab('scenarios');
+    document.getElementById('scenarioVessel').value = s.id;
+    document.getElementById('scenarioRigs').value = 2;
+    runScenario();
+    alert('Sales case draft generated. Adjust parameters and click Save.');
+  }
+  // Expose scenario helpers referenced by inline onclick
+  Object.assign(window, { loadScenario, ackAlert });
+
+  // Init new UI pieces
+  populateScenarioVessels();
+  renderSavedScenarios();
+  renderScenarioComparison();
+
   // Expose handlers that the inline HTML onclick attributes reference.
   Object.assign(window, {
     closePanel, selectTab, showLens, showFixTab, openWorkOrder,
     openWorkOrderFromBoard, headlineAction, toggleStatus, toggleAlert,
     toggleWeatherLayer, openEntity, popEntity, navigateToEntity,
-    openComponentEntity, openSensorEntity, openShip, openShipById
+    openComponentEntity, openSensorEntity, openShip, openShipById,
+    toggleMenu, toggleLiveMode, setLiveSpeed, openAlertsCentre, closeAlertsCentre,
+    filterAlerts, acknowledgeAllAlerts, runScenario, saveScenario, clearScenarios,
+    runWizard, loadScenario, ackAlert
   });
   }
 
