@@ -1665,7 +1665,7 @@ const STATIC_ROUTES = {
   }
   function extractPorts(voyageString) {
     if (!voyageString || typeof voyageString !== 'string') return null;
-    const m = voyageString.match(/([A-Za-z\s]+)\s*→\s*([A-Za-z\s]+)/);
+    const m = voyageString.match(/([A-Za-z\s]+)\s*\u2192\s*([A-Za-z\s]+)/);
     if (!m) return null;
     return [m[1].trim().replace(/^Last:\s*/i, ''), m[2].trim()];
   }
@@ -1853,7 +1853,8 @@ const STATIC_ROUTES = {
     const activeIds = new Set(applyFilters(ships).map(s => s.id));
     const hasSelection = !!selectedShip;
     ships.forEach(s => {
-      const key = s.voyage ? s.voyage.replace(/\s*->\s*/g, '->').replace(/\s*→\s*/g, '->') : null;
+      const ports = extractPorts(s.voyage);
+      const key = ports ? ports.join('->') : null;
       const pts = key ? STATIC_ROUTES[key] : null;
       if (!pts) {
         if (contextRoutes.has(s.id)) { map.removeLayer(contextRoutes.get(s.id)); contextRoutes.delete(s.id); }
