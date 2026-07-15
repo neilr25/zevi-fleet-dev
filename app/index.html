@@ -110,7 +110,8 @@
   .topbar-title { font-size: 16px; font-weight: 600; letter-spacing: -0.2px; }
   .topbar-right { display: flex; gap: 12px; align-items: center; }
   .role-select { padding: 7px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text); font-size: 12px; }
-  .map-wrap { flex: 1; position: relative; min-width: 0; }
+  .map-wrap { flex: 1; position: relative; min-width: 0; display: flex; flex-direction: column; }
+  .canvas-area { flex: 1; position: relative; min-height: 0; }
   #map { width: 100%; height: 100%; }
   .ship-panel { position: absolute; top: 0; right: 0; bottom: 0; width: 360px; background: var(--surface); border-left: 1px solid var(--border); z-index: 1200; pointer-events: auto; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s ease; overflow-x: hidden; }
   .ship-panel.open { transform: translateX(0); }
@@ -258,7 +259,7 @@
 
   /* Weather */
   /* Fleet performance bar (bottom of map/list canvas) */
-  .stats-bar { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1050; display: flex; align-items: stretch; background: color-mix(in srgb, var(--surface) 92%, transparent); border-top: 1px solid var(--border); backdrop-filter: blur(6px); min-height: 56px; }
+  .stats-bar { position: relative; z-index: 1050; display: flex; align-items: stretch; background: color-mix(in srgb, var(--surface) 92%, transparent); border-top: 1px solid var(--border); backdrop-filter: blur(6px); min-height: 56px; flex-shrink: 0; }
   .stats-title { display: flex; align-items: center; padding: 0 14px; font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; border-right: 1px solid var(--border); white-space: nowrap; }
   .stats-bar .kpi-card { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 1px; padding: 6px 10px; border: none; border-right: 1px solid var(--border); background: transparent; border-radius: 0; position: relative; transition: background 0.15s ease; }
   .stats-bar .kpi-card:last-child { border-right: none; }
@@ -563,6 +564,7 @@
       </div>
     </div>
     <div class="map-wrap">
+      <div class="canvas-area">
       <div id="map"></div>
       <button class="map-layer-btn tooltip" id="weatherToggle" data-tooltip="Toggle wind-direction overlay on the map" onclick="toggleWeatherLayer()">Show wind layer</button>
       <div class="view-toggle">
@@ -581,7 +583,6 @@
         <div class="list-table-wrap" id="listTableWrap"><table class="list-table" id="listTable"></table></div>
         <div class="list-empty" id="listEmpty" style="display:none;">No vessels match these filters — <button class="ghost-link" onclick="clearAllFilters()">Clear filters</button></div>
       </div>
-      <div class="stats-bar" id="statsBar"></div>
       <div class="ship-panel" id="shipPanel">
         <div class="panel-header">
           <button class="close-btn tooltip tooltip-bottom" data-tooltip="Close ship details" onclick="closePanel()">×</button>
@@ -1205,6 +1206,8 @@
           </div>
         </div>
       </div>
+      </div>
+      <div class="stats-bar" id="statsBar"></div>
     </div>
   </div>
 </div>
