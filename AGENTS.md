@@ -1,13 +1,14 @@
 # ZEVI Fleet Prototype — Agent Context
 
-Single-page fleet-first prototype for Smart Green Shipping's FastRig wind-assisted propulsion service. The app is one `index.html` plus a mock JSON API (`api/`) backed by `data/fleet.json`.
+Single-page fleet-first prototype for Smart Green Shipping's FastRig wind-assisted propulsion service. All app code lives in `app/`; repo root holds only documentation and git metadata.
 
 ## Key facts
 
-- `index.html` is the whole frontend: map (Leaflet), left fleet panel, right drill-down lenses, modals, demo wizards.
-- `api/fleet.js` is the main endpoint; it computes vessel cards from `data/fleet.json` (Bronze/Silver/Gold tiers).
-- `scripts/test-server.js` serves the app + API locally (`node scripts/test-server.js`).
+- `app/index.html` is the whole frontend: map (Leaflet), left filter panel, right drill-down lenses, list view, demo wizards.
+- `app/api/fleet.js` is the main endpoint; it computes vessel cards from `app/data/fleet.json` (Bronze/Silver/Gold tiers).
+- `app/scripts/test-server.js` serves the app + API locally (`node app/scripts/test-server.js`).
 - Dark mode is default; light mode must always be kept in sync.
+- Deploy: `cd app && vercel --prod` (the `.vercel` project link lives in `app/`).
 
 ## Design Systems
 
