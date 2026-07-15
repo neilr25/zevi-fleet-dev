@@ -1842,6 +1842,11 @@ const STATIC_ROUTES = {
     markers.push(marker);
   });
 
+  // Shared selection state (declared before route context so initial render can read selectedShip safely)
+  let selectedShip = null;
+  let routeLayers = [];
+  let routeMarkers = [];
+
   // Route context: all active voyages drawn faintly; dimmed when filtered out or another ship is selected
   const contextRoutes = new Map(); // ship.id -> L.polyline
   function renderRouteContext() {
@@ -2247,11 +2252,6 @@ const STATIC_ROUTES = {
     const row = document.querySelector(`#listTable tr[data-ship-id="${id}"]`);
     if (row) row.classList.toggle('row-hover', on);
   }
-  // Shared selection state (declared early so map initialisation can read it)
-  let selectedShip = null;
-  let routeLayers = [];
-  let routeMarkers = [];
-
   function openShipById(id) {
     const s = ships.find(x => x.id === id);
     if (s) openShip(s);
