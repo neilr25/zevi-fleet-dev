@@ -1842,19 +1842,47 @@ const STATIC_ROUTES = {
     markers.push(marker);
   });
 
-  // Dim route context: faint polylines for active voyages, always on
-  const contextRoutes = [];
+  // Route context: all active voyages drawn faintly; dimmed when filtered out or another ship is selected
+  const contextRoutes = new Map(); // ship.id -> L.polyline
   function renderRouteContext() {
-    contextRoutes.forEach(l => map.removeLayer(l));
-    contextRoutes.length = 0;
+    const activeIds = new Set(applyFilters(ships).map(s => s.id));
+    const hasSelection = !!selectedShip;
     ships.forEach(s => {
-      if (!s.voyage) return;
-      const key = s.voyage.replace(/ → /g, '->');
-      const pts = STATIC_ROUTES[key];
-      if (!pts) return;
-      const line = L.polyline(pts, { color: '#38BDF8', weight: 1.5, opacity: 0.22, dashArray: '4 6', interactive: false }).addTo(map);
-      contextRoutes.push(line);
+      const key = s.voyage ? s.voyage.replace(/ → /g, '->') : null;
+      const pts = key ? STATIC_ROUTES[key] : null;
+      if (!pts) {
+        if (contextRoutes.has(s.id)) { map.removeLayer(contextRoutes.get(s.id)); contextRoutes.delete(s.id); }
+        return;
+      }
+      const isMatch = activeIds.has(s.id);
+      const isSelected = hasSelection && selectedShip.id === s.id;
+      const isDimmed = hasSelection && !isSelected; // another ship selected
+      const isFilteredOut = !isMatch;
+      const isLight = document.body.classList.contains('light-mode');
+      const baseColor = isLight ? 'rgba(2,132,199,1)' : 'rgba(56,189,248,1)'; // --weather-wind solid
+      const dimColor = isLight ? 'rgba(148,163,184,0.35)' : 'rgba(148,163,184,0.22)';
+      const offColor = isLight ? 'rgba(148,163,184,0.12)' : 'rgba(148,163,184,0.08)';
+      let color, opacity, weight, dashArray;
+      if (isSelected) {
+        // strong accent when this ship is selected; showRoutes overlay will paint the status route anyway,
+        // but keep context line visible underneath at medium weight so the network is readable
+        color = baseColor; opacity = 0.55; weight = 2.5; dashArray = '4 6';
+      } else if (isDimmed || isFilteredOut) {
+        color = isFilteredOut ? offColor : dimColor; opacity = 1; weight = 1.5; dashArray = '3 5';
+      } else {
+        color = baseColor; opacity = 0.45; weight = 2; dashArray = '4 6';
+      }
+      const existing = contextRoutes.get(s.id);
+      if (existing) {
+        existing.setStyle({ color, opacity, weight, dashArray });
+      } else {
+        contextRoutes.set(s.id, L.polyline(pts, { color, weight, opacity, dashArray, interactive: false }).addTo(map));
+      }
     });
+    // remove any stale routes
+    for (const [id, line] of contextRoutes) {
+      if (!ships.some(s => s.id === id)) { map.removeLayer(line); contextRoutes.delete(id); }
+    }
   }
   renderRouteContext();
 
@@ -1956,6 +1984,7 @@ const STATIC_ROUTES = {
       const state = selectedShip ? (m.ship.id === selectedShip.id ? 'selected' : 'dimmed') : null;
       m.setIcon(shipIcon(m.ship, state, !ids.has(m.ship.id)));
     });
+    renderRouteContext();
   }
   function updateMarkers() {
     // All markers stay on the map; non-matching vessels are dimmed via CSS class.
