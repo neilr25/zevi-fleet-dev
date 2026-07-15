@@ -1804,7 +1804,18 @@ const STATIC_ROUTES = {
     </svg>`
   };
 
-  const map = L.map('map', { center: [20, 10], zoom: 2, zoomControl: false });
+  // Single-world map: lock panning/zoom so users never see duplicated ship markers
+  // or routes across the antimeridian/world copies.
+  const WORLD_BOUNDS = [[-90, -180], [90, 180]];
+  const map = L.map('map', {
+    center: [20, 10],
+    zoom: 2,
+    zoomControl: false,
+    minZoom: 2,
+    maxBounds: WORLD_BOUNDS,
+    maxBoundsViscosity: 1.0,
+    worldCopyJump: true
+  });
   let currentTileLayer = null;
   function refreshTileLayer() {
     const isLight = document.body.classList.contains('light-mode');
@@ -1812,7 +1823,7 @@ const STATIC_ROUTES = {
       ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
       : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
     if (currentTileLayer) map.removeLayer(currentTileLayer);
-    currentTileLayer = L.tileLayer(url, { attribution: '&copy; CARTO' }).addTo(map);
+    currentTileLayer = L.tileLayer(url, { attribution: '&copy; CARTO', noWrap: true, bounds: WORLD_BOUNDS }).addTo(map);
   }
   refreshTileLayer();
   L.control.zoom({ position: 'bottomright' }).addTo(map);
