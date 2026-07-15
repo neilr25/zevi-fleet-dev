@@ -102,20 +102,8 @@
   .name-filter input:focus { border-color: var(--accent); }
   .name-filter input::placeholder { color: var(--muted); opacity: 0.7; }
 
-  .fleet-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: auto; padding-top: 6px; }
+  .ship-list-title { display: none; }
 
-  .ship-list-title { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin: 0 0 5px; }
-  .ship-list { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow-y: auto; overflow-x: hidden; flex: 1 1 auto; min-height: 0; margin-bottom: 8px; }
-  .ship-list-item { padding: 4px 8px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; border-left: 2px solid transparent; }
-  .ship-list-item:last-child { border-bottom: none; }
-  .ship-list-item:hover { background: var(--elevated); }
-  .ship-list-item.selected { background: var(--elevated); border-left-color: var(--accent); }
-  .ship-list-row { display: flex; justify-content: space-between; align-items: center; }
-  .ship-list-name { font-size: 11px; font-weight: 600; }
-  .ship-list-status { font-size: 9px; font-weight: 700; text-transform: uppercase; }
-  .ship-list-type { font-size: 10px; color: var(--muted); }
-  .ship-list-saving { font-size: 10px; font-family: 'JetBrains Mono', monospace; font-weight: 600; }
-  .ship-list-empty { padding: 10px; text-align: center; color: var(--muted); font-size: 11px; }
 
   .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
   .topbar { height: 56px; background: var(--bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
@@ -269,16 +257,26 @@
 
 
   /* Weather */
-  .weather-summary { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 10px; margin-top: 8px; }
-  .weather-summary-title { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 8px; }
-  .weather-summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
-  .weather-summary-item { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 5px 6px; }
-  .weather-summary-label { font-size: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
-  .weather-summary-value { font-size: 12px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--text); margin-top: 2px; }
-  .weather-summary-value.weather-alert { color: var(--weather-rough); }
-  .weather-summary-value.weather-calm { color: var(--weather-calm); }
-  .weather-toggle { margin-top: 8px; width: 100%; padding: 5px 8px; background: var(--weather-wind-bg); border: 1px solid var(--weather-wind); border-radius: var(--radius-md); color: var(--weather-wind); font-size: 10px; font-weight: 600; cursor: pointer; }
-  .weather-toggle:hover { background: var(--elevated); }
+  /* Fleet performance bar (bottom of map/list canvas) */
+  .stats-bar { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1050; display: flex; align-items: stretch; background: color-mix(in srgb, var(--surface) 92%, transparent); border-top: 1px solid var(--border); backdrop-filter: blur(6px); min-height: 56px; }
+  .stats-title { display: flex; align-items: center; padding: 0 14px; font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; border-right: 1px solid var(--border); white-space: nowrap; }
+  .stats-bar .kpi-card { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 1px; padding: 6px 10px; border: none; border-right: 1px solid var(--border); background: transparent; border-radius: 0; position: relative; transition: background 0.15s ease; }
+  .stats-bar .kpi-card:last-child { border-right: none; }
+  .stats-bar .kpi-card:hover { background: var(--elevated); transform: none; }
+  .stats-bar .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--green), var(--cyan)); }
+  .stats-bar .kpi-head { display: flex; align-items: center; gap: 5px; }
+  .stats-bar .kpi-icon { font-size: 12px; line-height: 1; }
+  .stats-bar .kpi-label { font-size: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+  .stats-bar .kpi-value { font-size: 18px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .map-layer-btn { position: absolute; top: 12px; left: 12px; z-index: 1100; padding: 6px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text); font-size: 11px; font-weight: 600; cursor: pointer; box-shadow: var(--shadow); }
+  .map-layer-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .map-layer-btn.active { border-color: var(--weather-wind); color: var(--weather-wind); background: var(--weather-wind-bg); }
+  @media (max-width: 768px) {
+    .stats-bar { flex-wrap: wrap; min-height: 0; }
+    .stats-title { display: none; }
+    .stats-bar .kpi-card { flex: 1 1 50%; border-bottom: 1px solid var(--border); padding: 5px 6px; }
+    .stats-bar .kpi-value { font-size: 15px; }
+  }
   .historic-route-row { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 8px; margin-bottom: 6px; }
   .historic-route-route { font-weight: 700; font-size: 11px; color: var(--text); }
   .historic-route-stats { display: flex; justify-content: space-between; margin-top: 4px; font-size: 10px; color: var(--muted); }
@@ -311,8 +309,6 @@
     .topbar-title { font-size: 13px; }
     .topbar-right { gap: 8px; }
     .ship-panel { width: 100%; }
-    .weather-summary-grid { grid-template-columns: 1fr; }
-    .fleet-summary { grid-template-columns: 1fr; }
     .route-legend { display: none; }
     .panel-tabs { padding: 8px; }
     .panel-tab { padding: 5px 6px; font-size: 8px; }
@@ -408,7 +404,6 @@
   .panel-dimmed { opacity: 0.35; pointer-events: none; }
 
   /* KPI cards (DESIGN.md pattern: gradient top border, mono value, hover lift) */
-  .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .kpi-card { position: relative; background: linear-gradient(180deg, var(--surface), var(--bg)); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 9px 10px 8px; overflow: hidden; transition: transform 0.15s ease, border-color 0.15s ease; }
   .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--green), var(--cyan)); }
   .kpi-card:hover { transform: translateY(-2px); border-color: var(--accent); }
@@ -460,15 +455,15 @@
   .ship-marker.marker-sync > div { animation: pulse 1.5s infinite; filter: drop-shadow(0 0 8px currentColor); }
 
   /* Filter panel (left panel, collapsible) */
-  .filter-panel { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 8px; display: flex; flex-direction: column; flex: 0 1 auto; min-height: 0; }
-  .filter-panel-header { display: flex; align-items: center; gap: 6px; width: 100%; padding: 7px 10px; background: none; border: none; color: var(--text); font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; cursor: pointer; }
+  .filter-panel { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+  .filter-panel-header { display: flex; align-items: center; gap: 6px; width: 100%; padding: 9px 12px; background: none; border: none; color: var(--text); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; cursor: pointer; }
   .filter-live-count { margin-left: auto; color: var(--muted); font-size: 10px; font-weight: 600; text-transform: none; letter-spacing: 0; }
   .filter-panel-chevron { color: var(--muted); font-size: 10px; }
-  .filter-panel-body { padding: 2px 8px 8px; overflow-y: auto; min-height: 0; }
-  .filter-group { margin-bottom: 7px; }
-  .filter-group-title { font-size: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 700; margin-bottom: 4px; }
-  .filter-pills { display: flex; flex-wrap: wrap; gap: 4px; }
-  .filter-pill { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; }
+  .filter-panel-body { padding: 4px 12px 12px; overflow-y: auto; min-height: 0; }
+  .filter-group { margin-bottom: 11px; }
+  .filter-group-title { font-size: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 700; margin-bottom: 5px; }
+  .filter-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+  .filter-pill { display: inline-flex; align-items: center; padding: 4px 11px; border-radius: 12px; font-size: 11px; font-weight: 600; border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; }
   .filter-pill:hover { border-color: var(--border-light); }
   .filter-pill.active { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
   .filter-pills .status-pill { cursor: pointer; }
@@ -521,10 +516,6 @@
           <div class="filter-chips-row" id="filterChips"></div>
         </div>
       </div>
-      <div class="ship-list-title">Fleet</div>
-      <div class="ship-list" id="shipList"></div>
-      <div class="fleet-summary" id="fleetSummary"></div>
-      <div class="weather-summary" id="weatherSummary"></div>
     </div>
   </aside>
   <div class="left-panel-overlay" id="leftPanelOverlay" onclick="toggleMenu()"></div>
@@ -573,6 +564,7 @@
     </div>
     <div class="map-wrap">
       <div id="map"></div>
+      <button class="map-layer-btn tooltip" id="weatherToggle" data-tooltip="Toggle wind-direction overlay on the map" onclick="toggleWeatherLayer()">Show wind layer</button>
       <div class="view-toggle">
         <button class="view-toggle-btn active" data-view="map" onclick="setViewMode('map')">Map</button>
         <button class="view-toggle-btn" data-view="list" onclick="setViewMode('list')">List</button>
@@ -589,6 +581,7 @@
         <div class="list-table-wrap" id="listTableWrap"><table class="list-table" id="listTable"></table></div>
         <div class="list-empty" id="listEmpty" style="display:none;">No vessels match these filters — <button class="ghost-link" onclick="clearAllFilters()">Clear filters</button></div>
       </div>
+      <div class="stats-bar" id="statsBar"></div>
       <div class="ship-panel" id="shipPanel">
         <div class="panel-header">
           <button class="close-btn tooltip tooltip-bottom" data-tooltip="Close ship details" onclick="closePanel()">×</button>
@@ -1510,7 +1503,7 @@ const STATIC_ROUTES = {
   function toggleWeatherLayer() {
     weatherLayerVisible = !weatherLayerVisible;
     const btn = document.getElementById('weatherToggle');
-    if (btn) btn.textContent = weatherLayerVisible ? 'Hide wind layer' : 'Show wind layer';
+    if (btn) { btn.textContent = weatherLayerVisible ? 'Hide wind layer' : 'Show wind layer'; btn.classList.toggle('active', weatherLayerVisible); }
     windLayerMarkers.forEach(m => map.removeLayer(m));
     windLayerMarkers = [];
     if (weatherLayerVisible) {
@@ -1540,15 +1533,12 @@ const STATIC_ROUTES = {
         <div class="kpi-head"><span class="kpi-icon">${icon}</span><span class="kpi-label">${label}</span></div>
         <div class="kpi-value">${value}</div>
       </div>`;
-    document.getElementById('weatherSummary').innerHTML = `
-      <div class="weather-summary-title">Fleet performance${filtered ? ' <span class="kpi-filtered-note">· filtered</span>' : ''}</div>
-      <div class="kpi-grid">
-        ${kpi('🛢️', 'Fuel saved', totalFuel.toFixed(1) + ' t')}
-        ${kpi('🌱', 'CO₂ saved', totalCo2.toFixed(0) + ' t')}
-        ${kpi('⚡', 'Power now', totalPower.toLocaleString() + ' kW')}
-        ${kpi('💨', 'Avg saving', avgSaving)}
-      </div>
-      <button class="weather-toggle tooltip" data-tooltip="Toggle wind-direction overlay on the map" id="weatherToggle" onclick="toggleWeatherLayer()">Show wind layer</button>
+    document.getElementById('statsBar').innerHTML = `
+      <div class="stats-title">Fleet performance${filtered ? ' <span class="kpi-filtered-note">· filtered</span>' : ''}</div>
+      ${kpi('🛢️', 'Fuel saved', totalFuel.toFixed(1) + ' t')}
+      ${kpi('🌱', 'CO₂ saved', totalCo2.toFixed(0) + ' t')}
+      ${kpi('⚡', 'Power now', totalPower.toLocaleString() + ' kW')}
+      ${kpi('💨', 'Avg saving', avgSaving)}
     `;
   }
 
@@ -1796,6 +1786,8 @@ const STATIC_ROUTES = {
     const isList = viewMode === 'list';
     document.getElementById('listView').style.display = isList ? 'flex' : 'none';
     document.getElementById('map').style.visibility = isList ? 'hidden' : 'visible';
+    const windBtn = document.getElementById('weatherToggle');
+    if (windBtn) windBtn.style.display = isList ? 'none' : '';
     if (!isList) map.invalidateSize();
     refreshFleetViews(skipHash);
   }
@@ -1916,29 +1908,6 @@ const STATIC_ROUTES = {
   }
 
   // Left-panel ship list: same selection behavior as a marker click, driven by applyFilters
-  function renderShipList() {
-    const el = document.getElementById('shipList');
-    if (!el) return;
-    const filtered = applyFilters(ships);
-    if (!filtered.length) {
-      el.innerHTML = '<div class="ship-list-empty">No vessels match these filters.</div>';
-      return;
-    }
-    el.innerHTML = filtered.map(s => `
-      <div class="ship-list-item${selectedShip && selectedShip.id === s.id ? ' selected' : ''}" onclick="openShipById(${s.id})" onmouseenter="syncMarkerHover(${s.id}, true)" onmouseleave="syncMarkerHover(${s.id}, false)">
-        <div class="ship-list-row">
-          <div>
-            <div class="ship-list-name">${s.name}</div>
-            <div class="ship-list-type">${s.type}</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="ship-list-saving">${s.savings || '—'}</div>
-            <div style="margin-top:2px;"><span class="status-pill ${s.status}">${statusLabels[s.status] || s.status}</span></div>
-          </div>
-        </div>
-      </div>`).join('');
-  }
-
   // Single refresh pipeline: every consumer of the fleet reads applyFilters
   function refreshFleetViews(skipHash) {
     renderFilterControls();
@@ -1946,7 +1915,6 @@ const STATIC_ROUTES = {
     const filtered = applyFilters(ships);
     document.getElementById('filterLiveCount').innerHTML = `<span class="mono">${filtered.length}</span> of <span class="mono">${ships.length}</span> vessels`;
     updateMarkers();
-    renderShipList();
     renderFleetSummary();
     renderListView();
     if (!skipHash) updateHash();
@@ -2245,7 +2213,6 @@ const STATIC_ROUTES = {
     selectedShip = s;
     clearRoutes();
     updateMarkerStyles();
-    renderShipList();
     document.getElementById('shipName').textContent = s.name;
     document.getElementById('shipMeta').textContent = `${s.imo} · ${s.type}`;
     document.getElementById('deployStatus').textContent = s.deploy;
@@ -2832,7 +2799,6 @@ const STATIC_ROUTES = {
     clearRoutes();
     selectedShip = null;
     updateMarkerStyles();
-    renderShipList();
     document.getElementById('topbarTitle').innerHTML = tabTitles.overview;
   }
 
@@ -3586,7 +3552,7 @@ const STATIC_ROUTES = {
     startRegulatoryWizard, nextRegulatoryStep, prevRegulatoryStep, endRegulatoryWizard, cancelRegulatoryWizard,
     setViewMode, toggleFiltersSection, toggleFilterValue, removeFilterChip, clearAllFilters,
     loadFilterPreset, saveFilterPreset, deleteFilterPreset,
-    renderShipList, renderListView, refreshFleetViews, applyFilters,
+    renderListView, refreshFleetViews, applyFilters,
     sortListBy, exportFleetCsv, toggleColumnMenu, setListColumn, syncMarkerHover, syncRowHover,
     runEvaluation, resetFleetView
   });
