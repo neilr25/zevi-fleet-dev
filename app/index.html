@@ -2247,14 +2247,15 @@ const STATIC_ROUTES = {
     const row = document.querySelector(`#listTable tr[data-ship-id="${id}"]`);
     if (row) row.classList.toggle('row-hover', on);
   }
+  // Shared selection state (declared early so map initialisation can read it)
+  let selectedShip = null;
+  let routeLayers = [];
+  let routeMarkers = [];
+
   function openShipById(id) {
     const s = ships.find(x => x.id === id);
     if (s) openShip(s);
   }
-
-  let selectedShip = null;
-  let routeLayers = [];
-  let routeMarkers = [];
 
   const themeToggle = document.getElementById('themeToggle');
   function updateThemeUI() {
