@@ -95,23 +95,6 @@
   .theme-toggle:hover { background: var(--border); }
   .left-body { flex: 1; display: flex; flex-direction: column; padding: 12px; overflow: hidden; }
 
-  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 8px; }
-  .stat-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 5px 8px; cursor: pointer; transition: background 0.15s, border-color 0.15s, opacity 0.15s; position: relative; }
-  .stat-card:hover { background: var(--elevated); }
-  .stat-card.active { border-color: var(--accent); }
-  .stat-card.inactive { opacity: 0.45; }
-  .stat-card.summary { cursor: default; }
-  .stat-card.summary:hover { background: var(--bg); }
-  .stat-card.wide { grid-column: 1 / -1; }
-  .stat-card .stat-check { position: absolute; top: 4px; right: 4px; width: 12px; height: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--text); }
-  .stat-card.active .stat-check { background: var(--accent); border-color: var(--accent); }
-  .stat-card.inactive .stat-check { background: transparent; border-color: var(--border-light); color: transparent; }
-  .stat-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 2px; padding-right: 14px; }
-  .stat-value { font-size: 14px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-  .stat-sub { font-size: 9px; color: var(--muted); margin-top: 1px; }
-  .stat-row { display: flex; justify-content: space-between; align-items: center; }
-  .stat-dot { width: 8px; height: 8px; border-radius: 50%; }
-
   .name-filter { margin-bottom: 8px; }
   .name-filter.compact { margin-bottom: 6px; }
   .name-filter input { width: 100%; padding: 5px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text); font-size: 12px; outline: none; }
@@ -119,40 +102,14 @@
   .name-filter input:focus { border-color: var(--accent); }
   .name-filter input::placeholder { color: var(--muted); opacity: 0.7; }
 
-  .filter-section { margin-bottom: 6px; }
-  .filter-title { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin: 0 0 5px; }
-  .status-filter { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 5px; margin-bottom: 8px; }
-  .filter-item { display: flex; align-items: center; justify-content: space-between; padding: 4px 6px; border-radius: var(--radius-md); cursor: pointer; transition: background 0.15s; }
-  .filter-item:hover { background: var(--elevated); }
-  .filter-item.disabled { opacity: 0.4; }
-  .filter-left { display: flex; align-items: center; gap: 8px; }
-  .filter-dot { width: 8px; height: 8px; border-radius: 50%; }
-  .filter-label { font-size: 11px; font-weight: 600; }
-  .filter-count { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-right: 6px; }
-  .filter-check { width: 14px; height: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--text); }
-  .filter-check.checked { background: var(--accent); border-color: var(--accent); }
-
-  .alert-filter { display: flex; flex-wrap: wrap; gap: 4px; }
-  .alert-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 7px; border-radius: 12px; font-size: 10px; font-weight: 600; border: 1px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer; transition: background 0.15s, border-color 0.15s, opacity 0.15s; }
-  .alert-chip:hover { background: var(--elevated); }
-  .alert-chip.inactive { opacity: 0.45; }
-  .alert-chip .chip-dot { width: 6px; height: 6px; border-radius: 50%; }
-  .alert-chip .chip-check { font-size: 8px; }
-  .alert-chip.critical { border-color: var(--status-red); }
-  .alert-chip.attention { border-color: var(--status-amber); }
-  .alert-chip.route { border-color: var(--status-cyan); }
-  .alert-chip.offline { border-color: var(--status-grey); }
-  .alert-chip.none { border-color: var(--status-green); }
-
   .fleet-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: auto; padding-top: 6px; }
-  .fleet-summary .stat-card { cursor: default; }
-  .fleet-summary .stat-card:hover { background: var(--bg); }
 
   .ship-list-title { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin: 0 0 5px; }
-  .ship-list { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-  .ship-list-item { padding: 4px 8px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
+  .ship-list { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow-y: auto; overflow-x: hidden; flex: 1 1 auto; min-height: 0; margin-bottom: 8px; }
+  .ship-list-item { padding: 4px 8px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; border-left: 2px solid transparent; }
   .ship-list-item:last-child { border-bottom: none; }
   .ship-list-item:hover { background: var(--elevated); }
+  .ship-list-item.selected { background: var(--elevated); border-left-color: var(--accent); }
   .ship-list-row { display: flex; justify-content: space-between; align-items: center; }
   .ship-list-name { font-size: 11px; font-weight: 600; }
   .ship-list-status { font-size: 9px; font-weight: 700; text-transform: uppercase; }
@@ -354,7 +311,6 @@
     .topbar-title { font-size: 13px; }
     .topbar-right { gap: 8px; }
     .ship-panel { width: 100%; }
-    .stats-grid { grid-template-columns: 1fr; }
     .weather-summary-grid { grid-template-columns: 1fr; }
     .fleet-summary { grid-template-columns: 1fr; }
     .route-legend { display: none; }
@@ -473,18 +429,59 @@
   /* Ghost/action link (DESIGN.md: --accent text, hover underline) */
   .ghost-link { color: var(--accent); font-size: 11px; font-weight: 600; cursor: pointer; background: none; border: none; padding: 0; }
   .ghost-link:hover { text-decoration: underline; }
-  .all-vessels-row { display: flex; justify-content: flex-end; padding: 6px 2px 0; }
-
-  /* Fleet table modal */
-  .fleet-comp { margin-bottom: 12px; }
-  .fleet-comp-line { font-size: 11px; color: var(--muted); padding: 4px 0; border-bottom: 1px solid var(--border); }
-  .fleet-table th { cursor: pointer; user-select: none; white-space: nowrap; }
-  .fleet-table th:hover { color: var(--text); }
-  .fleet-table tbody tr { cursor: pointer; }
-  .fleet-table tbody tr:hover { background: var(--elevated); }
   .mono { font-family: 'JetBrains Mono', monospace; }
-  .est-marker { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--status-amber); margin-left: 3px; }
   .left-logo, #topbarTitle { cursor: pointer; }
+
+  /* View toggle (Map | List) */
+  .view-toggle { position: absolute; top: 12px; right: 12px; z-index: 1100; display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow); }
+  .view-toggle-btn { padding: 6px 14px; background: transparent; border: none; color: var(--muted); font-size: 11px; font-weight: 600; cursor: pointer; }
+  .view-toggle-btn:hover { color: var(--text); }
+  .view-toggle-btn.active { background: var(--accent); color: #FFFFFF; }
+
+  /* List view (replaces map canvas; Leaflet state preserved) */
+  .list-view { position: absolute; inset: 0; z-index: 1050; background: var(--bg); display: none; flex-direction: column; }
+  .list-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 11px; color: var(--muted); }
+  .list-summary .mono { color: var(--text); font-weight: 700; }
+  .list-actions { display: flex; gap: 6px; position: relative; }
+  .icon-btn { padding: 4px 9px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text); font-size: 11px; font-weight: 600; cursor: pointer; }
+  .icon-btn:hover { background: var(--elevated); }
+  .list-table-wrap { flex: 1; overflow: auto; }
+  .list-table th { position: sticky; top: 0; background: var(--bg); cursor: pointer; user-select: none; white-space: nowrap; z-index: 1; }
+  .list-table th:hover { color: var(--text); }
+  .list-table tbody tr { cursor: pointer; }
+  .list-table tbody tr:hover, .list-table tbody tr.row-hover { background: var(--elevated); }
+  .list-empty { padding: 48px 16px; text-align: center; color: var(--muted); font-size: 12px; }
+  .column-menu { position: absolute; top: 36px; right: 46px; z-index: 1200; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 6px; min-width: 140px; }
+  .column-menu-item { display: flex; align-items: center; gap: 6px; padding: 5px 8px; font-size: 11px; color: var(--text); cursor: pointer; border-radius: var(--radius-md); white-space: nowrap; }
+  .column-menu-item:hover { background: var(--elevated); }
+
+  /* Marker filter dim + row/marker hover sync */
+  .ship-marker.marker-dim { opacity: 0.25; }
+  .ship-marker.marker-sync > div { animation: pulse 1.5s infinite; filter: drop-shadow(0 0 8px currentColor); }
+
+  /* Filter panel (left panel, collapsible) */
+  .filter-panel { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 8px; display: flex; flex-direction: column; flex: 0 1 auto; min-height: 0; }
+  .filter-panel-header { display: flex; align-items: center; gap: 6px; width: 100%; padding: 7px 10px; background: none; border: none; color: var(--text); font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; cursor: pointer; }
+  .filter-live-count { margin-left: auto; color: var(--muted); font-size: 10px; font-weight: 600; text-transform: none; letter-spacing: 0; }
+  .filter-panel-chevron { color: var(--muted); font-size: 10px; }
+  .filter-panel-body { padding: 2px 8px 8px; overflow-y: auto; min-height: 0; }
+  .filter-group { margin-bottom: 7px; }
+  .filter-group-title { font-size: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 700; margin-bottom: 4px; }
+  .filter-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+  .filter-pill { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; }
+  .filter-pill:hover { border-color: var(--border-light); }
+  .filter-pill.active { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .filter-pills .status-pill { cursor: pointer; }
+  .filter-pills .status-pill.pill-off { opacity: 0.4; }
+  .filter-chips-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 2px; }
+  .filter-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; border: 1px solid var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .filter-chip-x { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 12px; line-height: 1; padding: 0 2px; }
+  .filter-clear-all { font-size: 10px; }
+  .filter-presets { display: flex; gap: 4px; }
+  .filter-presets select { flex: 1; min-width: 0; padding: 4px 6px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text); font-size: 11px; }
+  .filter-preset-btn { padding: 4px 8px; font-size: 10px; }
+  .kpi-filtered-note { color: var(--accent); font-weight: 600; }
+
 
 </style>
 </head>
@@ -498,17 +495,36 @@
       </div>
     </div>
     <div class="left-body">
-      <div class="stats-grid" id="fleetStats"></div>
-      <div class="name-filter compact tooltip" data-tooltip="Filter ships by name">
-        <input type="text" id="nameFilter" placeholder="Filter by name…" autocomplete="off">
+      <div class="filter-panel">
+        <button class="filter-panel-header" onclick="toggleFiltersSection()">
+          <span>Filters</span>
+          <span class="filter-live-count" id="filterLiveCount"></span>
+          <span class="filter-panel-chevron" id="filterChevron">▾</span>
+        </button>
+        <div class="filter-panel-body" id="filtersBody">
+          <div class="name-filter compact" style="margin-bottom:7px;">
+            <input type="text" id="nameFilter" placeholder="Name or IMO…" autocomplete="off">
+          </div>
+          <div class="filter-group"><div class="filter-group-title">Status</div><div class="filter-pills" id="filterStatus"></div></div>
+          <div class="filter-group"><div class="filter-group-title">Type</div><div class="filter-pills" id="filterType"></div></div>
+          <div class="filter-group"><div class="filter-group-title">DWT band</div><div class="filter-pills" id="filterBand"></div></div>
+          <div class="filter-group"><div class="filter-group-title">Contract</div><div class="filter-pills" id="filterContract"></div></div>
+          <div class="filter-group"><div class="filter-group-title">Trust</div><div class="filter-pills" id="filterTrust"></div></div>
+          <div class="filter-group"><div class="filter-group-title">Alerts</div><div class="filter-pills" id="filterAlerts"></div></div>
+          <div class="filter-group"><div class="filter-group-title">Presets</div>
+            <div class="filter-presets">
+              <select id="presetSelect" onchange="loadFilterPreset(this.value)"></select>
+              <button class="btn secondary filter-preset-btn" onclick="saveFilterPreset()">Save</button>
+              <button class="btn secondary filter-preset-btn" onclick="deleteFilterPreset()">Delete</button>
+            </div>
+          </div>
+          <div class="filter-chips-row" id="filterChips"></div>
+        </div>
       </div>
-      <div class="filter-section">
-        <div class="filter-title">Alerts</div>
-        <div class="alert-filter" id="alertFilter"></div>
-      </div>
+      <div class="ship-list-title">Fleet</div>
+      <div class="ship-list" id="shipList"></div>
       <div class="fleet-summary" id="fleetSummary"></div>
       <div class="weather-summary" id="weatherSummary"></div>
-      <div class="all-vessels-row"><button class="ghost-link tooltip" data-tooltip="Open sortable table of all vessels" onclick="openFleetTable()">All vessels ›</button></div>
     </div>
   </aside>
   <div class="left-panel-overlay" id="leftPanelOverlay" onclick="toggleMenu()"></div>
@@ -557,6 +573,22 @@
     </div>
     <div class="map-wrap">
       <div id="map"></div>
+      <div class="view-toggle">
+        <button class="view-toggle-btn active" data-view="map" onclick="setViewMode('map')">Map</button>
+        <button class="view-toggle-btn" data-view="list" onclick="setViewMode('list')">List</button>
+      </div>
+      <div class="list-view" id="listView">
+        <div class="list-header">
+          <span class="list-summary" id="listSummary"></span>
+          <span class="list-actions">
+            <button class="icon-btn tooltip" data-tooltip="Show/hide table columns" onclick="toggleColumnMenu(event)">⚙</button>
+            <button class="icon-btn tooltip" data-tooltip="Export filtered rows to CSV" onclick="exportFleetCsv()">CSV</button>
+            <span class="column-menu" id="columnMenu" style="display:none;"></span>
+          </span>
+        </div>
+        <div class="list-table-wrap" id="listTableWrap"><table class="list-table" id="listTable"></table></div>
+        <div class="list-empty" id="listEmpty" style="display:none;">No vessels match these filters — <button class="ghost-link" onclick="clearAllFilters()">Clear filters</button></div>
+      </div>
       <div class="ship-panel" id="shipPanel">
         <div class="panel-header">
           <button class="close-btn tooltip tooltip-bottom" data-tooltip="Close ship details" onclick="closePanel()">×</button>
@@ -1297,21 +1329,6 @@
     </div>
   </div>
 </div>
-<div id="fleetModal" class="modal-overlay" style="display:none;" onclick="closeFleetTable(event)">
-  <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <div style="font-size:14px;font-weight:600;">All vessels</div>
-      <button class="close-btn" onclick="closeFleetTable()">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="fleet-comp" id="fleetComposition"></div>
-      <table class="fleet-table" id="fleetTable"></table>
-    </div>
-    <div class="modal-footer">
-      <button class="btn secondary" onclick="closeFleetTable()">Close</button>
-    </div>
-  </div>
-</div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
       let ships = [
@@ -1511,10 +1528,12 @@ const STATIC_ROUTES = {
     }
   }
   function renderFleetSummary() {
-    const totalFuel = ships.reduce((sum, s) => sum + (s.fuelSaved || 0), 0);
-    const totalCo2 = ships.reduce((sum, s) => sum + (s.co2Saved || 0), 0);
-    const totalPower = ships.reduce((sum, s) => sum + (s.currentPower || 0), 0);
-    const savingsVals = ships.map(s => s.savings).filter(v => v && v !== '—' && !isNaN(parseFloat(v))).map(v => parseFloat(v));
+    const filtered = isFilterActive();
+    const set = filtered ? applyFilters(ships) : ships;
+    const totalFuel = set.reduce((sum, s) => sum + (s.fuelSaved || 0), 0);
+    const totalCo2 = set.reduce((sum, s) => sum + (s.co2Saved || 0), 0);
+    const totalPower = set.reduce((sum, s) => sum + (s.currentPower || 0), 0);
+    const savingsVals = set.map(s => s.savings).filter(v => v && v !== '—' && !isNaN(parseFloat(v))).map(v => parseFloat(v));
     const avgSaving = savingsVals.length ? (savingsVals.reduce((a, b) => a + b, 0) / savingsVals.length).toFixed(1) + '%' : '—';
     const kpi = (icon, label, value) => `
       <div class="kpi-card">
@@ -1522,7 +1541,7 @@ const STATIC_ROUTES = {
         <div class="kpi-value">${value}</div>
       </div>`;
     document.getElementById('weatherSummary').innerHTML = `
-      <div class="weather-summary-title">Fleet performance</div>
+      <div class="weather-summary-title">Fleet performance${filtered ? ' <span class="kpi-filtered-note">· filtered</span>' : ''}</div>
       <div class="kpi-grid">
         ${kpi('🛢️', 'Fuel saved', totalFuel.toFixed(1) + ' t')}
         ${kpi('🌱', 'CO₂ saved', totalCo2.toFixed(0) + ' t')}
@@ -1742,7 +1761,7 @@ const STATIC_ROUTES = {
   refreshTileLayer();
   L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-  function shipIcon(s, state) {
+  function shipIcon(s, state, filterDim) {
     const colour = statusColors[s.status];
     const pulse = (s.status === 'red' || s.status === 'cyan') ? 'pulse' : '';
     const glow = (s.status === 'red' || s.status === 'cyan') ? 'filter: url(#glow);' : '';
@@ -1751,7 +1770,7 @@ const STATIC_ROUTES = {
     const z = state === 'selected' ? 'z-index: 1000;' : '';
     return L.divIcon({
       html: `<div class="${pulse}" style="width:44px;height:44px;transform:rotate(${s.heading}deg) ${scale};color:${colour};${glow}${dim}${z}">${shipSVGs.default}</div>`,
-      iconSize: [44, 44], className: 'ship-marker', iconAnchor: [22, 22]
+      iconSize: [44, 44], className: 'ship-marker' + (filterDim ? ' marker-dim' : ''), iconAnchor: [22, 22]
     });
   }
 
@@ -1761,27 +1780,33 @@ const STATIC_ROUTES = {
     marker.ship = s;
     marker.bindTooltip(`<b>${s.name}</b><br>${s.type}<br>${statusLabels[s.status]}<br><span class="weather-tooltip">${s.weather.icon} ${s.weather.windSpeed} kt ${s.weather.windDir}</span>`, { permanent: false, direction: 'top', className: 'ship-tooltip' });
     marker.on('click', (e) => { L.DomEvent.stopPropagation(e); openShip(s); });
+    marker.on('mouseover', () => syncRowHover(s.id, true));
+    marker.on('mouseout', () => syncRowHover(s.id, false));
     marker.addTo(map);
     markers.push(marker);
   });
 
-  const categoryOrder = ['Operational', 'Sailing', 'At Port', 'Maintenance'];
-  const categoryColor = { Operational: '--status-green', Sailing: '--status-cyan', 'At Port': '--status-blue', Maintenance: '--status-red' };
-  const categoryTooltip = { Operational: 'Show/hide ships in Operational status', Sailing: 'Show/hide ships currently Sailing', 'At Port': 'Show/hide ships At Port', Maintenance: 'Show/hide ships in Maintenance' };
-  function shipCategories(s) {
-    const cats = [];
-    if (['green', 'amber', 'cyan', 'blue'].includes(s.status)) cats.push('Operational');
-    if (s.status === 'red') cats.push('Maintenance');
-    if (s.sailing) cats.push('Sailing');
-    if (s.atPort) cats.push('At Port');
-    return cats;
+  // ===== View modes: map | list (list replaces the canvas, Leaflet state preserved) =====
+  let viewMode = 'map';
+  function defaultViewMode() { return window.innerWidth <= 768 ? 'list' : 'map'; }
+  function setViewMode(mode, skipHash) {
+    viewMode = mode === 'list' ? 'list' : 'map';
+    localStorage.setItem('zevi.viewMode', viewMode);
+    document.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.view === viewMode));
+    const isList = viewMode === 'list';
+    document.getElementById('listView').style.display = isList ? 'flex' : 'none';
+    document.getElementById('map').style.visibility = isList ? 'hidden' : 'visible';
+    if (!isList) map.invalidateSize();
+    refreshFleetViews(skipHash);
   }
-  const statusFilter = { Operational: true, Sailing: true, 'At Port': true, Maintenance: true };
 
-  const alertTypes = ['Critical', 'Attention', 'Route Update', 'Offline', 'No alert'];
-  const alertTypeColors = { 'Critical': '--status-red', 'Attention': '--status-amber', 'Route Update': '--status-cyan', 'Offline': '--status-grey', 'No alert': '--status-green' };
-  const alertTypeClasses = { 'Critical': 'critical', 'Attention': 'attention', 'Route Update': 'route', 'Offline': 'offline', 'No alert': 'none' };
-  const alertTypeTooltips = { 'Critical': 'Show/hide ships with Critical alerts', 'Attention': 'Show/hide ships with Attention alerts', 'Route Update': 'Show/hide ships with Route Update alerts', 'Offline': 'Show/hide ships with Offline status', 'No alert': 'Show/hide ships with No alert' };
+  // ===== Unified filter system (single filterState + applyFilters for list, markers, table, KPIs) =====
+  const STATUS_LIST = ['green', 'amber', 'red', 'blue', 'cyan', 'grey'];
+  const DWT_BAND_LIST = ['<10k', '10k–50k', '50k–80k', '80k–120k', '120k–200k', '>200k'];
+  const CONTRACT_LIST = ['PAYS', 'Lease', 'Prospect'];
+  const TRUST_LIST = [['verified', 'Verified'], ['provisional', 'Provisional'], ['nodata', 'No data']];
+  const ALERT_LIST = [['any', 'Any'], ['critical', 'Critical'], ['route', 'Route advice'], ['none', 'None']];
+
   function getAlertType(s) {
     if (s.status === 'red') return 'Critical';
     if (s.status === 'amber') return 'Attention';
@@ -1789,77 +1814,356 @@ const STATIC_ROUTES = {
     if (s.status === 'grey') return 'Offline';
     return 'No alert';
   }
-  const alertFilter = { 'Critical': true, 'Attention': true, 'Route Update': true, 'Offline': true, 'No alert': true };
 
-  let nameFilter = '';
+  function emptyFilterState() {
+    return { search: '', statuses: [], types: [], bands: [], contracts: [], trusts: [], alerts: [] };
+  }
+  let filterState = emptyFilterState();
+  function isFilterActive() {
+    return !!(filterState.search || filterState.statuses.length || filterState.types.length || filterState.bands.length || filterState.contracts.length || filterState.trusts.length || filterState.alerts.length);
+  }
+  function applyFilters(list) {
+    return list.filter(s => {
+      if (filterState.search) {
+        const q = filterState.search.toLowerCase();
+        if (!((s.name || '').toLowerCase().includes(q) || String(s.imo || '').includes(q))) return false;
+      }
+      if (filterState.statuses.length && !filterState.statuses.includes(s.status)) return false;
+      if (filterState.types.length && !filterState.types.includes(s.type)) return false;
+      if (filterState.bands.length && !filterState.bands.includes(s.dwtBand || '—')) return false;
+      if (filterState.contracts.length && !filterState.contracts.includes(s.contract)) return false;
+      if (filterState.trusts.length && !filterState.trusts.includes(s.perfTrust || 'nodata')) return false;
+      if (filterState.alerts.length) {
+        const at = getAlertType(s);
+        const hit = filterState.alerts.some(a =>
+          a === 'any' ? at !== 'No alert' :
+          a === 'critical' ? at === 'Critical' :
+          a === 'route' ? at === 'Route Update' :
+          a === 'none' ? at === 'No alert' : false);
+        if (!hit) return false;
+      }
+      return true;
+    });
+  }
+  function toggleFilterValue(group, value) {
+    const arr = filterState[group];
+    if (!arr) return;
+    const i = arr.indexOf(value);
+    if (i >= 0) arr.splice(i, 1); else arr.push(value);
+    refreshFleetViews();
+  }
+  function removeFilterChip(group, value) {
+    if (group === 'search') {
+      filterState.search = '';
+      document.getElementById('nameFilter').value = '';
+    } else if (filterState[group]) {
+      filterState[group] = filterState[group].filter(v => v !== value);
+    }
+    refreshFleetViews();
+  }
+  function clearAllFilters() {
+    filterState = emptyFilterState();
+    document.getElementById('nameFilter').value = '';
+    refreshFleetViews();
+  }
+  function toggleFiltersSection() {
+    const body = document.getElementById('filtersBody');
+    const open = body.style.display !== 'none';
+    body.style.display = open ? 'none' : '';
+    document.getElementById('filterChevron').textContent = open ? '▸' : '▾';
+  }
+
   function updateMarkerStyles() {
+    const ids = new Set(applyFilters(ships).map(s => s.id));
     markers.forEach(m => {
       const state = selectedShip ? (m.ship.id === selectedShip.id ? 'selected' : 'dimmed') : null;
-      m.setIcon(shipIcon(m.ship, state));
+      m.setIcon(shipIcon(m.ship, state, !ids.has(m.ship.id)));
     });
   }
   function updateMarkers() {
-    markers.forEach(m => {
-      const s = m.ship;
-      const cats = shipCategories(s);
-      const statusMatch = cats.some(c => statusFilter[c]);
-      const alertMatch = alertFilter[getAlertType(s)];
-      const nameMatch = !nameFilter || s.name.toLowerCase().includes(nameFilter);
-      const visible = statusMatch && alertMatch && nameMatch;
-      if (visible) {
-        if (!map.hasLayer(m)) m.addTo(map);
-      } else {
-        if (map.hasLayer(m)) map.removeLayer(m);
-      }
-    });
+    // All markers stay on the map; non-matching vessels are dimmed via CSS class.
+    markers.forEach(m => { if (!map.hasLayer(m)) m.addTo(map); });
     updateMarkerStyles();
   }
-  function toggleStatus(category) {
-    statusFilter[category] = !statusFilter[category];
-    renderStats();
-    updateMarkers();
+  // Filter pill groups (status pills use status triplets; others are plain pills)
+  function renderFilterControls() {
+    const pill = (group, value, label, mono) =>
+      `<span class="filter-pill ${filterState[group].includes(value) ? 'active' : ''} ${mono ? 'mono' : ''}" onclick="toggleFilterValue('${group}', '${value}')">${label}</span>`;
+    document.getElementById('filterStatus').innerHTML = STATUS_LIST.map(st =>
+      `<span class="status-pill ${st} ${filterState.statuses.includes(st) ? '' : 'pill-off'}" onclick="toggleFilterValue('statuses', '${st}')">${statusLabels[st]}</span>`).join('');
+    document.getElementById('filterType').innerHTML = [...new Set(ships.map(s => s.type))].sort().map(t => pill('types', t, t)).join('');
+    document.getElementById('filterBand').innerHTML = DWT_BAND_LIST.map(b => pill('bands', b, b, true)).join('');
+    document.getElementById('filterContract').innerHTML = CONTRACT_LIST.map(c => pill('contracts', c, c)).join('');
+    document.getElementById('filterTrust').innerHTML = TRUST_LIST.map(([v, label]) => pill('trusts', v, label)).join('');
+    document.getElementById('filterAlerts').innerHTML = ALERT_LIST.map(([v, label]) => pill('alerts', v, label)).join('');
   }
-  function toggleAlert(type) {
-    alertFilter[type] = !alertFilter[type];
-    renderAlertFilter();
-    updateMarkers();
+
+  // Active filters as removable chips + clear all
+  function renderFilterChips() {
+    const chips = [];
+    if (filterState.search) chips.push({ group: 'search', value: filterState.search, label: `“${filterState.search}”` });
+    filterState.statuses.forEach(v => chips.push({ group: 'statuses', value: v, label: statusLabels[v] || v }));
+    filterState.types.forEach(v => chips.push({ group: 'types', value: v, label: v }));
+    filterState.bands.forEach(v => chips.push({ group: 'bands', value: v, label: v }));
+    filterState.contracts.forEach(v => chips.push({ group: 'contracts', value: v, label: v }));
+    filterState.trusts.forEach(v => chips.push({ group: 'trusts', value: v, label: (TRUST_LIST.find(t => t[0] === v) || [v, v])[1] }));
+    filterState.alerts.forEach(v => chips.push({ group: 'alerts', value: v, label: (ALERT_LIST.find(t => t[0] === v) || [v, v])[1] }));
+    const el = document.getElementById('filterChips');
+    if (!chips.length) { el.innerHTML = ''; return; }
+    el.innerHTML = chips.map(c =>
+      `<span class="filter-chip">${c.label}<button class="filter-chip-x" onclick="removeFilterChip('${c.group}', '${c.value}')">×</button></span>`).join('') +
+      `<button class="ghost-link filter-clear-all" onclick="clearAllFilters()">Clear all</button>`;
   }
-  function renderStats() {
-    const style = getComputedStyle(document.body);
-    const tiles = categoryOrder.map(category => {
-      const count = ships.filter(s => shipCategories(s).includes(category)).length;
-      const active = statusFilter[category];
-      const color = style.getPropertyValue(categoryColor[category]).trim();
-      return `
-        <div class="stat-card ${active ? 'active' : 'inactive'} tooltip" data-tooltip="${categoryTooltip[category]}" onclick="toggleStatus('${category}')">
-          <div class="stat-check">${active ? '✓' : ''}</div>
-          <div class="stat-label">${category}</div>
-          <div class="stat-row">
-            <div class="stat-dot" style="background:${color}"></div>
-            <div class="stat-value">${count}</div>
-          </div>
-        </div>`;
-    }).join('');
-    document.getElementById('fleetStats').innerHTML = tiles;
-  }
-  function renderAlertFilter() {
-    const container = document.getElementById('alertFilter');
-    const style = getComputedStyle(document.body);
-    container.innerHTML = alertTypes.map(type => {
-      const count = ships.filter(s => getAlertType(s) === type).length;
-      const active = alertFilter[type];
-      const color = style.getPropertyValue(alertTypeColors[type]).trim();
-      const cls = alertTypeClasses[type];
-      return `
-        <div class="alert-chip ${cls} ${active ? '' : 'inactive'} tooltip" data-tooltip="${alertTypeTooltips[type]}" onclick="toggleAlert('${type}')">
-          <span class="chip-dot" style="background:${color}"></span>
-          <span>${type}</span>
-          <span class="chip-check">${active ? '✓' : ''}</span>
-        </div>`;
-    }).join('');
-  }
+
+  // Left-panel ship list: same selection behavior as a marker click, driven by applyFilters
   function renderShipList() {
-    // Ship list removed from left panel; markers are the fleet view.
+    const el = document.getElementById('shipList');
+    if (!el) return;
+    const filtered = applyFilters(ships);
+    if (!filtered.length) {
+      el.innerHTML = '<div class="ship-list-empty">No vessels match these filters.</div>';
+      return;
+    }
+    el.innerHTML = filtered.map(s => `
+      <div class="ship-list-item${selectedShip && selectedShip.id === s.id ? ' selected' : ''}" onclick="openShipById(${s.id})" onmouseenter="syncMarkerHover(${s.id}, true)" onmouseleave="syncMarkerHover(${s.id}, false)">
+        <div class="ship-list-row">
+          <div>
+            <div class="ship-list-name">${s.name}</div>
+            <div class="ship-list-type">${s.type}</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="ship-list-saving">${s.savings || '—'}</div>
+            <div style="margin-top:2px;"><span class="status-pill ${s.status}">${statusLabels[s.status] || s.status}</span></div>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  // Single refresh pipeline: every consumer of the fleet reads applyFilters
+  function refreshFleetViews(skipHash) {
+    renderFilterControls();
+    renderFilterChips();
+    const filtered = applyFilters(ships);
+    document.getElementById('filterLiveCount').innerHTML = `<span class="mono">${filtered.length}</span> of <span class="mono">${ships.length}</span> vessels`;
+    updateMarkers();
+    renderShipList();
+    renderFleetSummary();
+    renderListView();
+    if (!skipHash) updateHash();
+  }
+
+  // Saved filter presets (localStorage 'zevi.filterPresets')
+  const PRESET_KEY = 'zevi.filterPresets';
+  function getFilterPresets() {
+    try { const p = JSON.parse(localStorage.getItem(PRESET_KEY)); return Array.isArray(p) ? p : null; } catch (e) { return null; }
+  }
+  function savePresetList(list) { localStorage.setItem(PRESET_KEY, JSON.stringify(list)); }
+  function seedFilterPresets() {
+    if (getFilterPresets() === null) {
+      savePresetList([
+        { name: 'Attention needed', filterState: Object.assign(emptyFilterState(), { statuses: ['red', 'amber'] }) },
+        { name: 'Prospects', filterState: Object.assign(emptyFilterState(), { statuses: ['blue'] }) },
+        { name: 'PAYS verified', filterState: Object.assign(emptyFilterState(), { contracts: ['PAYS'], trusts: ['verified'] }) }
+      ]);
+    }
+  }
+  function renderPresetSelect() {
+    const presets = getFilterPresets() || [];
+    document.getElementById('presetSelect').innerHTML =
+      '<option value="">Load preset…</option>' + presets.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+  }
+  function loadFilterPreset(name) {
+    if (!name) return;
+    const p = (getFilterPresets() || []).find(x => x.name === name);
+    if (!p) return;
+    filterState = Object.assign(emptyFilterState(), JSON.parse(JSON.stringify(p.filterState)));
+    document.getElementById('nameFilter').value = filterState.search || '';
+    refreshFleetViews();
+  }
+  function saveFilterPreset() {
+    const name = prompt('Preset name:');
+    if (!name) return;
+    const presets = getFilterPresets() || [];
+    const idx = presets.findIndex(x => x.name === name);
+    const entry = { name, filterState: JSON.parse(JSON.stringify(filterState)) };
+    if (idx >= 0) presets[idx] = entry; else presets.push(entry);
+    savePresetList(presets);
+    renderPresetSelect();
+    document.getElementById('presetSelect').value = name;
+  }
+  function deleteFilterPreset() {
+    const name = document.getElementById('presetSelect').value;
+    if (!name) return;
+    savePresetList((getFilterPresets() || []).filter(x => x.name !== name));
+    renderPresetSelect();
+  }
+
+  // URL-hash sharing: #view=list&status=red,amber&type=Container&...
+  function updateHash() {
+    const parts = ['view=' + viewMode];
+    if (filterState.search) parts.push('q=' + encodeURIComponent(filterState.search));
+    if (filterState.statuses.length) parts.push('status=' + filterState.statuses.join(','));
+    if (filterState.types.length) parts.push('type=' + filterState.types.map(encodeURIComponent).join(','));
+    if (filterState.bands.length) parts.push('band=' + filterState.bands.map(encodeURIComponent).join(','));
+    if (filterState.contracts.length) parts.push('contract=' + filterState.contracts.map(encodeURIComponent).join(','));
+    if (filterState.trusts.length) parts.push('trust=' + filterState.trusts.join(','));
+    if (filterState.alerts.length) parts.push('alerts=' + filterState.alerts.join(','));
+    history.replaceState(null, '', location.pathname + location.search + '#' + parts.join('&'));
+  }
+  function applyHash() {
+    const h = location.hash.replace(/^#/, '');
+    if (!h) return null;
+    const params = {};
+    h.split('&').forEach(pair => {
+      const idx = pair.indexOf('=');
+      if (idx > 0) params[pair.slice(0, idx)] = decodeURIComponent(pair.slice(idx + 1));
+    });
+    const list = (key, valid) => (params[key] ? params[key].split(',').filter(v => !valid || valid.includes(v)) : []);
+    filterState.search = params.q || '';
+    filterState.statuses = list('status', STATUS_LIST);
+    filterState.types = list('type');
+    filterState.bands = list('band', DWT_BAND_LIST);
+    filterState.contracts = list('contract', CONTRACT_LIST);
+    filterState.trusts = list('trust', ['verified', 'provisional', 'nodata']);
+    filterState.alerts = list('alerts', ['any', 'critical', 'route', 'none']);
+    document.getElementById('nameFilter').value = filterState.search;
+    return params.view === 'list' || params.view === 'map' ? params.view : null;
+  }
+
+  // ===== List view (sortable table; row click = marker-click selection) =====
+  const LIST_COLS = [
+    { key: 'name', label: 'Name', hideable: false },
+    { key: 'type', label: 'Type', hideable: false },
+    { key: 'dwt', label: 'DWT', hideable: true },
+    { key: 'dwtBand', label: 'DWT band', hideable: true },
+    { key: 'status', label: 'Status', hideable: false },
+    { key: 'savings', label: 'Savings', hideable: false },
+    { key: 'trust', label: 'Trust', hideable: false },
+    { key: 'voyage', label: 'Voyage', hideable: true },
+    { key: 'contract', label: 'Contract', hideable: true }
+  ];
+  let listSort = { key: 'name', dir: 1 };
+  let listCols = { dwt: true, dwtBand: true, voyage: true, contract: true };
+  try { Object.assign(listCols, JSON.parse(localStorage.getItem('zevi.listCols') || '{}')); } catch (e) {}
+  function sortListBy(key) {
+    if (listSort.key === key) listSort.dir *= -1;
+    else listSort = { key, dir: 1 };
+    renderListView();
+  }
+  function listSortValue(s) {
+    switch (listSort.key) {
+      case 'name': return (s.name || '').toLowerCase();
+      case 'type': return (s.type || '').toLowerCase();
+      case 'dwt': return s.dwt !== null && s.dwt !== undefined ? s.dwt : -Infinity;
+      case 'dwtBand': return s.dwtBand || '';
+      case 'status': return s.status || '';
+      case 'savings': return s.savings && s.savings !== '—' ? parseFloat(s.savings) : -Infinity;
+      case 'trust': return s.perfTrust || '';
+      case 'voyage': return (s.voyage || '').toLowerCase();
+      case 'contract': return s.contract || '';
+      default: return '';
+    }
+  }
+  function currentListRows() {
+    return applyFilters(ships).slice().sort((a, b) => {
+      const va = listSortValue(a), vb = listSortValue(b);
+      if (va < vb) return -1 * listSort.dir;
+      if (va > vb) return 1 * listSort.dir;
+      return 0;
+    });
+  }
+  function listCellHtml(s, key) {
+    switch (key) {
+      case 'name': return `<td>${s.name}</td>`;
+      case 'type': return `<td>${s.type}</td>`;
+      case 'dwt': return `<td class="mono">${s.dwt !== null && s.dwt !== undefined ? s.dwt.toLocaleString() : '—'}</td>`;
+      case 'dwtBand': return `<td class="mono">${s.dwtBand || '—'}</td>`;
+      case 'status': return `<td><span class="status-pill ${s.status}">${statusLabels[s.status] || s.status}</span></td>`;
+      case 'savings': return `<td class="mono">${s.savings || '—'}</td>`;
+      case 'trust': return `<td>${badgeHtml[s.perfTrust] || badgeHtml.nodata}</td>`;
+      case 'voyage': return `<td>${s.voyage || '—'}</td>`;
+      case 'contract': return `<td>${s.contract || '—'}</td>`;
+      default: return '<td>—</td>';
+    }
+  }
+  function renderListView() {
+    if (viewMode !== 'list') return;
+    const rows = currentListRows();
+    const vals = rows.map(s => s.savings).filter(v => v && v !== '—' && !isNaN(parseFloat(v))).map(v => parseFloat(v));
+    const avg = vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) + '%' : '—';
+    const withAlerts = rows.filter(s => getAlertType(s) !== 'No alert').length;
+    document.getElementById('listSummary').innerHTML =
+      `<span class="mono">${rows.length}</span> vessels · avg saving <span class="mono">${avg}</span> · <span class="mono">${withAlerts}</span> with alerts`;
+    document.getElementById('listEmpty').style.display = rows.length ? 'none' : 'block';
+    document.getElementById('listTableWrap').style.display = rows.length ? '' : 'none';
+    const visibleCols = LIST_COLS.filter(c => !c.hideable || listCols[c.key] !== false);
+    const arrow = k => listSort.key === k ? (listSort.dir === 1 ? ' ▲' : ' ▼') : '';
+    document.getElementById('listTable').innerHTML = `
+      <thead><tr>${visibleCols.map(c => `<th onclick="sortListBy('${c.key}')">${c.label}${arrow(c.key)}</th>`).join('')}</tr></thead>
+      <tbody>${rows.map(s => `
+        <tr data-ship-id="${s.id}" onclick="openShipById(${s.id})" onmouseenter="syncMarkerHover(${s.id}, true)" onmouseleave="syncMarkerHover(${s.id}, false)">
+          ${visibleCols.map(c => listCellHtml(s, c.key)).join('')}
+        </tr>`).join('')}</tbody>`;
+  }
+
+  // Column show/hide (persisted)
+  function toggleColumnMenu(e) {
+    if (e) e.stopPropagation();
+    const menu = document.getElementById('columnMenu');
+    if (menu.style.display === 'block') { menu.style.display = 'none'; return; }
+    menu.innerHTML = LIST_COLS.filter(c => c.hideable).map(c =>
+      `<label class="column-menu-item"><input type="checkbox" ${listCols[c.key] !== false ? 'checked' : ''} onchange="setListColumn('${c.key}', this.checked)"> ${c.label}</label>`).join('');
+    menu.style.display = 'block';
+    setTimeout(() => document.addEventListener('click', closeColumnMenuOnOutside), 0);
+  }
+  function closeColumnMenuOnOutside(e) {
+    const menu = document.getElementById('columnMenu');
+    if (!menu.contains(e.target)) {
+      menu.style.display = 'none';
+      document.removeEventListener('click', closeColumnMenuOnOutside);
+    }
+  }
+  function setListColumn(key, visible) {
+    listCols[key] = visible;
+    localStorage.setItem('zevi.listCols', JSON.stringify(listCols));
+    renderListView();
+  }
+
+  // CSV export: current filtered + sorted rows, UTF-8 BOM for Excel
+  function exportFleetCsv() {
+    const trustLabel = t => t === 'verified' ? 'Verified' : t === 'provisional' ? 'Provisional' : 'No data';
+    const esc = v => {
+      v = v === null || v === undefined ? '' : String(v);
+      return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+    };
+    const lines = [['name', 'imo', 'type', 'dwt', 'dwtBand', 'status', 'savings', 'trust', 'voyage', 'contract'].join(',')];
+    currentListRows().forEach(s => {
+      lines.push([
+        s.name, s.imo, s.type, s.dwt !== null && s.dwt !== undefined ? s.dwt : '', s.dwtBand || '—',
+        statusLabels[s.status] || s.status, s.savings || '—', trustLabel(s.perfTrust), s.voyage || '', s.contract || ''
+      ].map(esc).join(','));
+    });
+    const now = new Date();
+    const stamp = '' + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
+    const blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `fast-fleet-${stamp}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  }
+
+  // Row <-> marker hover sync
+  function syncMarkerHover(id, on) {
+    const m = markers.find(m => m.ship.id === id);
+    const el = m && m.getElement ? m.getElement() : null;
+    if (el) el.classList.toggle('marker-sync', on);
+  }
+  function syncRowHover(id, on) {
+    const row = document.querySelector(`#listTable tr[data-ship-id="${id}"]`);
+    if (row) row.classList.toggle('row-hover', on);
   }
   function openShipById(id) {
     const s = ships.find(x => x.id === id);
@@ -1875,8 +2179,6 @@ const STATIC_ROUTES = {
     const isLight = document.body.classList.contains('light-mode');
     themeToggle.textContent = isLight ? '☀️' : '🌙';
     refreshStatusColors();
-    renderStats();
-    renderAlertFilter();
     refreshTileLayer();
     updateMarkerStyles();
     if (selectedShip && document.getElementById('lens-optimise').classList.contains('active')) {
@@ -1895,15 +2197,22 @@ const STATIC_ROUTES = {
   }
   updateThemeUI();
 
-  renderStats();
-  renderAlertFilter();
-  renderFleetSummary();
-  updateMarkers();
-
+  // Init filters (hash > localStorage > breakpoint default), then render everything once.
+  seedFilterPresets();
+  renderPresetSelect();
+  const hashView = applyHash();
   document.getElementById('nameFilter').addEventListener('input', (e) => {
-    nameFilter = e.target.value.trim().toLowerCase();
-    updateMarkers();
+    filterState.search = e.target.value.trim();
+    refreshFleetViews();
   });
+  // Shared-link paste into an open tab: re-parse on hashchange (replaceState never fires this)
+  window.addEventListener('hashchange', () => {
+    const v = applyHash();
+    if (v) setViewMode(v, true); else refreshFleetViews(true);
+  });
+  const storedView = localStorage.getItem('zevi.viewMode');
+  const initialView = hashView || (storedView === 'list' || storedView === 'map' ? storedView : defaultViewMode());
+  setViewMode(initialView, true);
 
   const tabTitles = {
     overview: 'Fast Fleet · Wind as a Service',
@@ -1936,6 +2245,7 @@ const STATIC_ROUTES = {
     selectedShip = s;
     clearRoutes();
     updateMarkerStyles();
+    renderShipList();
     document.getElementById('shipName').textContent = s.name;
     document.getElementById('shipMeta').textContent = `${s.imo} · ${s.type}`;
     document.getElementById('deployStatus').textContent = s.deploy;
@@ -2522,6 +2832,7 @@ const STATIC_ROUTES = {
     clearRoutes();
     selectedShip = null;
     updateMarkerStyles();
+    renderShipList();
     document.getElementById('topbarTitle').innerHTML = tabTitles.overview;
   }
 
@@ -2658,6 +2969,7 @@ const STATIC_ROUTES = {
   function simulateLiveTick() {
     const now = new Date().toISOString();
     document.getElementById('lastUpdate').textContent = 'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const filteredIds = new Set(applyFilters(ships).map(s => s.id));
     markers.forEach(m => {
       const s = m.ship;
       if (!s.route || !s.route.points || s.route.points.length < 2 || !s.sailing || s.atPort || s.status === 'blue' || s.status === 'grey') return;
@@ -2670,15 +2982,15 @@ const STATIC_ROUTES = {
       const [lat, lon] = greatCirclePoint(a[0], a[1], b[0], b[1], f);
       s.lat = lat; s.lon = lon; s.heading = Math.round(bearing(a[0], a[1], b[0], b[1]));
       m.setLatLng([lat, lon]);
-      m.setIcon(shipIcon(s, selectedShip && selectedShip.id === s.id ? 'selected' : (selectedShip ? 'dimmed' : null)));
+      m.setIcon(shipIcon(s, selectedShip && selectedShip.id === s.id ? 'selected' : (selectedShip ? 'dimmed' : null), !filteredIds.has(s.id)));
     });
     if (selectedShip) {
       const m = markers.find(m => m.ship.id === selectedShip.id);
       if (m) selectedShip = m.ship;
       renderShipPosition(selectedShip);
     }
-    renderStats();
     renderFleetSummary();
+    if (viewMode === 'list') renderListView();
   }
   function renderShipPosition(s) {
     const voyage = s.details && s.details.voyage;
@@ -2885,9 +3197,11 @@ const STATIC_ROUTES = {
     marker.ship = s;
     marker.bindTooltip(`<b>${s.name}</b><br>${s.type}<br>${statusLabels[s.status]}`, { permanent: false, direction: 'top', className: 'ship-tooltip' });
     marker.on('click', (e) => { L.DomEvent.stopPropagation(e); openShip(s); });
+    marker.on('mouseover', () => syncRowHover(s.id, true));
+    marker.on('mouseout', () => syncRowHover(s.id, false));
     marker.addTo(map);
     markers.push(marker);
-    renderStats(); renderAlertFilter(); updateMarkers(); renderFleetSummary();
+    refreshFleetViews();
     populateScenarioVessels();
     alert(`Added ${name} as a prospect. Open Scenarios to build a case.`);
   }
@@ -3160,66 +3474,6 @@ const STATIC_ROUTES = {
     if (demoMode) document.getElementById('regulatoryWizardTrigger').style.display = 'block';
   }
 
-  // Fleet table modal
-  let fleetSort = { key: 'name', dir: 1 };
-  const fleetTableCols = [['name', 'Name'], ['type', 'Type'], ['dwt', 'DWT'], ['dwtBand', 'DWT band'], ['status', 'Status'], ['savings', 'Savings'], ['trust', 'Trust']];
-  function openFleetTable() {
-    document.getElementById('fleetModal').style.display = 'flex';
-    renderFleetTable();
-  }
-  function closeFleetTable(e) {
-    if (e && e.target !== e.currentTarget) return;
-    document.getElementById('fleetModal').style.display = 'none';
-  }
-  function sortFleetTable(key) {
-    if (fleetSort.key === key) fleetSort.dir *= -1;
-    else fleetSort = { key, dir: 1 };
-    renderFleetTable();
-  }
-  function fleetSortValue(s) {
-    switch (fleetSort.key) {
-      case 'name': return (s.name || '').toLowerCase();
-      case 'type': return (s.type || '').toLowerCase();
-      case 'dwt': return s.dwt !== null && s.dwt !== undefined ? s.dwt : -Infinity;
-      case 'dwtBand': return s.dwtBand || '';
-      case 'status': return s.status || '';
-      case 'savings': return s.savings && s.savings !== '—' ? parseFloat(s.savings) : -Infinity;
-      case 'trust': return s.perfTrust || '';
-      default: return '';
-    }
-  }
-  function renderFleetTable() {
-    const byType = {};
-    ships.forEach(s => { byType[s.type] = (byType[s.type] || 0) + 1; });
-    document.getElementById('fleetComposition').innerHTML = Object.keys(byType).sort().map(t =>
-      `<div class="fleet-comp-line"><span class="mono">${t} · ${byType[t]} · ${Math.round(byType[t] / ships.length * 100)}%</span></div>`
-    ).join('');
-    const sorted = ships.slice().sort((a, b) => {
-      const va = fleetSortValue(a), vb = fleetSortValue(b);
-      if (va < vb) return -1 * fleetSort.dir;
-      if (va > vb) return 1 * fleetSort.dir;
-      return 0;
-    });
-    const arrow = k => fleetSort.key === k ? (fleetSort.dir === 1 ? ' ▲' : ' ▼') : '';
-    document.getElementById('fleetTable').innerHTML = `
-      <thead><tr>${fleetTableCols.map(([k, label]) => `<th onclick="sortFleetTable('${k}')">${label}${arrow(k)}</th>`).join('')}</tr></thead>
-      <tbody>${sorted.map(s => `
-        <tr onclick="fleetTableSelect(${s.id})">
-          <td>${s.name}</td>
-          <td>${s.type}</td>
-          <td class="mono">${s.dwt !== null && s.dwt !== undefined ? s.dwt.toLocaleString() : '—'}</td>
-          <td class="mono">${s.dwtBand || '—'}</td>
-          <td><span class="status-pill ${s.status}">${statusLabels[s.status] || s.status}</span></td>
-          <td class="mono">${s.savings || '—'}</td>
-          <td>${badgeHtml[s.perfTrust] || badgeHtml.nodata}</td>
-        </tr>`).join('')}</tbody>
-    `;
-  }
-  function fleetTableSelect(id) {
-    closeFleetTable();
-    openShipById(id);
-  }
-
   // PAYS lens contract card (values from details.contract; USD)
   function renderInvoiceRoi(s) {
     const el = document.getElementById('invoiceRoiCard');
@@ -3294,12 +3548,13 @@ const STATIC_ROUTES = {
 
   // Logo/title click: reset to default fleet map view
   function resetFleetView() {
-    closeFleetTable();
     closeAlertsCentre();
     const settings = document.getElementById('settingsModal');
     if (settings) settings.style.display = 'none';
+    document.getElementById('columnMenu').style.display = 'none';
     closePanel();
     showLens('overview');
+    setViewMode('map');
     if (ships.length) {
       map.fitBounds(L.latLngBounds(ships.map(s => [s.lat, s.lon])), { padding: [40, 40] });
     }
@@ -3318,7 +3573,7 @@ const STATIC_ROUTES = {
   // Expose handlers that the inline HTML onclick attributes reference.
   Object.assign(window, {
     closePanel, selectTab, showLens, showFixTab, openWorkOrder,
-    openWorkOrderFromBoard, headlineAction, toggleStatus, toggleAlert,
+    openWorkOrderFromBoard, headlineAction,
     toggleWeatherLayer, openEntity, popEntity, navigateToEntity,
     openComponentEntity, openSensorEntity, openShip, openShipById,
     toggleMenu, toggleLiveMode, setLiveSpeed, openAlertsCentre, closeAlertsCentre,
@@ -3329,7 +3584,10 @@ const STATIC_ROUTES = {
     startMaintenanceWizard, nextMaintenanceStep, prevMaintenanceStep, endMaintenanceWizard, cancelMaintenanceWizard,
     startInvoiceWizard, nextInvoiceStep, prevInvoiceStep, endInvoiceWizard, cancelInvoiceWizard,
     startRegulatoryWizard, nextRegulatoryStep, prevRegulatoryStep, endRegulatoryWizard, cancelRegulatoryWizard,
-    openFleetTable, closeFleetTable, sortFleetTable, fleetTableSelect,
+    setViewMode, toggleFiltersSection, toggleFilterValue, removeFilterChip, clearAllFilters,
+    loadFilterPreset, saveFilterPreset, deleteFilterPreset,
+    renderShipList, renderListView, refreshFleetViews, applyFilters,
+    sortListBy, exportFleetCsv, toggleColumnMenu, setListColumn, syncMarkerHover, syncRowHover,
     runEvaluation, resetFleetView
   });
   }
