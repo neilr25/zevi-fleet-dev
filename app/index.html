@@ -1853,7 +1853,7 @@ const STATIC_ROUTES = {
     const activeIds = new Set(applyFilters(ships).map(s => s.id));
     const hasSelection = !!selectedShip;
     ships.forEach(s => {
-      const key = s.voyage ? s.voyage.replace(/ → /g, '->') : null;
+      const key = s.voyage ? s.voyage.replace(/\s*->\s*/g, '->').replace(/\s*→\s*/g, '->') : null;
       const pts = key ? STATIC_ROUTES[key] : null;
       if (!pts) {
         if (contextRoutes.has(s.id)) { map.removeLayer(contextRoutes.get(s.id)); contextRoutes.delete(s.id); }
