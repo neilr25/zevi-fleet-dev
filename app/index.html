@@ -1847,6 +1847,12 @@ const STATIC_ROUTES = {
   let routeLayers = [];
   let routeMarkers = [];
 
+  // Filter state (declared before route context because renderRouteContext calls applyFilters)
+  function emptyFilterState() {
+    return { search: '', statuses: [], types: [], bands: [], contracts: [], trusts: [], alerts: [] };
+  }
+  let filterState = emptyFilterState();
+
   // Route context: all active voyages drawn faintly; dimmed when filtered out or another ship is selected
   const contextRoutes = new Map(); // ship.id -> L.polyline
   function renderRouteContext() {
@@ -1926,10 +1932,6 @@ const STATIC_ROUTES = {
     return 'No alert';
   }
 
-  function emptyFilterState() {
-    return { search: '', statuses: [], types: [], bands: [], contracts: [], trusts: [], alerts: [] };
-  }
-  let filterState = emptyFilterState();
   function isFilterActive() {
     return !!(filterState.search || filterState.statuses.length || filterState.types.length || filterState.bands.length || filterState.contracts.length || filterState.trusts.length || filterState.alerts.length);
   }
