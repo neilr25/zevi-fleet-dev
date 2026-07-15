@@ -1,4 +1,5 @@
 const fleet = require('../data/fleet.json');
+const { dwtBand, deployedRoi, evaluateProspect } = require('./_lib/commercial');
 
 function numericId(vesselId) {
   return parseInt(vesselId.replace(/^V0?/, ''), 10);
@@ -177,17 +178,29 @@ function buildDetails(vessel) {
       sfof: vessel.sfofBaseline
     },
     eexi: isProspect ? null : eexi(vessel),
-    contract: contract ? {
-      contractId: contract.id,
-      type: contract.type,
-      startDate: contract.startDate,
-      endDate: contract.endDate,
-      paysRate: `${Math.round(contract.paysRate * 100)}% of verified savings`,
-      guaranteeFloor: `${contract.guaranteeFloorPct}%`,
-      nextInvoiceDate: contract.nextInvoiceDate,
-      voyagesReady: contract.voyagesReady,
-      dataTrust: product ? product.scenarioType : 'provisional'
-    } : null,
+    contract: contract ? (() => {
+      const roi = deployedRoi({
+        dwt: vessel.dwt,
+        unitCount: units.length || 1,
+        contract,
+        fuelSavingPct: product ? product.fuelSavingPct : 5
+      });
+      return {
+        contractId: contract.id,
+        type: contract.type,
+        startDate: contract.startDate,
+        endDate: contract.endDate,
+        paysRate: `${Math.round(contract.paysRate * 100)}% of verified savings`,
+        guaranteeFloor: `${contract.guaranteeFloorPct}%`,
+        nextInvoiceDate: contract.nextInvoiceDate,
+        voyagesReady: contract.voyagesReady,
+        dataTrust: product ? product.scenarioType : 'provisional',
+        annualSavingsValueUsd: roi.annualSavingsValueUsd,
+        annualFeeUsd: roi.annualFeeUsd,
+        roiMultiple: roi.roiMultiple,
+        netAnnualBenefitUsd: roi.netAnnualBenefitUsd
+      };
+    })() : null,
     voyage: voyage ? {
       voyageId: voyage.id,
       source: voyage.source,
@@ -302,15 +315,28 @@ function deriveFlatVessel(vessel) {
     };
   }
 
+  const roi = (!isProspect && contract) ? deployedRoi({
+    dwt: vessel.dwt,
+    unitCount: getUnits(vessel.id).length || 1,
+    contract,
+    fuelSavingPct: product ? product.fuelSavingPct : 5
+  }) : null;
+
+  const evaluation = isProspect ? evaluateProspect({ type: vessel.type, dwt: vessel.dwt }) : null;
+
   return {
     id,
     name: vessel.name,
     imo: vessel.imo,
     type: vessel.type,
+    dwt: vessel.dwt,
+    dwtBand: dwtBand(vessel.dwt),
     status,
     sailing,
     atPort,
     reason,
+    roiMultiple: roi ? roi.roiMultiple : null,
+    evaluation,
     savings: product ? `${product.fuelSavingPct}%` : '—',
     guarantee: contract ? `${contract.guaranteeFloorPct}%` : '—',
     variance: product ? `${product.variancePct > 0 ? '+' : ''}${product.variancePct}%` : '—',

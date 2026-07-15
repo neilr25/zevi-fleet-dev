@@ -451,13 +451,48 @@
   .panel-hidden { display: none !important; }
   .panel-dimmed { opacity: 0.35; pointer-events: none; }
 
+  /* KPI cards (DESIGN.md pattern: gradient top border, mono value, hover lift) */
+  .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .kpi-card { position: relative; background: linear-gradient(180deg, var(--surface), var(--bg)); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 9px 10px 8px; overflow: hidden; transition: transform 0.15s ease, border-color 0.15s ease; }
+  .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--green), var(--cyan)); }
+  .kpi-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .kpi-head { display: flex; align-items: center; gap: 5px; }
+  .kpi-icon { font-size: 12px; line-height: 1; }
+  .kpi-label { font-size: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+  .kpi-value { font-size: 16px; font-weight: 700; font-family: 'JetBrains Mono', monospace; margin-top: 3px; }
+
+  /* Status pills (triplet tokens; blue/cyan/grey derive bg/border from their base var) */
+  .status-pill { display: inline-flex; align-items: center; padding: 2px 6px; border-radius: var(--radius-sm); font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; border: 1px solid; white-space: nowrap; }
+  .status-pill.green { color: var(--status-green); background: var(--status-green-bg); border-color: var(--status-green-border); }
+  .status-pill.amber { color: var(--status-amber); background: var(--status-amber-bg); border-color: var(--status-amber-border); }
+  .status-pill.red { color: var(--status-red); background: var(--status-red-bg); border-color: var(--status-red-border); }
+  .status-pill.blue { color: var(--status-blue); background: color-mix(in srgb, var(--status-blue) 14%, transparent); border-color: color-mix(in srgb, var(--status-blue) 35%, transparent); }
+  .status-pill.cyan { color: var(--status-cyan); background: color-mix(in srgb, var(--status-cyan) 14%, transparent); border-color: color-mix(in srgb, var(--status-cyan) 35%, transparent); }
+  .status-pill.grey { color: var(--status-grey); background: color-mix(in srgb, var(--status-grey) 14%, transparent); border-color: color-mix(in srgb, var(--status-grey) 35%, transparent); }
+
+  /* Ghost/action link (DESIGN.md: --accent text, hover underline) */
+  .ghost-link { color: var(--accent); font-size: 11px; font-weight: 600; cursor: pointer; background: none; border: none; padding: 0; }
+  .ghost-link:hover { text-decoration: underline; }
+  .all-vessels-row { display: flex; justify-content: flex-end; padding: 6px 2px 0; }
+
+  /* Fleet table modal */
+  .fleet-comp { margin-bottom: 12px; }
+  .fleet-comp-line { font-size: 11px; color: var(--muted); padding: 4px 0; border-bottom: 1px solid var(--border); }
+  .fleet-table th { cursor: pointer; user-select: none; white-space: nowrap; }
+  .fleet-table th:hover { color: var(--text); }
+  .fleet-table tbody tr { cursor: pointer; }
+  .fleet-table tbody tr:hover { background: var(--elevated); }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .est-marker { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--status-amber); margin-left: 3px; }
+  .left-logo, #topbarTitle { cursor: pointer; }
+
 </style>
 </head>
 <body>
 <div class="app">
   <aside class="left-panel">
     <div class="left-header">
-      <div class="left-logo">
+      <div class="left-logo tooltip" data-tooltip="Reset to fleet map view" onclick="resetFleetView()">
         <div class="left-logo-mark"><img src="Logo_only.png" alt="SGS logo" width="28" height="28" style="display:block;width:100%;height:100%;object-fit:contain;"></div>
         <div class="left-logo-text">Fast Fleet</div>
       </div>
@@ -473,6 +508,7 @@
       </div>
       <div class="fleet-summary" id="fleetSummary"></div>
       <div class="weather-summary" id="weatherSummary"></div>
+      <div class="all-vessels-row"><button class="ghost-link tooltip" data-tooltip="Open sortable table of all vessels" onclick="openFleetTable()">All vessels ›</button></div>
     </div>
   </aside>
   <div class="left-panel-overlay" id="leftPanelOverlay" onclick="toggleMenu()"></div>
@@ -480,7 +516,7 @@
     <div class="topbar">
       <div style="display:flex;align-items:center;gap:10px;">
         <button class="menu-toggle tooltip" id="menuToggle" data-tooltip="Open fleet menu" onclick="toggleMenu()">☰</button>
-        <div class="topbar-title" id="topbarTitle">Fast Fleet <span style="color:var(--muted);font-weight:400;">· Wind as a Service</span></div>
+        <div class="topbar-title tooltip" id="topbarTitle" data-tooltip="Reset to fleet map view" onclick="resetFleetView()">Fast Fleet <span style="color:var(--muted);font-weight:400;">· Wind as a Service</span></div>
       </div>
       <div class="topbar-right">
         <div class="live-controls tooltip" data-tooltip="Simulate live vessel movement along routes">
@@ -791,6 +827,7 @@
 
           <div class="lens" id="lens-invoice">
             <div class="panel-title">PAYS invoice</div>
+            <div id="invoiceRoiCard"></div>
             <div class="card">
               <div class="invoice-row">
                 <div><span class="checkbox checked">✓</span>Voyage 2026-06-15 <span class="badge badge-verified">Verified</span></div>
@@ -889,6 +926,33 @@
               </div>
               <div class="mini-list-item"><span>Mean</span><span class="green">6.4%</span></div>
               <div class="mini-list-item"><span>P10 / P90</span><span>4.2% / 8.1%</span></div>
+            </div>
+            <div class="card">
+              <div class="panel-title" style="margin-top:0">Evaluate vessel</div>
+              <div class="scenario-form">
+                <label>
+                  Vessel name (optional)
+                  <input type="text" id="evalName" placeholder="e.g. MV Example" autocomplete="off">
+                </label>
+                <label>
+                  Type
+                  <select id="evalType">
+                    <option>Bulk Carrier</option>
+                    <option>Tanker</option>
+                    <option>Container</option>
+                    <option>RoRo</option>
+                    <option>Chemical &amp; Oil Carrier</option>
+                    <option>Gas Carrier</option>
+                    <option>General Cargo</option>
+                  </select>
+                </label>
+                <label>
+                  DWT
+                  <input type="number" id="evalDwt" min="1000" max="500000" placeholder="e.g. 85000">
+                </label>
+                <button class="btn" onclick="runEvaluation()">Evaluate</button>
+              </div>
+              <div id="evalResult"></div>
             </div>
             <button class="btn" onclick="showLens('report')">Build business case</button>
             <button class="btn secondary" onclick="showLens('overview')">Back</button>
@@ -1233,6 +1297,21 @@
     </div>
   </div>
 </div>
+<div id="fleetModal" class="modal-overlay" style="display:none;" onclick="closeFleetTable(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div style="font-size:14px;font-weight:600;">All vessels</div>
+      <button class="close-btn" onclick="closeFleetTable()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="fleet-comp" id="fleetComposition"></div>
+      <table class="fleet-table" id="fleetTable"></table>
+    </div>
+    <div class="modal-footer">
+      <button class="btn secondary" onclick="closeFleetTable()">Close</button>
+    </div>
+  </div>
+</div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
       let ships = [
@@ -1435,12 +1514,20 @@ const STATIC_ROUTES = {
     const totalFuel = ships.reduce((sum, s) => sum + (s.fuelSaved || 0), 0);
     const totalCo2 = ships.reduce((sum, s) => sum + (s.co2Saved || 0), 0);
     const totalPower = ships.reduce((sum, s) => sum + (s.currentPower || 0), 0);
+    const savingsVals = ships.map(s => s.savings).filter(v => v && v !== '—' && !isNaN(parseFloat(v))).map(v => parseFloat(v));
+    const avgSaving = savingsVals.length ? (savingsVals.reduce((a, b) => a + b, 0) / savingsVals.length).toFixed(1) + '%' : '—';
+    const kpi = (icon, label, value) => `
+      <div class="kpi-card">
+        <div class="kpi-head"><span class="kpi-icon">${icon}</span><span class="kpi-label">${label}</span></div>
+        <div class="kpi-value">${value}</div>
+      </div>`;
     document.getElementById('weatherSummary').innerHTML = `
       <div class="weather-summary-title">Fleet performance</div>
-      <div class="weather-summary-grid">
-        <div class="weather-summary-item"><span class="weather-summary-label">Fuel saved</span><span class="weather-summary-value">${totalFuel.toFixed(1)} t</span></div>
-        <div class="weather-summary-item"><span class="weather-summary-label">CO₂ saved</span><span class="weather-summary-value">${totalCo2.toFixed(0)} t</span></div>
-        <div class="weather-summary-item"><span class="weather-summary-label">Power now</span><span class="weather-summary-value">${totalPower.toLocaleString()} kW</span></div>
+      <div class="kpi-grid">
+        ${kpi('🛢️', 'Fuel saved', totalFuel.toFixed(1) + ' t')}
+        ${kpi('🌱', 'CO₂ saved', totalCo2.toFixed(0) + ' t')}
+        ${kpi('⚡', 'Power now', totalPower.toLocaleString() + ' kW')}
+        ${kpi('💨', 'Avg saving', avgSaving)}
       </div>
       <button class="weather-toggle tooltip" data-tooltip="Toggle wind-direction overlay on the map" id="weatherToggle" onclick="toggleWeatherLayer()">Show wind layer</button>
     `;
@@ -1984,6 +2071,7 @@ const STATIC_ROUTES = {
     }
 
     document.getElementById('shipPanel').classList.add('open');
+    renderInvoiceRoi(s);
     document.getElementById('topbarTitle').innerHTML = tabTitles.overview + ' <span style="color:var(--muted);font-weight:400;">· ' + s.name + '</span>';
     selectTab('overview');
   }
@@ -2101,7 +2189,7 @@ const STATIC_ROUTES = {
       { label: 'Type', value: s.type },
       { label: 'Flag', value: vessel.flag || '—' },
       { label: 'Year built', value: vessel.yearBuilt || '—' },
-      { label: 'DWT', value: vessel.dwt ? vessel.dwt.toLocaleString() + ' t' : '—' },
+      { label: 'DWT', value: vessel.dwt ? vessel.dwt.toLocaleString() + ' t' + (s.dwtBand ? ' · ' + s.dwtBand : '') : '—' },
       { label: 'Length × beam', value: vessel.lengthOverall && vessel.beam ? `${vessel.lengthOverall} × ${vessel.beam} m` : '—' },
       { label: 'Propulsion', value: vessel.propulsion || '—' }
     ]);
@@ -2345,7 +2433,7 @@ const STATIC_ROUTES = {
     const add = (label, value) => rows.push({ label, value: value === undefined || value === null ? '—' : value });
     switch (type) {
       case 'Deployment': add('Deployment ID', data.deploymentId); add('Status', data.deploymentStatus); add('Install date', data.installDate); add('Commissioning date', data.commissioningDate); add('FastRig units', data.fastRigUnits); break;
-      case 'Vessel': add('IMO', data.imo); add('Name', data.name); add('Type', data.type); add('Flag', data.flag); add('Year built', data.yearBuilt); add('DWT', data.dwt ? data.dwt.toLocaleString() + ' t' : null); add('Length × beam', data.lengthOverall && data.beam ? `${data.lengthOverall} × ${data.beam} m` : null); add('Propulsion', data.propulsion); add('SFOF', data.sfof); break;
+      case 'Vessel': add('IMO', data.imo); add('Name', data.name); add('Type', data.type); add('Flag', data.flag); add('Year built', data.yearBuilt); add('DWT', data.dwt ? data.dwt.toLocaleString() + ' t' + (selectedShip.dwtBand ? ' · ' + selectedShip.dwtBand : '') : null); add('Length × beam', data.lengthOverall && data.beam ? `${data.lengthOverall} × ${data.beam} m` : null); add('Propulsion', data.propulsion); add('SFOF', data.sfof); break;
       case 'FastRigUnit': add('Serial number', data.serialNumber); add('Configuration', data.configuration); add('Build date', data.buildDate); add('Lifecycle stage', data.lifecycleStage); add('Residual value', data.residualValue); add('Components', data.components ? data.components.length : 0); add('Sensors', data.sensors ? data.sensors.length : 0); break;
       case 'Component': add('Name', data.name); add('Type', data.type); add('Health', data.health + '%'); add('Operating hours', data.hours); add('RUL estimate', data.rul); break;
       case 'Sensor': add('Name', data.name); add('Type', data.type); add('Status', data.status); add('Last reading', data.lastReading); add('Transmission lane', data.transmission); break;
@@ -2434,12 +2522,14 @@ const STATIC_ROUTES = {
     clearRoutes();
     selectedShip = null;
     updateMarkerStyles();
-    document.getElementById('topbarTitle').innerHTML = tabTitles.overview + ' <span style="color:var(--muted);font-weight:400;">· Wind as a Service</span>';
+    document.getElementById('topbarTitle').innerHTML = tabTitles.overview;
   }
 
   function showLens(name) {
     document.querySelectorAll('.lens').forEach(l => l.classList.remove('active'));
     document.getElementById('lens-' + name).classList.add('active');
+    if (name === 'predict') renderPredictLens();
+    if (name === 'invoice') renderInvoiceRoi(selectedShip);
   }
 
   function openWorkOrder() {
@@ -3070,6 +3160,151 @@ const STATIC_ROUTES = {
     if (demoMode) document.getElementById('regulatoryWizardTrigger').style.display = 'block';
   }
 
+  // Fleet table modal
+  let fleetSort = { key: 'name', dir: 1 };
+  const fleetTableCols = [['name', 'Name'], ['type', 'Type'], ['dwt', 'DWT'], ['dwtBand', 'DWT band'], ['status', 'Status'], ['savings', 'Savings'], ['trust', 'Trust']];
+  function openFleetTable() {
+    document.getElementById('fleetModal').style.display = 'flex';
+    renderFleetTable();
+  }
+  function closeFleetTable(e) {
+    if (e && e.target !== e.currentTarget) return;
+    document.getElementById('fleetModal').style.display = 'none';
+  }
+  function sortFleetTable(key) {
+    if (fleetSort.key === key) fleetSort.dir *= -1;
+    else fleetSort = { key, dir: 1 };
+    renderFleetTable();
+  }
+  function fleetSortValue(s) {
+    switch (fleetSort.key) {
+      case 'name': return (s.name || '').toLowerCase();
+      case 'type': return (s.type || '').toLowerCase();
+      case 'dwt': return s.dwt !== null && s.dwt !== undefined ? s.dwt : -Infinity;
+      case 'dwtBand': return s.dwtBand || '';
+      case 'status': return s.status || '';
+      case 'savings': return s.savings && s.savings !== '—' ? parseFloat(s.savings) : -Infinity;
+      case 'trust': return s.perfTrust || '';
+      default: return '';
+    }
+  }
+  function renderFleetTable() {
+    const byType = {};
+    ships.forEach(s => { byType[s.type] = (byType[s.type] || 0) + 1; });
+    document.getElementById('fleetComposition').innerHTML = Object.keys(byType).sort().map(t =>
+      `<div class="fleet-comp-line"><span class="mono">${t} · ${byType[t]} · ${Math.round(byType[t] / ships.length * 100)}%</span></div>`
+    ).join('');
+    const sorted = ships.slice().sort((a, b) => {
+      const va = fleetSortValue(a), vb = fleetSortValue(b);
+      if (va < vb) return -1 * fleetSort.dir;
+      if (va > vb) return 1 * fleetSort.dir;
+      return 0;
+    });
+    const arrow = k => fleetSort.key === k ? (fleetSort.dir === 1 ? ' ▲' : ' ▼') : '';
+    document.getElementById('fleetTable').innerHTML = `
+      <thead><tr>${fleetTableCols.map(([k, label]) => `<th onclick="sortFleetTable('${k}')">${label}${arrow(k)}</th>`).join('')}</tr></thead>
+      <tbody>${sorted.map(s => `
+        <tr onclick="fleetTableSelect(${s.id})">
+          <td>${s.name}</td>
+          <td>${s.type}</td>
+          <td class="mono">${s.dwt !== null && s.dwt !== undefined ? s.dwt.toLocaleString() : '—'}</td>
+          <td class="mono">${s.dwtBand || '—'}</td>
+          <td><span class="status-pill ${s.status}">${statusLabels[s.status] || s.status}</span></td>
+          <td class="mono">${s.savings || '—'}</td>
+          <td>${badgeHtml[s.perfTrust] || badgeHtml.nodata}</td>
+        </tr>`).join('')}</tbody>
+    `;
+  }
+  function fleetTableSelect(id) {
+    closeFleetTable();
+    openShipById(id);
+  }
+
+  // PAYS lens contract card (values from details.contract; USD)
+  function renderInvoiceRoi(s) {
+    const el = document.getElementById('invoiceRoiCard');
+    if (!el) return;
+    const c = s && s.details ? s.details.contract : null;
+    if (!c) {
+      el.innerHTML = '<div class="card"><div style="font-size:12px;color:var(--muted);">No contract in place.</div></div>';
+      return;
+    }
+    const usd = n => (n === null || n === undefined || isNaN(n)) ? '—' : '$' + Math.round(n).toLocaleString();
+    el.innerHTML = `
+      <div class="card">
+        <div class="mini-list-item" style="font-weight:700;"><span>Contract value</span><span>${badgeHtml[c.dataTrust] || badgeHtml.nodata}</span></div>
+        <div class="mini-list-item"><span>Annual savings value</span><span class="mono">${usd(c.annualSavingsValueUsd)}</span></div>
+        <div class="mini-list-item"><span>Annual fee</span><span class="mono">${usd(c.annualFeeUsd)}</span></div>
+        <div class="mini-list-item"><span>Net annual benefit</span><span class="mono green">${usd(c.netAnnualBenefitUsd)}</span></div>
+      </div>
+    `;
+  }
+
+  // Evaluate vessel (prospect estimation via /api/evaluate)
+  function renderEvaluationResult(ev) {
+    const result = document.getElementById('evalResult');
+    if (!result) return;
+    const usd = n => (n === null || n === undefined || isNaN(n)) ? '—' : 'US$' + Math.round(n).toLocaleString();
+    const num = (n, dp) => (n === null || n === undefined || isNaN(n)) ? '—' : Number(n).toFixed(dp);
+    const note = ev.note || 'Provisional estimate — not admissible for PAYS invoicing, guarantees, or regulatory filings.';
+    result.innerHTML = `
+      <div class="scenario-result" style="margin-top:12px;">
+        <div class="mini-list-item" style="font-weight:700;"><span>Evaluation${ev.name ? ' · ' + ev.name : ''}</span><span class="badge badge-provisional">Provisional</span></div>
+        <div class="metric" style="margin:10px 0 4px;"><div class="metric-value green">${num(ev.estSavingsPct, 1)}%</div><div class="metric-label">Est. fuel saving</div></div>
+        <div class="mini-list-item"><span>Est. fuel saved</span><span class="mono">${num(ev.estAnnualFuelSavedT, 1)} t/yr</span></div>
+        <div class="mini-list-item"><span>Est. savings value</span><span class="mono">${usd(ev.estAnnualValueUsd)}/yr</span></div>
+        <div class="mini-list-item"><span>Est. fee</span><span class="mono">${usd(ev.estAnnualFeeUsd)}/yr</span></div>
+        <div class="mini-list-item"><span>Net benefit</span><span class="mono">${usd(ev.estNetAnnualBenefitUsd)}/yr</span></div>
+        <div class="mini-list-item"><span>Assumed units</span><span class="mono">${ev.assumedUnits !== null && ev.assumedUnits !== undefined ? ev.assumedUnits : '—'}</span></div>
+        <div class="mini-list-item"><span>DWT band</span><span class="mono">${ev.dwtBand || '—'}</span></div>
+        <div style="font-size:10px;color:var(--muted);margin-top:8px;">${note}</div>
+      </div>
+    `;
+  }
+  async function runEvaluation() {
+    const type = document.getElementById('evalType').value;
+    const dwt = parseInt(document.getElementById('evalDwt').value, 10);
+    const name = document.getElementById('evalName').value.trim();
+    const result = document.getElementById('evalResult');
+    if (!dwt) {
+      result.innerHTML = '<div class="alert alert-amber" style="margin-top:10px;"><div class="alert-icon">!</div><div class="alert-text">Enter a DWT between 1,000 and 500,000.</div></div>';
+      return;
+    }
+    result.innerHTML = '<div style="font-size:11px;color:var(--muted);margin-top:10px;">Evaluating…</div>';
+    try {
+      const res = await fetch(`/api/evaluate?type=${encodeURIComponent(type)}&dwt=${dwt}&name=${encodeURIComponent(name)}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Evaluation failed');
+      renderEvaluationResult(data);
+    } catch (err) {
+      result.innerHTML = `<div class="alert alert-amber" style="margin-top:10px;"><div class="alert-icon">!</div><div class="alert-text">${err.message}</div></div>`;
+    }
+  }
+  function renderPredictLens() {
+    const s = selectedShip;
+    if (!s || !s.evaluation) return;
+    const nameEl = document.getElementById('evalName');
+    const typeEl = document.getElementById('evalType');
+    const dwtEl = document.getElementById('evalDwt');
+    if (nameEl) nameEl.value = s.name || '';
+    if (typeEl && s.type) typeEl.value = s.type;
+    if (dwtEl && s.dwt) dwtEl.value = s.dwt;
+    renderEvaluationResult(s.evaluation);
+  }
+
+  // Logo/title click: reset to default fleet map view
+  function resetFleetView() {
+    closeFleetTable();
+    closeAlertsCentre();
+    const settings = document.getElementById('settingsModal');
+    if (settings) settings.style.display = 'none';
+    closePanel();
+    showLens('overview');
+    if (ships.length) {
+      map.fitBounds(L.latLngBounds(ships.map(s => [s.lat, s.lon])), { padding: [40, 40] });
+    }
+  }
+
   // Expose scenario helpers referenced by inline onclick
   Object.assign(window, { loadScenario, ackAlert });
 
@@ -3093,7 +3328,9 @@ const STATIC_ROUTES = {
     startRouteDeviationWizard, updateRouteDeviationPreview, endRouteDeviationWizard, cancelRouteDeviationWizard,
     startMaintenanceWizard, nextMaintenanceStep, prevMaintenanceStep, endMaintenanceWizard, cancelMaintenanceWizard,
     startInvoiceWizard, nextInvoiceStep, prevInvoiceStep, endInvoiceWizard, cancelInvoiceWizard,
-    startRegulatoryWizard, nextRegulatoryStep, prevRegulatoryStep, endRegulatoryWizard, cancelRegulatoryWizard
+    startRegulatoryWizard, nextRegulatoryStep, prevRegulatoryStep, endRegulatoryWizard, cancelRegulatoryWizard,
+    openFleetTable, closeFleetTable, sortFleetTable, fleetTableSelect,
+    runEvaluation, resetFleetView
   });
   }
 
