@@ -296,6 +296,9 @@
   .map-layer-btn { position: absolute; top: 12px; left: 12px; z-index: 1100; padding: 6px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text); font-size: 11px; font-weight: 600; cursor: pointer; box-shadow: var(--shadow); }
   .map-layer-btn:hover { border-color: var(--accent); color: var(--accent); }
   .map-layer-btn.active { border-color: var(--weather-wind); color: var(--weather-wind); background: var(--weather-wind-bg); }
+  .map-layer-btn.legend-toggle { top: 46px; }
+  .ghost-link { background: none; border: none; color: var(--accent); font-size: 11px; cursor: pointer; padding: 4px 0; text-align: left; }
+  .ghost-link:hover { text-decoration: underline; }
   @media (max-width: 768px) {
     .stats-bar { flex-wrap: wrap; min-height: 0; }
     .stats-title { display: none; }
@@ -480,7 +483,7 @@
   .ship-marker.marker-sync > div { animation: pulse 1.5s infinite; filter: drop-shadow(0 0 8px currentColor); }
   .ship-marker-label { position: absolute; top: 42px; left: 50%; transform: translateX(-50%); font-size: 9px; font-weight: 600; font-family: 'JetBrains Mono', monospace; color: var(--muted); background: color-mix(in srgb, var(--bg) 65%, transparent); padding: 0 4px; border-radius: 3px; white-space: nowrap; pointer-events: none; }
   .ship-marker.marker-dim .ship-marker-label { display: none; }
-  .map-legend { margin-top: 10px; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); font-size: 10px; color: var(--muted); flex-shrink: 0; }
+  .map-legend { position: absolute; top: 80px; left: 12px; z-index: 1100; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); font-size: 10px; color: var(--muted); box-shadow: var(--shadow); max-width: 220px; }
   .map-legend-title { font-size: 8px; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 700; margin-bottom: 6px; }
   .map-legend-row { display: flex; align-items: center; gap: 7px; padding: 1.5px 0; }
   .map-legend-row .legend-arrow { font-size: 11px; line-height: 1; }
@@ -538,30 +541,23 @@
             <input type="text" id="nameFilter" placeholder="Name or IMO…" autocomplete="off">
           </div>
           <div class="filter-group"><div class="filter-group-title">Status</div><div class="filter-pills" id="filterStatus"></div></div>
-          <div class="filter-group"><div class="filter-group-title">Type</div><div class="filter-pills" id="filterType"></div></div>
-          <div class="filter-group"><div class="filter-group-title">DWT band</div><div class="filter-pills" id="filterBand"></div></div>
-          <div class="filter-group"><div class="filter-group-title">Contract</div><div class="filter-pills" id="filterContract"></div></div>
-          <div class="filter-group"><div class="filter-group-title">Trust</div><div class="filter-pills" id="filterTrust"></div></div>
-          <div class="filter-group"><div class="filter-group-title">Alerts</div><div class="filter-pills" id="filterAlerts"></div></div>
-          <div class="filter-group"><div class="filter-group-title">Presets</div>
-            <div class="filter-presets">
-              <select id="presetSelect" onchange="loadFilterPreset(this.value)"></select>
-              <button class="btn secondary filter-preset-btn" onclick="saveFilterPreset()">Save</button>
-              <button class="btn secondary filter-preset-btn" onclick="deleteFilterPreset()">Delete</button>
+          <button class="ghost-link" id="moreFiltersToggle" onclick="toggleMoreFilters()">More filters ▾</button>
+          <div id="moreFilters" style="display:none;">
+            <div class="filter-group"><div class="filter-group-title">Type</div><div class="filter-pills" id="filterType"></div></div>
+            <div class="filter-group"><div class="filter-group-title">DWT band</div><div class="filter-pills" id="filterBand"></div></div>
+            <div class="filter-group"><div class="filter-group-title">Contract</div><div class="filter-pills" id="filterContract"></div></div>
+            <div class="filter-group"><div class="filter-group-title">Trust</div><div class="filter-pills" id="filterTrust"></div></div>
+            <div class="filter-group"><div class="filter-group-title">Alerts</div><div class="filter-pills" id="filterAlerts"></div></div>
+            <div class="filter-group"><div class="filter-group-title">Presets</div>
+              <div class="filter-presets">
+                <select id="presetSelect" onchange="loadFilterPreset(this.value)"></select>
+                <button class="btn secondary filter-preset-btn" onclick="saveFilterPreset()">Save</button>
+                <button class="btn secondary filter-preset-btn" onclick="deleteFilterPreset()">Delete</button>
+              </div>
             </div>
           </div>
           <div class="filter-chips-row" id="filterChips"></div>
         </div>
-      </div>
-      <div class="map-legend">
-        <div class="map-legend-title">Marker legend</div>
-        <div class="map-legend-row"><span class="legend-arrow" style="color:var(--status-green)">▲</span>Nominal — on track</div>
-        <div class="map-legend-row"><span class="legend-arrow" style="color:var(--status-amber)">▲</span>Attention — review needed</div>
-        <div class="map-legend-row"><span class="legend-arrow" style="color:var(--status-red)">▲</span>Critical — act now</div>
-        <div class="map-legend-row"><span class="legend-arrow" style="color:var(--status-blue)">▲</span>Prospect — no deployment</div>
-        <div class="map-legend-row"><span class="legend-arrow" style="color:var(--status-cyan)">▲</span>Advice — route update ready</div>
-        <div class="map-legend-row"><span class="legend-arrow" style="color:var(--status-grey)">▲</span>Offline — no telemetry</div>
-        <div class="map-legend-sub">Marker direction shows vessel heading. Dashed lines are active voyage routes.</div>
       </div>
     </div>
   </aside>
@@ -614,6 +610,17 @@
       <div class="canvas-area">
       <div id="map"></div>
       <button class="map-layer-btn tooltip" id="weatherToggle" data-tooltip="Toggle wind-direction overlay on the map" onclick="toggleWeatherLayer()">Show wind layer</button>
+      <button class="map-layer-btn legend-toggle tooltip" id="legendToggle" data-tooltip="Show marker legend" onclick="toggleLegend()">Legend</button>
+      <div class="map-legend" id="mapLegend" style="display:none;">
+        <div class="map-legend-title">Marker legend</div>
+        <div class="map-legend-row"><span class="legend-arrow" style="color:var(--status-green)">▲</span>Nominal — on track</div>
+        <div class="map-legend-row"><span class="legend-arrow" style="color:var(--status-amber)">▲</span>Attention — review needed</div>
+        <div class="map-legend-row"><span class="legend-arrow" style="color:var(--status-red)">▲</span>Critical — act now</div>
+        <div class="map-legend-row"><span class="legend-arrow" style="color:var(--status-blue)">▲</span>Prospect — no deployment</div>
+        <div class="map-legend-row"><span class="legend-arrow" style="color:var(--status-cyan)">▲</span>Advice — route update ready</div>
+        <div class="map-legend-row"><span class="legend-arrow" style="color:var(--status-grey)">▲</span>Offline — no telemetry</div>
+        <div class="map-legend-sub">Marker direction shows vessel heading. Dashed lines are active voyage routes.</div>
+      </div>
       <div class="view-toggle">
         <button class="view-toggle-btn active" data-view="map" onclick="setViewMode('map')">Map</button>
         <button class="view-toggle-btn" data-view="list" onclick="setViewMode('list')">List</button>
@@ -896,11 +903,10 @@
                 </div>
               </div>
             </div>
-            <button class="btn demo-flow-trigger" id="maintenanceWizardTrigger" style="display:none;margin-top:10px;" onclick="startMaintenanceWizard()">Open maintenance wizard</button>
           </div>
 
           <div class="lens" id="lens-optimise">
-            <div class="panel-title">FastRoute Optimise</div>
+            <div class="panel-title">Route</div>
             <div class="card" style="border-left:3px solid var(--accent);">
               <div class="headline-status" style="margin-bottom:6px;">Active voyage</div>
               <div class="headline-text" id="routeName">—</div>
@@ -940,7 +946,6 @@
                 <button class="btn" onclick="endRouteDeviationWizard()">Endorse recommendation</button>
               </div>
             </div>
-            <button class="btn demo-flow-trigger" id="routeDeviationTrigger" style="display:none;" onclick="startRouteDeviationWizard()">Open route deviation wizard</button>
             <div class="card" style="background:transparent;border-style:dashed;">
               <div class="panel-title" style="margin-top:0;">Recent voyages</div>
               <div id="historicalVoyages" style="font-size:11px;color:var(--muted);line-height:1.5;">
@@ -1047,7 +1052,6 @@
                 </div>
               </div>
             </div>
-            <button class="btn demo-flow-trigger" id="regulatoryWizardTrigger" style="display:none;margin-top:10px;" onclick="startRegulatoryWizard()">Open regulatory submission wizard</button>
           </div>
 
           <div class="lens" id="lens-scenarios">
@@ -1156,39 +1160,6 @@
           <div class="role-card" data-role="prospect" onclick="setRolePreset('prospect')">
             <div class="role-card-title">Prospect / Charterer</div>
             <div class="role-card-desc">Scenario planning, sales case, predicted savings</div>
-          </div>
-        </div>
-      </div>
-      <div class="settings-group" id="demoFlows" style="display:none;">
-        <div class="settings-label">Demo flows</div>
-        <div class="demo-list">
-          <div class="demo-item">
-            <div class="demo-item-info">Onboarding tour<br><span class="demo-item-sub">Step-by-step introduction to the UI</span></div>
-            <button class="demo-btn" onclick="startTour(); closeSettings();">Start tour</button>
-          </div>
-          <div class="demo-item">
-            <div class="demo-item-info">Add ship wizard<br><span class="demo-item-sub">Create a new prospect vessel</span></div>
-            <button class="demo-btn" onclick="closeSettings(); runWizard('add-ship');">Run</button>
-          </div>
-          <div class="demo-item">
-            <div class="demo-item-info">Create sales case<br><span class="demo-item-sub">Build a FastReport business case</span></div>
-            <button class="demo-btn" onclick="closeSettings(); runWizard('sales-case');">Run</button>
-          </div>
-          <div class="demo-item">
-            <div class="demo-item-info">Route deviation wizard<br><span class="demo-item-sub">Optimise a live voyage</span></div>
-            <button class="demo-btn" onclick="closeSettings(); startRouteDeviationWizard();">Run</button>
-          </div>
-          <div class="demo-item">
-            <div class="demo-item-info">Maintenance response wizard<br><span class="demo-item-sub">Acknowledge and resolve an alert</span></div>
-            <button class="demo-btn" onclick="closeSettings(); startMaintenanceWizard();">Run</button>
-          </div>
-          <div class="demo-item">
-            <div class="demo-item-info">Verified invoice wizard<br><span class="demo-item-sub">Generate PAYS invoices</span></div>
-            <button class="demo-btn" onclick="closeSettings(); startInvoiceWizard();">Run</button>
-          </div>
-          <div class="demo-item">
-            <div class="demo-item-info">Regulatory submission wizard<br><span class="demo-item-sub">Submit CII/EEXI to regulator</span></div>
-            <button class="demo-btn" onclick="closeSettings(); startRegulatoryWizard();">Run</button>
           </div>
         </div>
       </div>
@@ -3164,6 +3135,21 @@ const STATIC_ROUTES = {
     document.getElementById('topbarTitle').innerHTML = tabTitles.overview;
   }
 
+  function toggleMoreFilters() {
+    const el = document.getElementById('moreFilters');
+    const btn = document.getElementById('moreFiltersToggle');
+    const open = el.style.display !== 'none';
+    el.style.display = open ? 'none' : '';
+    btn.textContent = open ? 'More filters ▾' : 'Fewer filters ▴';
+  }
+  function toggleLegend() {
+    const el = document.getElementById('mapLegend');
+    const btn = document.getElementById('legendToggle');
+    const open = el.style.display !== 'none';
+    el.style.display = open ? 'none' : '';
+    btn.classList.toggle('active', !open);
+  }
+
   function showLens(name) {
     document.querySelectorAll('.lens').forEach(l => l.classList.remove('active'));
     document.getElementById('lens-' + name).classList.add('active');
@@ -3551,7 +3537,6 @@ const STATIC_ROUTES = {
   function openSettings() {
     document.getElementById('settingsModal').style.display = 'flex';
     document.getElementById('demoModeToggle').classList.toggle('on', demoMode);
-    document.getElementById('demoFlows').style.display = demoMode ? 'block' : 'none';
     document.querySelectorAll('#rolePresetList .role-card').forEach(c => c.classList.toggle('active', c.dataset.role === currentRole));
   }
   function closeSettings(e) {
@@ -3562,18 +3547,10 @@ const STATIC_ROUTES = {
     demoMode = !demoMode;
     localStorage.setItem('fastFleet_demoMode', demoMode);
     document.getElementById('demoModeToggle').classList.toggle('on', demoMode);
-    document.getElementById('demoFlows').style.display = demoMode ? 'block' : 'none';
     applyDemoMode();
   }
   function applyDemoMode() {
-    document.querySelectorAll('.demo-flow-trigger').forEach(el => el.style.display = demoMode ? 'block' : 'none');
     document.querySelectorAll('.demo-badge').forEach(el => el.style.display = demoMode ? 'inline-flex' : 'none');
-    if (demoMode && selectedShip) {
-      document.getElementById('routeDeviationTrigger').style.display = 'block';
-      document.getElementById('maintenanceWizardTrigger').style.display = 'block';
-      document.getElementById('invoiceWizardTrigger').style.display = 'block';
-      document.getElementById('regulatoryWizardTrigger').style.display = 'block';
-    }
   }
   function setRolePreset(role) {
     currentRole = role;
@@ -3587,18 +3564,18 @@ const STATIC_ROUTES = {
     const role = currentRole;
     document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('panel-hidden', 'panel-dimmed'));
     const order = {
-      owner: ['overview', 'report', 'regs', 'invoice', 'contract', 'details', 'fix', 'optimise', 'scenarios'],
-      internal: ['overview', 'fix', 'optimise', 'alerts', 'report', 'regs', 'contract', 'details', 'scenarios'],
-      regulator: ['regs', 'report', 'overview', 'details', 'fix', 'optimise', 'contract', 'scenarios'],
-      prospect: ['scenarios', 'report', 'overview', 'optimise', 'details', 'fix', 'regs', 'contract']
-    }[role] || ['overview', 'details', 'fix', 'report', 'regs', 'optimise', 'scenarios'];
+      owner: ['overview', 'performance', 'commercial', 'regs', 'details', 'fix', 'optimise', 'scenarios'],
+      internal: ['overview', 'fix', 'optimise', 'performance', 'regs', 'commercial', 'details', 'scenarios'],
+      regulator: ['regs', 'performance', 'overview', 'details', 'fix', 'optimise', 'commercial', 'scenarios'],
+      prospect: ['scenarios', 'performance', 'overview', 'optimise', 'details', 'fix', 'regs', 'commercial']
+    }[role] || ['overview', 'performance', 'fix', 'commercial', 'regs', 'optimise', 'scenarios', 'details'];
     const tabs = Array.from(document.querySelectorAll('.panel-tab'));
     const container = document.getElementById('panelTabs');
     tabs.sort((a, b) => order.indexOf(a.dataset.tab) - order.indexOf(b.dataset.tab));
     tabs.forEach(t => container.appendChild(t));
     const dim = {
       owner: ['fix', 'optimise'],
-      internal: ['report', 'scenarios'],
+      internal: ['commercial', 'scenarios'],
       regulator: ['fix', 'optimise', 'scenarios'],
       prospect: ['fix', 'regs']
     }[role] || [];
@@ -3611,7 +3588,7 @@ const STATIC_ROUTES = {
   const tourSteps = [
     { target: '.left-panel', title: 'Fleet summary', body: 'Filter by status, alert type, or name. The fleet performance counter shows fuel saved, CO₂ saved, and current power generation.', position: 'right' },
     { target: '#map', title: 'Live map', body: 'Click any vessel to open its detail panel. Selected ships are highlighted; others are dimmed.', position: 'center' },
-    { target: '#shipPanel', title: 'Product lenses', body: 'Switch between Overview, Details, FastFix, FastReport, FastRegs, FastRoute, and Scenarios.', position: 'left' },
+    { target: '#shipPanel', title: 'Detail lenses', body: 'Switch between Overview, Performance, Condition, Commercial, Compliance, Route, Scenarios, and Details.', position: 'left' },
     { target: '#liveBtn', title: 'Live simulation', body: 'Toggle live mode to watch vessels move along their routes. Choose speed and see the last update time.', position: 'bottom' },
     { target: '#alertsBtn', title: 'Alerts centre', body: 'Open the alerts centre to see critical, attention, route, and offline alerts across the fleet.', position: 'bottom' },
     { target: '#settingsBtn', title: 'Settings & demos', body: 'Enable demo mode to access guided wizards and role presets.', position: 'bottom' }
