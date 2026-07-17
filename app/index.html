@@ -1864,32 +1864,51 @@ const STATIC_ROUTES = {
   }
   let filterState = emptyFilterState();
 
-  // Antimeridian-safe polyline splitter: turns one world-wrapping route into
-  // multiple segments that render correctly inside a single-world map.
+  // Antimeridian-safe polyline splitter: unwraps longitudes, splits at each
+  // ±180° (plus 360k) crossing with an interpolated boundary point, then shifts
+  // each segment back into a single [-180, 180] world so no segment wraps the globe.
   function splitAntimeridian(points) {
     if (!points || points.length < 2) return [points];
-    let prevLon = points[0][1];
-    const unwrapped = points.map(([lat, lon]) => {
-      let d = lon - prevLon;
-      d = ((d + 540) % 360) - 180; // smallest signed step
-      const u = prevLon + d;
-      prevLon = u;
-      return [lat, u];
-    });
+    // 1) unwrap to continuous longitudes
+    let offset = 0;
+    const un = [[points[0][0], points[0][1]]];
+    for (let i = 1; i < points.length; i++) {
+      const lat = points[i][0], lon = points[i][1];
+      const rawDelta = lon - (un[i - 1][1] - offset);
+      if (rawDelta > 180) offset -= 360;
+      else if (rawDelta < -180) offset += 360;
+      un.push([lat, lon + offset]);
+    }
+    // 2) split at every boundary crossing (lon = 180 + 360k)
     const segments = [];
-    let current = [unwrapped[0]];
-    for (let i = 1; i < unwrapped.length; i++) {
-      const [lat, lon] = unwrapped[i];
-      if (Math.abs(lon - current[0][1]) > 180) {
-        segments.push(current);
-        current = [[lat, lon]];
+    let cur = [un[0]];
+    for (let i = 1; i < un.length; i++) {
+      const lat0 = cur[cur.length - 1][0], lon0 = cur[cur.length - 1][1];
+      const lat1 = un[i][0], lon1 = un[i][1];
+      const b0 = Math.floor((lon0 + 180) / 360);
+      const b1 = Math.floor((lon1 + 180) / 360);
+      if (b0 !== b1 && lon1 !== lon0) {
+        const boundary = 360 * Math.max(b0, b1) - 180;
+        const t = (boundary - lon0) / (lon1 - lon0);
+        const latB = lat0 + (lat1 - lat0) * t;
+        cur.push([latB, boundary]);
+        segments.push(cur);
+        cur = [[latB, boundary], [lat1, lon1]];
       } else {
-        current.push([lat, lon]);
+        cur.push([lat1, lon1]);
       }
     }
-    if (current.length) segments.push(current);
-    // normalise longitudes back to [-180, 180] for rendering
-    return segments.map(seg => seg.map(([lat, lon]) => [lat, ((lon + 540) % 360) - 180]));
+    if (cur.length > 1) segments.push(cur);
+    // 3) shift each segment into [-180, 180]
+    return segments.map(seg => {
+      const shift = -360 * Math.round(seg[0][1] / 360);
+      return seg.map(([lat, lon]) => {
+        let l = lon + shift;
+        if (l > 180) l -= 360;
+        if (l < -180) l += 360;
+        return [lat, l];
+      });
+    });
   }
 
   // Route context: all active voyages drawn faintly; dimmed when filtered out or another ship is selected
