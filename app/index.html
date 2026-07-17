@@ -1864,6 +1864,34 @@ const STATIC_ROUTES = {
   }
   let filterState = emptyFilterState();
 
+  // Antimeridian-safe polyline splitter: turns one world-wrapping route into
+  // multiple segments that render correctly inside a single-world map.
+  function splitAntimeridian(points) {
+    if (!points || points.length < 2) return [points];
+    let prevLon = points[0][1];
+    const unwrapped = points.map(([lat, lon]) => {
+      let d = lon - prevLon;
+      d = ((d + 540) % 360) - 180; // smallest signed step
+      const u = prevLon + d;
+      prevLon = u;
+      return [lat, u];
+    });
+    const segments = [];
+    let current = [unwrapped[0]];
+    for (let i = 1; i < unwrapped.length; i++) {
+      const [lat, lon] = unwrapped[i];
+      if (Math.abs(lon - current[0][1]) > 180) {
+        segments.push(current);
+        current = [[lat, lon]];
+      } else {
+        current.push([lat, lon]);
+      }
+    }
+    if (current.length) segments.push(current);
+    // normalise longitudes back to [-180, 180] for rendering
+    return segments.map(seg => seg.map(([lat, lon]) => [lat, ((lon + 540) % 360) - 180]));
+  }
+
   // Route context: all active voyages drawn faintly; dimmed when filtered out or another ship is selected
   const contextRoutes = new Map(); // ship.id -> L.polyline
   function renderRouteContext() {
@@ -1896,15 +1924,13 @@ const STATIC_ROUTES = {
         color = baseColor; opacity = 0.45; weight = 2; dashArray = '4 6';
       }
       const existing = contextRoutes.get(s.id);
-      if (existing) {
-        existing.setStyle({ color, opacity, weight, dashArray });
-      } else {
-        contextRoutes.set(s.id, L.polyline(pts, { color, weight, opacity, dashArray, interactive: false }).addTo(map));
-      }
+      if (existing) existing.forEach(l => map.removeLayer(l));
+      const segments = splitAntimeridian(pts);
+      contextRoutes.set(s.id, segments.map(seg => L.polyline(seg, { color, weight, opacity, dashArray, interactive: false }).addTo(map)));
     });
     // remove any stale routes
-    for (const [id, line] of contextRoutes) {
-      if (!ships.some(s => s.id === id)) { map.removeLayer(line); contextRoutes.delete(id); }
+    for (const [id, lines] of contextRoutes) {
+      if (!ships.some(s => s.id === id)) { lines.forEach(l => map.removeLayer(l)); contextRoutes.delete(id); }
     }
   }
   renderRouteContext();
@@ -2487,14 +2513,17 @@ const STATIC_ROUTES = {
     if (!s || !s.route) return;
     const r = s.route;
     const routeColor = statusColors[s.status] || statusColors.cyan;
-    const poly = L.polyline(r.points, {
-      color: routeColor,
-      opacity: 0.95,
-      weight: 4,
-      lineJoin: 'round',
-      lineCap: 'round'
-    }).addTo(map);
-    routeLayers.push(poly);
+    const segments = splitAntimeridian(r.points);
+    segments.forEach(seg => {
+      const poly = L.polyline(seg, {
+        color: routeColor,
+        opacity: 0.95,
+        weight: 4,
+        lineJoin: 'round',
+        lineCap: 'round'
+      }).addTo(map);
+      routeLayers.push(poly);
+    });
     const portIcon = (label, kind) => L.divIcon({
       className: 'port-marker',
       html: `<div style="display:flex;flex-direction:column;align-items:center;pointer-events:none;">
