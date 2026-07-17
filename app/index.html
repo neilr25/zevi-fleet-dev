@@ -619,12 +619,13 @@
         </div>
         <div class="panel-tabs" id="panelTabs">
           <div class="panel-tab active tooltip" data-tooltip="Headline, key threads, and quick actions" data-tab="overview" onclick="selectTab('overview')">Overview</div>
-          <div class="panel-tab tooltip" data-tooltip="Object-model details for this vessel" data-tab="details" onclick="selectTab('details')">Details</div>
-          <div class="panel-tab tooltip" data-tooltip="Maintenance board and work orders" data-tab="fix" onclick="selectTab('fix')">FastFix</div>
-          <div class="panel-tab tooltip" data-tooltip="Payback, NPV, and CO₂ avoided" data-tab="report" onclick="selectTab('report')">FastReport</div>
-          <div class="panel-tab tooltip" data-tooltip="CII rating and regulator submissions" data-tab="regs" onclick="selectTab('regs')">FastRegs</div>
+          <div class="panel-tab tooltip" data-tooltip="Savings counterfactual, variance, and calculation versioning" data-tab="performance" onclick="selectTab('performance')">Performance</div>
+          <div class="panel-tab tooltip" data-tooltip="Condition monitoring, maintenance board and work orders" data-tab="fix" onclick="selectTab('fix')">FastFix</div>
+          <div class="panel-tab tooltip" data-tooltip="Contract terms, PAYS invoicing, and business case" data-tab="commercial" onclick="selectTab('commercial')">Commercial</div>
+          <div class="panel-tab tooltip" data-tooltip="CII rating, EEXI, and regulator submissions" data-tab="regs" onclick="selectTab('regs')">FastRegs</div>
           <div class="panel-tab tooltip" data-tooltip="Current voyage route and weather" data-tab="optimise" onclick="selectTab('optimise')">FastRoute</div>
           <div class="panel-tab tooltip" data-tooltip="What-if scenario planning and comparisons" data-tab="scenarios" onclick="selectTab('scenarios')">Scenarios</div>
+          <div class="panel-tab tooltip" data-tooltip="Object-model details for this vessel" data-tab="details" onclick="selectTab('details')">Details</div>
         </div>
         <div class="panel-body" id="panelBody">
           <div class="lens active" id="lens-overview">
@@ -648,28 +649,28 @@
             </div>
           </div>
           <div class="panel-title">Drill into any thread</div>
-            <div class="thread tooltip" data-tooltip="Verified fuel savings and guarantee variance" onclick="showLens('savings')">
+            <div class="thread tooltip" data-tooltip="Verified fuel savings, counterfactual baseline, and variance" onclick="selectTab('performance')">
               <div class="thread-header"><span class="thread-title">Performance</span><span id="perfBadge"></span></div>
               <div class="thread-row">
                 <div><div class="thread-value" id="perfValue">—</div><div class="thread-caption" id="perfCaption">verified saving</div></div>
                 <div class="sparkline" id="perfSpark"></div>
               </div>
             </div>
-            <div class="thread tooltip" data-tooltip="CBM health and active alerts" onclick="showLens('cbm')">
+            <div class="thread tooltip" data-tooltip="CBM health and active alerts" onclick="selectTab('fix')">
               <div class="thread-header"><span class="thread-title">Condition</span><span id="cbmBadge"></span></div>
               <div class="thread-row">
                 <div><div class="thread-value" id="cbmValue">—</div><div class="thread-caption" id="cbmCaption">CBM health</div></div>
                 <div class="sparkline" id="cbmSpark"></div>
               </div>
             </div>
-            <div class="thread tooltip" data-tooltip="CII rating and regulatory compliance" onclick="showLens('compliance')">
+            <div class="thread tooltip" data-tooltip="CII rating and regulatory compliance" onclick="selectTab('regs')">
               <div class="thread-header"><span class="thread-title">Compliance</span><span id="compBadge"></span></div>
               <div class="thread-row">
                 <div><div class="thread-value" id="compValue">—</div><div class="thread-caption" id="compCaption">CII rating</div></div>
                 <div class="sparkline" id="compSpark"></div>
               </div>
             </div>
-            <div class="thread tooltip" data-tooltip="Contract status and PAYS invoicing" onclick="showLens('contract')">
+            <div class="thread tooltip" data-tooltip="Contract status and PAYS invoicing" onclick="selectTab('commercial')">
               <div class="thread-header"><span class="thread-title">Contract</span><span id="contractBadge"></span></div>
               <div class="thread-row">
                 <div><div class="thread-value" id="contractValue">—</div><div class="thread-caption" id="contractCaption">contract status</div></div>
@@ -682,7 +683,7 @@
               <div class="mini-list-item"><span>Current voyage</span><span id="curVoyage">—</span></div>
               <div class="mini-list-item"><span>Position</span><span id="position">—</span></div>
             </div>
-            <button class="btn secondary" style="width:100%;margin-top:12px;" onclick="showLens('details')">View full ship details</button>
+            <button class="btn secondary" style="width:100%;margin-top:12px;" onclick="selectTab('details')">View full ship details</button>
           </div>
 
           <div class="lens" id="lens-details">
@@ -698,45 +699,68 @@
             <button class="btn secondary" onclick="popEntity()">Back</button>
           </div>
 
-          <div class="lens" id="lens-savings">
+          <div class="lens" id="lens-performance">
             <div class="panel-title">Performance</div>
-            <div class="card">
-              <div class="metric"><div class="metric-value green" id="savingValue">—</div><div class="metric-label">Verified saving</div></div>
-              <div class="metric"><div class="metric-value" id="guaranteeValue">—</div><div class="metric-label">Guarantee floor</div></div>
-              <div class="mini-list-item"><span>Variance</span><span id="varianceValue">—</span></div>
-            </div>
-            <div class="card">
-              <div class="panel-title" style="margin-top:0">30-day trend</div>
-              <div class="sparkline" id="trendSpark" style="width:100%;height:40px;"></div>
-            </div>
-            <button class="btn" onclick="showLens('report')">Investigate in FastReport</button>
-            <button class="btn secondary" onclick="showLens('overview')">Back</button>
+            <div id="performanceContent"></div>
           </div>
 
-          <div class="lens" id="lens-cbm">
-            <div class="panel-title">Condition monitoring</div>
-            <div id="cbmContent"></div>
-            <button class="btn secondary" onclick="showLens('overview')">Back</button>
-          </div>
-
-          <div class="lens" id="lens-compliance">
-            <div class="panel-title">Compliance</div>
-            <div class="card">
-              <div class="metric"><div class="metric-value" id="ciiValue">—</div><div class="metric-label">Current CII rating</div></div>
-              <div class="mini-list-item"><span>Target</span><span id="ciiTarget">—</span></div>
-              <div class="mini-list-item"><span>CO₂ reduction</span><span id="co2Value">—</span></div>
+          <div class="lens" id="lens-commercial">
+            <div class="panel-title">Commercial</div>
+            <div id="commercialContent"></div>
+            <div class="card demo-flow-card" id="invoiceWizardCard" style="display:none;margin-top:10px;">
+              <div class="panel-title" style="margin-top:0;">Verified invoice wizard</div>
+              <div class="wizard-steps">
+                <div class="wizard-step active"></div>
+                <div class="wizard-step"></div>
+                <div class="wizard-step"></div>
+              </div>
+              <div id="invoiceWizardStep1">
+                <div class="invoice-list" id="iwVoyageList"></div>
+                <div class="wizard-actions">
+                  <button class="btn secondary" onclick="cancelInvoiceWizard()">Cancel</button>
+                  <button class="btn" onclick="nextInvoiceStep()">Next</button>
+                </div>
+              </div>
+              <div id="invoiceWizardStep2" style="display:none;">
+                <div class="wizard-form">
+                  <label>
+                    Contract type
+                    <select id="iwContract"></select>
+                  </label>
+                  <label>
+                    Invoice period
+                    <input type="text" id="iwPeriod" readonly>
+                  </label>
+                  <label>
+                    Verified savings total
+                    <input type="text" id="iwTotal" readonly>
+                  </label>
+                </div>
+                <div class="wizard-actions">
+                  <button class="btn secondary" onclick="prevInvoiceStep()">Back</button>
+                  <button class="btn" onclick="nextInvoiceStep()">Next</button>
+                </div>
+              </div>
+              <div id="invoiceWizardStep3" style="display:none;">
+                <div class="wizard-result">
+                  <div class="panel-title" style="margin-top:0">Invoice summary</div>
+                  <div class="mini-list-item"><span>Customer</span><span id="iwCustomer">SGS / Ship Owner</span></div>
+                  <div class="mini-list-item"><span>Period</span><span id="iwPeriodSummary">—</span></div>
+                  <div class="mini-list-item"><span>Verified voyages</span><span id="iwVoyages">—</span></div>
+                  <div class="mini-list-item"><span>Total due</span><span class="green" id="iwTotalDue">—</span></div>
+                  <div class="mini-list-item"><span>Status</span><span class="badge badge-verified">Verified</span></div>
+                </div>
+                <div class="wizard-actions">
+                  <button class="btn secondary" onclick="prevInvoiceStep()">Back</button>
+                  <button class="btn" onclick="endInvoiceWizard()">Generate invoice</button>
+                </div>
+              </div>
             </div>
-            <button class="btn" onclick="showLens('regs')">Generate FastRegs report</button>
-            <button class="btn secondary" onclick="showLens('overview')">Back</button>
-          </div>
-
-          <div class="lens" id="lens-contract">
-            <div class="panel-title">Contract</div>
-            <div id="contractContent"></div>
           </div>
 
           <div class="lens" id="lens-fix">
             <div class="panel-title">FastFix</div>
+            <div id="cbmContent"></div>
             <div class="tabs">
               <div class="tab active" onclick="showFixTab('board')">Work orders</div>
               <div class="tab" onclick="showFixTab('rul')">RUL</div>
@@ -877,156 +901,6 @@
               </div>
             </div>
             <button class="btn demo-flow-trigger" id="maintenanceWizardTrigger" style="display:none;margin-top:10px;" onclick="startMaintenanceWizard()">Open maintenance wizard</button>
-          </div>
-
-          <div class="lens" id="lens-invoice">
-            <div class="panel-title">PAYS invoice</div>
-            <div id="invoiceRoiCard"></div>
-            <div class="card">
-              <div class="invoice-row">
-                <div><span class="checkbox checked">✓</span>Voyage 2026-06-15 <span class="badge badge-verified">Verified</span></div>
-                <div class="green">£42,300</div>
-              </div>
-              <div class="invoice-row">
-                <div><span class="checkbox checked">✓</span>Voyage 2026-05-28 <span class="badge badge-verified">Verified</span></div>
-                <div class="green">£38,900</div>
-              </div>
-              <div class="invoice-row disabled">
-                <div><span class="checkbox"></span>Voyage 2026-07-01 <span class="badge badge-provisional">Provisional</span></div>
-                <div class="amber">£19,400</div>
-              </div>
-              <div class="mini-list-item" style="margin-top:10px;border-top:1px solid var(--border);font-weight:700;">
-                <span>Total verified</span><span class="green">£81,200</span>
-              </div>
-            </div>
-            <div class="alert alert-amber">
-              <div class="alert-icon">!</div>
-              <div class="alert-text">Provisional voyages are excluded from invoicing until batch verification.</div>
-            </div>
-            <button class="btn" onclick="alert('Invoice generated')">Generate verified invoice</button>
-            <button class="btn secondary" onclick="showLens('contract')">Back</button>
-            <div class="card demo-flow-card" id="invoiceWizardCard" style="display:none;margin-top:10px;">
-              <div class="panel-title" style="margin-top:0;">Verified invoice wizard</div>
-              <div class="wizard-steps">
-                <div class="wizard-step active"></div>
-                <div class="wizard-step"></div>
-                <div class="wizard-step"></div>
-              </div>
-              <div id="invoiceWizardStep1">
-                <div class="invoice-list">
-                  <label class="invoice-item"><input type="checkbox" checked> Voyage 2026-06-15 · Verified · £42,300</label>
-                  <label class="invoice-item"><input type="checkbox" checked> Voyage 2026-05-28 · Verified · £38,900</label>
-                  <label class="invoice-item"><input type="checkbox"> Voyage 2026-07-01 · Provisional · £19,400</label>
-                </div>
-                <div class="wizard-actions">
-                  <button class="btn secondary" onclick="cancelInvoiceWizard()">Cancel</button>
-                  <button class="btn" onclick="nextInvoiceStep()">Next</button>
-                </div>
-              </div>
-              <div id="invoiceWizardStep2" style="display:none;">
-                <div class="wizard-form">
-                  <label>
-                    Contract type
-                    <select id="iwContract">
-                      <option>PAYS - 80% of verified savings</option>
-                      <option>Lease - fixed monthly</option>
-                      <option>Outright</option>
-                    </select>
-                  </label>
-                  <label>
-                    Invoice period
-                    <input type="text" value="June 2026" readonly>
-                  </label>
-                  <label>
-                    Verified savings total
-                    <input type="text" value="£81,200" readonly>
-                  </label>
-                </div>
-                <div class="wizard-actions">
-                  <button class="btn secondary" onclick="prevInvoiceStep()">Back</button>
-                  <button class="btn" onclick="nextInvoiceStep()">Next</button>
-                </div>
-              </div>
-              <div id="invoiceWizardStep3" style="display:none;">
-                <div class="wizard-result">
-                  <div class="panel-title" style="margin-top:0">Invoice summary</div>
-                  <div class="mini-list-item"><span>Customer</span><span id="iwCustomer">SGS / Ship Owner</span></div>
-                  <div class="mini-list-item"><span>Period</span><span>June 2026</span></div>
-                  <div class="mini-list-item"><span>Verified voyages</span><span>2</span></div>
-                  <div class="mini-list-item"><span>Total due</span><span class="green">£81,200</span></div>
-                  <div class="mini-list-item"><span>Status</span><span class="badge badge-verified">Verified</span></div>
-                </div>
-                <div class="wizard-actions">
-                  <button class="btn secondary" onclick="prevInvoiceStep()">Back</button>
-                  <button class="btn" onclick="endInvoiceWizard()">Generate invoice</button>
-                </div>
-              </div>
-            </div>
-            <button class="btn demo-flow-trigger" id="invoiceWizardTrigger" style="display:none;margin-top:10px;" onclick="startInvoiceWizard()">Open invoice wizard</button>
-          </div>
-
-          <div class="lens" id="lens-predict">
-            <div class="panel-title">FastRoute Predict</div>
-            <div class="card">
-              <div class="metric"><div class="metric-value green">6.4%</div><div class="metric-label">Predicted fuel saving</div></div>
-              <div class="metric"><div class="metric-value amber">±1.1%</div><div class="metric-label">95% confidence</div></div>
-              <div class="mini-list-item"><span>Simulations</span><span>1,247</span></div>
-              <div class="mini-list-item"><span>Route</span><span>Liverpool → Hamburg</span></div>
-            </div>
-            <div class="card">
-              <div class="panel-title" style="margin-top:0">Savings distribution</div>
-              <div style="height:60px;background:linear-gradient(90deg,var(--red),var(--amber),var(--green),var(--green));border-radius:4px;position:relative;margin:8px 0;">
-                <div style="position:absolute;left:64%;top:0;bottom:0;width:2px;background:white;"></div>
-              </div>
-              <div class="mini-list-item"><span>Mean</span><span class="green">6.4%</span></div>
-              <div class="mini-list-item"><span>P10 / P90</span><span>4.2% / 8.1%</span></div>
-            </div>
-            <div class="card">
-              <div class="panel-title" style="margin-top:0">Evaluate vessel</div>
-              <div class="scenario-form">
-                <label>
-                  Vessel name (optional)
-                  <input type="text" id="evalName" placeholder="e.g. MV Example" autocomplete="off">
-                </label>
-                <label>
-                  Type
-                  <select id="evalType">
-                    <option>Bulk Carrier</option>
-                    <option>Tanker</option>
-                    <option>Container</option>
-                    <option>RoRo</option>
-                    <option>Chemical &amp; Oil Carrier</option>
-                    <option>Gas Carrier</option>
-                    <option>General Cargo</option>
-                  </select>
-                </label>
-                <label>
-                  DWT
-                  <input type="number" id="evalDwt" min="1000" max="500000" placeholder="e.g. 85000">
-                </label>
-                <button class="btn" onclick="runEvaluation()">Evaluate</button>
-              </div>
-              <div id="evalResult"></div>
-            </div>
-            <button class="btn" onclick="showLens('report')">Build business case</button>
-            <button class="btn secondary" onclick="showLens('overview')">Back</button>
-          </div>
-
-          <div class="lens" id="lens-report">
-            <div class="panel-title">FastReport</div>
-            <div class="card">
-              <div class="metric"><div class="metric-value green">4.2 yr</div><div class="metric-label">Payback</div></div>
-              <div class="metric"><div class="metric-value green">£1.84M</div><div class="metric-label">NPV (10 yr)</div></div>
-              <div class="metric"><div class="metric-value green">1,420 t</div><div class="metric-label">CO₂ avoided / yr</div></div>
-            </div>
-            <div class="card">
-              <div class="panel-title" style="margin-top:0">Scenario comparison</div>
-              <div class="scenario-row"><span>Base</span><span class="scenario-value">4.2 yr</span></div>
-              <div class="scenario-row"><span>+ MEPC83</span><span class="scenario-value">3.5 yr</span></div>
-              <div class="scenario-row"><span>Optimistic</span><span class="scenario-value green">2.8 yr</span></div>
-            </div>
-            <button class="btn" onclick="showLens('contract')">Convert to contract draft</button>
-            <button class="btn secondary" onclick="showLens('overview')">Back</button>
           </div>
 
           <div class="lens" id="lens-optimise">
@@ -1227,6 +1101,33 @@
               </div>
             </div>
             <div id="scenarioResult" class="scenario-result" style="display:none;"></div>
+            <div class="card">
+              <div class="panel-title" style="margin-top:0">Evaluate a new vessel</div>
+              <div class="scenario-form">
+                <label>
+                  Vessel name (optional)
+                  <input type="text" id="evalName" placeholder="e.g. MV Example" autocomplete="off">
+                </label>
+                <label>
+                  Type
+                  <select id="evalType">
+                    <option>Bulk Carrier</option>
+                    <option>Tanker</option>
+                    <option>Container</option>
+                    <option>RoRo</option>
+                    <option>Chemical &amp; Oil Carrier</option>
+                    <option>Gas Carrier</option>
+                    <option>General Cargo</option>
+                  </select>
+                </label>
+                <label>
+                  DWT
+                  <input type="number" id="evalDwt" min="1000" max="500000" placeholder="e.g. 85000">
+                </label>
+                <button class="btn" onclick="runEvaluation()">Evaluate</button>
+              </div>
+              <div id="evalResult"></div>
+            </div>
             <div class="panel-title">Saved scenarios</div>
             <div id="savedScenarios"></div>
             <div class="panel-title">Comparison</div>
