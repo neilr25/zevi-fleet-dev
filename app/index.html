@@ -299,6 +299,7 @@
   .map-layer-btn.legend-toggle { top: 46px; }
   .ghost-link { background: none; border: none; color: var(--accent); font-size: 11px; cursor: pointer; padding: 4px 0; text-align: left; }
   .ghost-link:hover { text-decoration: underline; }
+  .sim-badge { position: absolute; bottom: 44px; right: 12px; z-index: 1100; background: var(--status-amber-bg); border: 1px dashed var(--amber); color: var(--amber); font-size: 9px; font-weight: 700; letter-spacing: 1px; padding: 3px 8px; border-radius: var(--radius-sm); }
   @media (max-width: 768px) {
     .stats-bar { flex-wrap: wrap; min-height: 0; }
     .stats-title { display: none; }
@@ -569,8 +570,8 @@
         <div class="topbar-title tooltip" id="topbarTitle" data-tooltip="Reset to fleet map view" onclick="resetFleetView()">Wind as a Service</div>
       </div>
       <div class="topbar-right">
-        <div class="live-controls tooltip" data-tooltip="Simulate live vessel movement along routes">
-          <button class="live-btn" id="liveBtn" onclick="toggleLiveMode()">Live</button>
+        <div class="live-controls tooltip" data-tooltip="Simulate live vessel movement along routes (demo data)">
+          <button class="live-btn" id="liveBtn" onclick="toggleLiveMode()">Simulate</button>
           <select class="live-speed" id="liveSpeed" onchange="setLiveSpeed(this.value)">
             <option value="1">1x</option>
             <option value="5">5x</option>
@@ -611,6 +612,7 @@
       <div id="map"></div>
       <button class="map-layer-btn tooltip" id="weatherToggle" data-tooltip="Toggle wind-direction overlay on the map" onclick="toggleWeatherLayer()">Show wind layer</button>
       <button class="map-layer-btn legend-toggle tooltip" id="legendToggle" data-tooltip="Show marker legend" onclick="toggleLegend()">Legend</button>
+      <div class="sim-badge" id="simBadge" style="display:none;">SIMULATION</div>
       <div class="map-legend" id="mapLegend" style="display:none;">
         <div class="map-legend-title">Marker legend</div>
         <div class="map-legend-row"><span class="legend-arrow" style="color:var(--status-green)">▲</span>Nominal — on track</div>
@@ -2617,6 +2619,8 @@ const STATIC_ROUTES = {
     renderFixBoard(s);
 
     const cbmContent = document.getElementById('cbmContent');
+    const prov = s.ops && s.ops.alertProvenance;
+    const provRow = prov ? `<div class="mini-list-item"><span>Evaluated</span><span class="mono" style="color:var(--cyan);">${prov.evaluatedAt} · ${prov.subtype} · ${prov.modelVersion}</span></div>` : '';
     if (s.alert && s.alertData) {
       cbmContent.innerHTML = `
         <div class="alert"><div class="alert-icon">!</div><div class="alert-text">${s.alert}</div></div>
@@ -2626,6 +2630,7 @@ const STATIC_ROUTES = {
           <div class="mini-list-item"><span>Anomaly score</span><span class="amber">${s.alertData.score}</span></div>
           <div class="mini-list-item"><span>RUL estimate</span><span>${s.alertData.rul}</span></div>
           <div class="mini-list-item"><span>Parts in stock</span><span class="green">${s.alertData.stock}</span></div>
+          ${provRow}
         </div>
         <div class="rig-schematic">[Interactive rig schematic]</div>
         <button class="btn" onclick="openWorkOrder()">Create work order</button>`;
@@ -3265,15 +3270,16 @@ const STATIC_ROUTES = {
   function toggleLiveMode() {
     liveMode = !liveMode;
     const btn = document.getElementById('liveBtn');
+    const simBadge = document.getElementById('simBadge');
     if (liveMode) {
       btn.classList.add('active');
-      btn.textContent = 'Live';
+      if (simBadge) simBadge.style.display = '';
       ships.forEach(s => { if (s.route && s.route.points && s.route.points.length >= 2 && s.sailing && !s.atPort && s.status !== 'blue' && s.status !== 'grey') { if (s.routeProgress == null) s.routeProgress = 0.2 + Math.random() * 0.4; } });
       liveInterval = setInterval(simulateLiveTick, 1000);
       simulateLiveTick();
     } else {
       btn.classList.remove('active');
-      btn.textContent = 'Live';
+      if (simBadge) simBadge.style.display = 'none';
       if (liveInterval) clearInterval(liveInterval);
       liveInterval = null;
     }
@@ -3329,7 +3335,11 @@ const STATIC_ROUTES = {
       console.warn('Alerts fetch failed:', err);
       alertsCache = [];
       ships.forEach(s => {
-        if (s.alert) alertsCache.push({ vesselId: s.id, vesselName: s.name, type: getAlertType(s), severity: getAlertType(s), message: s.alert, timestamp: 'Just now', acknowledged: false });
+        if (s.alert) {
+          const prov = s.ops && s.ops.alertProvenance;
+          alertsCache.push({ vesselId: s.id, vesselName: s.name, type: getAlertType(s), severity: getAlertType(s), message: s.alert, timestamp: 'Just now', acknowledged: false,
+            provenance: prov ? `${prov.evaluatedAt}-evaluated · ${prov.subtype} · ${prov.modelVersion} · ${prov.lane}` : null });
+        }
       });
       renderAlertsModal();
       updateAlertsBadge();
@@ -3355,6 +3365,7 @@ const STATIC_ROUTES = {
           <div style="font-weight:600;font-size:12px;">${a.vesselName}</div>
           <div style="font-size:11px;color:var(--muted);margin-top:2px;">${a.message || a.action || (a.faultCode + ' · ' + a.component) || 'Alert'}</div>
           <div style="font-size:10px;color:var(--muted);margin-top:4px;">${a.severity} · ${a.timestamp || 'Just now'}</div>
+          ${a.provenance ? `<div style="font-size:9px;color:var(--cyan);margin-top:2px;">${a.provenance}</div>` : ''}
         </div>
         <button class="btn secondary" style="padding:4px 10px;font-size:10px;" onclick="event.stopPropagation();ackAlert(${a.vesselId}, '${a.message}')">Ack</button>
       </div>
@@ -3410,11 +3421,12 @@ const STATIC_ROUTES = {
     window.currentScenario = result;
     document.getElementById('scenarioResult').style.display = 'block';
     document.getElementById('scenarioResult').innerHTML = `
-      <div class="panel-title" style="margin-top:0">Scenario result</div>
+      <div class="panel-title" style="margin-top:0">Scenario result <span class="badge badge-provisional">scenario_type: provisional</span></div>
       <div class="metric"><div class="metric-value green">${predictedSaving.toFixed(1)}%</div><div class="metric-label">Predicted fuel saving</div></div>
-      <div class="mini-list-item"><span>Fuel saved / yr</span><span>${fuelSavedT.toFixed(0)} t</span></div>
-      <div class="mini-list-item"><span>CO₂ avoided / yr</span><span>${co2SavedT.toFixed(0)} t</span></div>
-      <div class="mini-list-item"><span>Value / yr</span><span>£${(valueGBP / 1e6).toFixed(2)}M</span></div>
+      <div class="mini-list-item"><span>Fuel saved / yr</span><span class="mono">${fuelSavedT.toFixed(0)} t</span></div>
+      <div class="mini-list-item"><span>CO₂ avoided / yr</span><span class="mono">${co2SavedT.toFixed(0)} t</span></div>
+      <div class="mini-list-item"><span>Value / yr</span><span class="mono">£${(valueGBP / 1e6).toFixed(2)}M</span></div>
+      <div style="font-size:10px;color:var(--muted);margin-top:8px;">Not admissible for PAYS invoicing, guarantees, or regulatory filings until batch-verified.</div>
     `;
     renderScenarioComparison();
   }
