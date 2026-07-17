@@ -3678,7 +3678,6 @@ const STATIC_ROUTES = {
     if (!selectedShip) { openShipById(ships.find(s => s.sailing && s.status !== 'blue')?.id || ships[0].id); }
     selectTab('optimise');
     document.getElementById('routeDeviationCard').style.display = 'block';
-    document.getElementById('routeDeviationTrigger').style.display = 'none';
     updateRouteDeviationPreview();
   }
   function updateRouteDeviationPreview() {
@@ -3694,11 +3693,9 @@ const STATIC_ROUTES = {
     const dev = document.getElementById('routeDeviationSlider').value;
     alert(`Route deviation of ${dev} nm endorsed. Recommendation logged and sent to bridge.`);
     document.getElementById('routeDeviationCard').style.display = 'none';
-    if (demoMode) document.getElementById('routeDeviationTrigger').style.display = 'block';
   }
   function cancelRouteDeviationWizard() {
     document.getElementById('routeDeviationCard').style.display = 'none';
-    if (demoMode) document.getElementById('routeDeviationTrigger').style.display = 'block';
   }
 
   // Maintenance response wizard
@@ -3711,7 +3708,6 @@ const STATIC_ROUTES = {
     }
     showLens('fixdetail');
     document.getElementById('maintenanceWizardCard').style.display = 'block';
-    document.getElementById('maintenanceWizardTrigger').style.display = 'none';
     maintenanceStep = 1;
     showMaintenanceStep(1);
     if (selectedShip && selectedShip.alertData) {
@@ -3740,20 +3736,33 @@ const STATIC_ROUTES = {
     document.getElementById('maintenanceWizardCard').style.display = 'none';
     if (selectedShip) selectedShip.alertAcknowledged = true;
     updateAlertsBadge();
-    if (demoMode) document.getElementById('maintenanceWizardTrigger').style.display = 'block';
   }
   function cancelMaintenanceWizard() {
     document.getElementById('maintenanceWizardCard').style.display = 'none';
-    if (demoMode) document.getElementById('maintenanceWizardTrigger').style.display = 'block';
   }
 
   // Verified invoice wizard
   let invoiceStep = 1;
   function startInvoiceWizard() {
     if (!selectedShip) openShipById(1);
-    showLens('invoice');
+    selectTab('commercial');
+    const o = selectedShip && selectedShip.ops ? selectedShip.ops : { invoices: [] };
+    const money = n => '£' + Math.round(n).toLocaleString();
+    const list = document.getElementById('iwVoyageList');
+    if (list) list.innerHTML = o.invoices.map(inv =>
+      `<label class="invoice-item"><input type="checkbox" ${inv.trust === 'verified' ? 'checked' : ''} ${inv.trust === 'provisional' ? 'disabled' : ''}> ${inv.voyage} · ${inv.date} · ${inv.trust === 'verified' ? 'Verified' : 'Provisional'} · ${money(inv.amount)}</label>`).join('') || '<div style="font-size:11px;color:var(--muted);">No voyages recorded.</div>';
+    const c = selectedShip && selectedShip.details ? selectedShip.details.contract : null;
+    const iwContract = document.getElementById('iwContract');
+    if (iwContract) iwContract.innerHTML = `<option>${selectedShip.contract} — ${c ? c.paysRate : '80% of verified savings'}</option>`;
+    const totalVerified = o.invoices.filter(i => i.trust === 'verified').reduce((a, i) => a + i.amount, 0);
+    const nVerified = o.invoices.filter(i => i.trust === 'verified').length;
+    if (document.getElementById('iwPeriod')) document.getElementById('iwPeriod').value = 'July 2026';
+    if (document.getElementById('iwTotal')) document.getElementById('iwTotal').value = money(totalVerified);
+    if (document.getElementById('iwCustomer')) document.getElementById('iwCustomer').textContent = selectedShip.name + ' · ' + selectedShip.contract;
+    if (document.getElementById('iwPeriodSummary')) document.getElementById('iwPeriodSummary').textContent = 'July 2026';
+    if (document.getElementById('iwVoyages')) document.getElementById('iwVoyages').textContent = nVerified;
+    if (document.getElementById('iwTotalDue')) document.getElementById('iwTotalDue').textContent = money(totalVerified);
     document.getElementById('invoiceWizardCard').style.display = 'block';
-    document.getElementById('invoiceWizardTrigger').style.display = 'none';
     invoiceStep = 1;
     showInvoiceStep(1);
   }
@@ -3768,13 +3777,12 @@ const STATIC_ROUTES = {
   function nextInvoiceStep() { if (invoiceStep < 3) showInvoiceStep(invoiceStep + 1); }
   function prevInvoiceStep() { if (invoiceStep > 1) showInvoiceStep(invoiceStep - 1); }
   function endInvoiceWizard() {
-    alert('Verified invoice generated for £81,200. Draft sent to finance.');
+    const total = document.getElementById('iwTotalDue') ? document.getElementById('iwTotalDue').textContent : '';
+    alert(`Verified invoice generated for ${total}. Draft sent to finance.`);
     document.getElementById('invoiceWizardCard').style.display = 'none';
-    if (demoMode) document.getElementById('invoiceWizardTrigger').style.display = 'block';
   }
   function cancelInvoiceWizard() {
     document.getElementById('invoiceWizardCard').style.display = 'none';
-    if (demoMode) document.getElementById('invoiceWizardTrigger').style.display = 'block';
   }
 
   // Regulatory submission wizard
@@ -3783,7 +3791,6 @@ const STATIC_ROUTES = {
     if (!selectedShip) openShipById(1);
     selectTab('regs');
     document.getElementById('regulatoryWizardCard').style.display = 'block';
-    document.getElementById('regulatoryWizardTrigger').style.display = 'none';
     regulatoryStep = 1;
     showRegulatoryStep(1);
   }
@@ -3806,31 +3813,9 @@ const STATIC_ROUTES = {
     const period = document.getElementById('rwPeriod').value;
     alert(`Regulatory submission sent to ${reg} for ${period}. Submission ID: REG-${Date.now().toString().slice(-6)}`);
     document.getElementById('regulatoryWizardCard').style.display = 'none';
-    if (demoMode) document.getElementById('regulatoryWizardTrigger').style.display = 'block';
   }
   function cancelRegulatoryWizard() {
     document.getElementById('regulatoryWizardCard').style.display = 'none';
-    if (demoMode) document.getElementById('regulatoryWizardTrigger').style.display = 'block';
-  }
-
-  // PAYS lens contract card (values from details.contract; USD)
-  function renderInvoiceRoi(s) {
-    const el = document.getElementById('invoiceRoiCard');
-    if (!el) return;
-    const c = s && s.details ? s.details.contract : null;
-    if (!c) {
-      el.innerHTML = '<div class="card"><div style="font-size:12px;color:var(--muted);">No contract in place.</div></div>';
-      return;
-    }
-    const usd = n => (n === null || n === undefined || isNaN(n)) ? '—' : '$' + Math.round(n).toLocaleString();
-    el.innerHTML = `
-      <div class="card">
-        <div class="mini-list-item" style="font-weight:700;"><span>Contract value</span><span>${badgeHtml[c.dataTrust] || badgeHtml.nodata}</span></div>
-        <div class="mini-list-item"><span>Annual savings value</span><span class="mono">${usd(c.annualSavingsValueUsd)}</span></div>
-        <div class="mini-list-item"><span>Annual fee</span><span class="mono">${usd(c.annualFeeUsd)}</span></div>
-        <div class="mini-list-item"><span>Net annual benefit</span><span class="mono green">${usd(c.netAnnualBenefitUsd)}</span></div>
-      </div>
-    `;
   }
 
   // Evaluate vessel (prospect estimation via /api/evaluate)
@@ -3873,18 +3858,6 @@ const STATIC_ROUTES = {
       result.innerHTML = `<div class="alert alert-amber" style="margin-top:10px;"><div class="alert-icon">!</div><div class="alert-text">${err.message}</div></div>`;
     }
   }
-  function renderPredictLens() {
-    const s = selectedShip;
-    if (!s || !s.evaluation) return;
-    const nameEl = document.getElementById('evalName');
-    const typeEl = document.getElementById('evalType');
-    const dwtEl = document.getElementById('evalDwt');
-    if (nameEl) nameEl.value = s.name || '';
-    if (typeEl && s.type) typeEl.value = s.type;
-    if (dwtEl && s.dwt) dwtEl.value = s.dwt;
-    renderEvaluationResult(s.evaluation);
-  }
-
   // Logo/title click: reset to default fleet map view
   function resetFleetView() {
     closeAlertsCentre();
