@@ -1414,6 +1414,139 @@ const STATIC_ROUTES = {
     };
   }
 
+  // Deterministic per-ship operational data: counterfactual baselines, CalculationEngine
+  // versioning, event timelines, derived FastFix/invoice/report content. Seeded by ship id
+  // so every render of the same vessel is identical.
+  function makeOpsData(s, unitCount) {
+    const rng = mulberry32(s.id * 7919 + 13);
+    const pick = arr => arr[Math.floor(rng() * arr.length)];
+    const savingsPct = s.savings && s.savings !== '—' ? parseFloat(s.savings) : null;
+    const guaranteePct = s.guarantee && s.guarantee !== '—' ? parseFloat(s.guarantee) : null;
+    const fuelFlows = [24.2, 31.5, 28.0, 26.1, 21.8, 30.2, 29.4, 25.5, 32.1, 22.4];
+    const actualFuelTd = fuelFlows[s.id - 1];
+    const baselineFuelTd = savingsPct ? +(actualFuelTd / (1 - savingsPct / 100)).toFixed(1) : null;
+
+    // Variance attribution: split variance (actual - expected) into driver buckets that sum correctly.
+    const expectedPct = guaranteePct || savingsPct;
+    const variancePp = savingsPct && expectedPct ? +(savingsPct - expectedPct).toFixed(2) : null;
+    let varianceBreakdown = null;
+    if (variancePp !== null) {
+      const drivers = ['weather', 'route', 'crew', 'hull', 'model'];
+      const weights = [0.4, 0.25, 0.1, 0.15, 0.1].map(w => w * (0.6 + rng() * 0.8));
+      const total = weights.reduce((a, b) => a + b, 0);
+      varianceBreakdown = {};
+      drivers.forEach((d, i) => { varianceBreakdown[d] = +((variancePp * weights[i] / total)).toFixed(2); });
+    }
+
+    // Gold-layer calculation versioning (v17.1 CalculationEngine fields)
+    const verified = s.perfTrust === 'verified';
+    const calculation = {
+      methodVersion: 'savings-calc v3.2.1',
+      inputSnapshotRef: `snap-${s.imo}-20260715`,
+      computedAt: `2026-07-${String(10 + Math.floor(rng() * 6)).padStart(2, '0')} 0${Math.floor(rng() * 9)}:${String(Math.floor(rng() * 60)).padStart(2, '0')} UTC`,
+      scenarioType: verified ? 'verified' : 'provisional',
+      validFrom: '2026-07-01',
+      validTo: '2026-07-31',
+      baselineSource: verified ? 'hindcast (L3 batch)' : 'realtime (L2 telemetry)',
+      fidelity: verified ? 'batch_verified' : 'rt_provisional'
+    };
+    const provisionalReason = verified ? null :
+      s.perfTrust === 'nodata' ? 'No telemetry for 18h — awaiting reconnection' :
+      'L2 telemetry (provisional) — L3 batch verification due 04:00 UTC';
+
+    // Voyage source vocabulary per data model: actual/forecast/hindcast/historic/simulation
+    const voyageSource = s.status === 'blue' ? 'forecast' : s.status === 'grey' ? 'historical' : verified ? 'actual' : 'actual';
+
+    // EventLayer timeline (append-only audit trail), most recent first
+    const eventTypes = [
+      { type: 'savings_calc', lane: 'Gold', fidelity: verified ? 'verified' : 'provisional', msg: `Savings calculation ${calculation.methodVersion} completed` },
+      { type: 'sensor_batch', lane: 'L3', fidelity: 'verified', msg: `Bulk sensor batch uploaded (${(8000 + Math.floor(rng() * 6000)).toLocaleString()} readings)` },
+      { type: 'control_event', lane: 'L0', fidelity: 'verified', msg: `Wing trim adjusted by crew (${pick(['auto', 'manual', 'scheduled'])})` },
+      { type: 'diagnostic_event', lane: 'L1', fidelity: 'provisional', msg: s.status === 'red' ? `CBM rule CbM-HPU-014 fired: ${s.alert}` : 'CBM rule scan: no anomalies' },
+      { type: 'sensor_stream', lane: 'L2', fidelity: 'provisional', msg: 'Telemetry downsample sync (5 min aggregates)' },
+      { type: 'savings_calc', lane: 'Gold', fidelity: 'provisional', msg: 'Provisional savings estimate refreshed' },
+      { type: 'downtime', lane: 'L2', fidelity: 'verified', msg: s.id % 3 === 0 ? 'Rig parked 2.1h (heavy weather precaution)' : 'No downtime recorded' }
+    ];
+    const now = new Date('2026-07-17T12:00:00Z');
+    const eventTimeline = eventTypes.map((e, i) => {
+      const t = new Date(now.getTime() - (i * 3.7 + rng() * 2) * 3600000);
+      return { ts: t.toISOString().slice(5, 16).replace('T', ' '), ...e };
+    });
+
+    // PAYS invoices derived from savings + dwt
+    const dwt = s.dwt || 100000;
+    const rate = 0.8;
+    const invoices = savingsPct ? [
+      { voyage: `VY-${s.imo}-2041`, date: '2026-06-15', savingsTd: +((baselineFuelTd - actualFuelTd) * 14).toFixed(1), amount: Math.round((baselineFuelTd - actualFuelTd) * 14 * 620 * rate), trust: 'verified' },
+      { voyage: `VY-${s.imo}-2038`, date: '2026-05-28', savingsTd: +((baselineFuelTd - actualFuelTd) * 12).toFixed(1), amount: Math.round((baselineFuelTd - actualFuelTd) * 12 * 610 * rate), trust: 'verified' },
+      { voyage: `VY-${s.imo}-2045`, date: '2026-07-01', savingsTd: +((baselineFuelTd - actualFuelTd) * 6).toFixed(1), amount: Math.round((baselineFuelTd - actualFuelTd) * 6 * 630 * rate), trust: 'provisional' }
+    ] : [];
+
+    // FastFix board derived from ship status
+    const fixBoard = {
+      open: s.status === 'red' ? [{ id: s.alertData.fault, sev: 'red', note: s.alertData.component }] : s.status === 'amber' ? [{ id: `SVC-${s.imo.slice(-3)}-07`, sev: 'amber', note: 'Scheduled inspection' }] : [],
+      scheduled: [{ id: `Slew-${90 + s.id}`, sev: 'amber', note: `${pick(['Rotterdam', 'Singapore', 'Hamburg'])} ${2 + Math.floor(rng() * 6)}d` }],
+      inProgress: s.status === 'green' ? [{ id: `Flap-${30 + s.id}`, sev: 'green', note: 'sensor swap' }] : [],
+      closed: [{ id: `Wing-00${s.id}`, sev: 'green', note: 'NDT passed' }]
+    };
+    const rulList = s.details && s.details.fastRigUnits && s.details.fastRigUnits.length
+      ? s.details.fastRigUnits[0].components.map(c => ({ name: c.name, rul: c.rul, pct: s.status === 'red' && c.type === 'HPU' ? 92 : 15 + Math.floor(rng() * 50) }))
+      : [];
+    const partsStock = [
+      { part: 'HPU accumulator', stock: s.id % 2 === 0 ? 2 : 1, lead: '3d' },
+      { part: 'Slew bearing seal', stock: s.id % 3 === 0 ? 1 : 4, lead: '14d' },
+      { part: 'Flap sensor', stock: 5, lead: '7d' }
+    ];
+
+    // FastReport techno-economics derived from savings + dwt + fuel price
+    const fuelPrice = 620;
+    const annualSavingsT = savingsPct ? (baselineFuelTd - actualFuelTd) * 320 : 0;
+    const annualSavingsVal = annualSavingsT * fuelPrice;
+    const rigCapex = unitCount * 1100000;
+    const paybackYears = annualSavingsVal > 0 ? +(rigCapex / annualSavingsVal).toFixed(1) : null;
+    const npv10 = annualSavingsVal > 0 ? Math.round(annualSavingsVal * 6.4 - rigCapex) : null;
+    const co2AvoidedYr = Math.round(annualSavingsT * 3.15);
+    const report = {
+      paybackYears, npv10, co2AvoidedYr, annualSavingsT: +annualSavingsT.toFixed(0), fuelPrice,
+      designBaseline: {
+        validationRef: `ITTC-V-2023-${String(s.id).padStart(2, '0')}`,
+        polarRef: `POLAR-${unitCount > 2 ? 'MKV6' : 'MKIV4'}-v7.2`,
+        designVersion: 'Design v14.3',
+        correlation: `${(91 + rng() * 6).toFixed(1)}%`
+      }
+    };
+
+    // Historical voyages with counterfactual rows
+    const routes = (s.voyage || '').includes('→') ? [s.voyage] : [];
+    const otherRoutes = ['Rotterdam → New York', 'Singapore → Colombo', 'Algeciras → Genoa', 'Mombasa → Rotterdam'];
+    const historicalVoyages = Array.from({ length: 4 }, (_, i) => {
+      const route = routes[0] && i === 0 ? routes[0] : pick(otherRoutes);
+      const vPct = savingsPct ? +(savingsPct + (rng() - 0.5) * 1.4).toFixed(1) : null;
+      const days = 10 + Math.floor(rng() * 8);
+      return {
+        voyageId: `VY-${s.imo}-${2045 - i * 3}`,
+        date: `2026-0${6 - Math.floor(i / 2)}-${String(28 - i * 6).padStart(2, '0')}`,
+        route,
+        days,
+        savingsPct: vPct,
+        baselineTd: baselineFuelTd,
+        actualTd: vPct ? +(baselineFuelTd * (1 - vPct / 100)).toFixed(1) : null,
+        trust: i === 0 && !verified ? 'provisional' : 'verified'
+      };
+    });
+
+    // Alert provenance (edge-evaluated CBM per Purdue separation)
+    const alertProvenance = s.alert ? {
+      evaluatedAt: 'edge',
+      subtype: s.status === 'cyan' ? 'route_advice' : 'cbm_alert',
+      modelVersion: s.status === 'cyan' ? 'route-opt v1.8.2' : 'cbm-rul v2.4.0',
+      lane: s.status === 'cyan' ? 'L2' : 'L1',
+      shoreRole: 'advisory only — shore cannot command the rig'
+    } : null;
+
+    return { baselineFuelTd, actualFuelTd, expectedPct, variancePp, varianceBreakdown, calculation, provisionalReason, voyageSource, eventTimeline, invoices, fixBoard, rulList, partsStock, report, historicalVoyages, alertProvenance };
+  }
+
   async function loadFleetData() {
     try {
       const res = await fetch('/api/fleet');
@@ -1499,6 +1632,7 @@ const STATIC_ROUTES = {
         downtimeHours30d: [0, 2.5, 0, 0, 0.3, 0, 1.2, 0, 0, 0][s.id - 1]
       }
     };
+    s.ops = makeOpsData(s, unitCount);
   });
 
   const statusVarMap = { green: '--status-green', amber: '--status-amber', red: '--status-red', blue: '--status-blue', cyan: '--status-cyan', grey: '--status-grey' };
