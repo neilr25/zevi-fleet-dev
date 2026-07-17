@@ -1882,6 +1882,8 @@ const STATIC_ROUTES = {
     return { search: '', statuses: [], types: [], bands: [], contracts: [], trusts: [], alerts: [] };
   }
   let filterState = emptyFilterState();
+  // Role state (declared early because renderFleetSummary reads it during initial view setup)
+  let currentRole = localStorage.getItem('fastFleet_role') || 'owner';
 
   // Antimeridian-safe polyline splitter: unwraps longitudes, splits at each
   // ±180° (plus 360k) crossing with an interpolated boundary point, then shifts
@@ -3562,7 +3564,6 @@ const STATIC_ROUTES = {
   }
   // Settings, demo mode, and tour
   let demoMode = localStorage.getItem('fastFleet_demoMode') !== 'false';
-  let currentRole = localStorage.getItem('fastFleet_role') || 'owner';
   function openSettings() {
     document.getElementById('settingsModal').style.display = 'flex';
     document.getElementById('demoModeToggle').classList.toggle('on', demoMode);
@@ -3900,7 +3901,7 @@ const STATIC_ROUTES = {
     loadFilterPreset, saveFilterPreset, deleteFilterPreset,
     renderListView, refreshFleetViews, applyFilters,
     sortListBy, exportFleetCsv, toggleColumnMenu, setListColumn, syncMarkerHover, syncRowHover,
-    runEvaluation, resetFleetView
+    runEvaluation, resetFleetView, toggleLegend, toggleMoreFilters
   });
   }
 
