@@ -436,6 +436,8 @@
   .kpi-card { position: relative; background: linear-gradient(180deg, var(--surface), var(--bg)); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 9px 10px 8px; overflow: hidden; transition: transform 0.15s ease, border-color 0.15s ease; }
   .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--green), var(--cyan)); }
   .kpi-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .kpi-card.kpi-emphasis { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .kpi-card.kpi-emphasis .kpi-value { color: var(--accent); }
   .kpi-head { display: flex; align-items: center; gap: 5px; }
   .kpi-icon { font-size: 12px; line-height: 1; }
   .kpi-label { font-size: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
@@ -1578,17 +1580,21 @@ const STATIC_ROUTES = {
     const next = { fuel: totalFuel, co2: totalCo2, power: totalPower, saving: avgSaving };
     const prev = prevKpiValues || { fuel: 0, co2: 0, power: 0, saving: 0 };
     prevKpiValues = next;
-    const kpi = (key, label) => `
-      <div class="kpi-card">
+    const kpi = (key, label, emphasis) => `
+      <div class="kpi-card${emphasis ? ' kpi-emphasis' : ''}">
         <div class="kpi-head"><span class="kpi-icon">${KPI_ICONS[key]}</span><span class="kpi-label">${label}</span></div>
         <div class="kpi-value" data-kpi="${key}"></div>
       </div>`;
+    const roleKpiOrder = {
+      owner: ['fuel', 'saving', 'co2', 'power'],
+      internal: ['power', 'saving', 'fuel', 'co2'],
+      regulator: ['co2', 'saving', 'fuel', 'power'],
+      prospect: ['saving', 'fuel', 'co2', 'power']
+    }[typeof currentRole !== 'undefined' ? currentRole : 'owner'] || ['fuel', 'co2', 'power', 'saving'];
+    const kpiLabels = { fuel: 'Fuel saved', co2: 'CO₂ saved', power: 'Power now', saving: 'Avg saving' };
     document.getElementById('statsBar').innerHTML = `
       <div class="stats-title">Fleet performance${filtered ? ' <span class="kpi-filtered-note">· filtered</span>' : ''}</div>
-      ${kpi('fuel', 'Fuel saved')}
-      ${kpi('co2', 'CO₂ saved')}
-      ${kpi('power', 'Power now')}
-      ${kpi('saving', 'Avg saving')}
+      ${roleKpiOrder.map((k, i) => kpi(k, kpiLabels[k], i === 0)).join('')}
     `;
     const bar = document.getElementById('statsBar');
     animateKpiValue(bar.querySelector('[data-kpi="fuel"]'), prev.fuel, next.fuel, v => v.toFixed(1) + ' t', 350);
@@ -3570,7 +3576,12 @@ const STATIC_ROUTES = {
     document.getElementById('roleSelect').value = role === 'prospect' ? 'owner' : role;
     document.querySelectorAll('#rolePresetList .role-card').forEach(c => c.classList.toggle('active', c.dataset.role === role));
     applyRolePreset();
-    if (selectedShip) openShip(selectedShip);
+    renderFleetSummary();
+    if (selectedShip) {
+      openShip(selectedShip);
+      const defaultTab = { owner: 'overview', internal: 'fix', regulator: 'regs', prospect: 'scenarios' }[role] || 'overview';
+      selectTab(defaultTab);
+    }
   }
   function applyRolePreset() {
     const role = currentRole;
