@@ -202,6 +202,25 @@
   .kanban-card:hover { border-color: var(--accent); }
   .progress-bar { height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; margin-top: 4px; }
   .progress-fill { height: 100%; background: var(--green); border-radius: 3px; }
+  .progress-fill.red { background: var(--red); }
+  .baseline-compare { margin: 10px 0 6px; display: flex; flex-direction: column; gap: 6px; }
+  .baseline-bar-row { display: flex; align-items: center; gap: 8px; font-size: 10px; }
+  .baseline-bar-label { width: 48px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
+  .baseline-bar-track { flex: 1; height: 10px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+  .baseline-bar { height: 100%; border-radius: 3px; }
+  .baseline-bar.baseline { background: var(--muted); opacity: 0.5; }
+  .baseline-bar.actual { background: var(--green); }
+  .timeline-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 10px; }
+  .timeline-row:last-child { border-bottom: none; }
+  .timeline-ts { color: var(--muted); width: 72px; flex-shrink: 0; }
+  .timeline-lane { width: 30px; flex-shrink: 0; text-align: center; font-weight: 700; font-size: 8px; padding: 1px 3px; border-radius: 3px; background: var(--elevated); color: var(--muted); }
+  .timeline-lane.lane-l1, .timeline-lane.lane-l2 { color: var(--amber); }
+  .timeline-lane.lane-l3, .timeline-lane.lane-gold { color: var(--green); }
+  .timeline-lane.lane-l0 { color: var(--cyan); }
+  .timeline-msg { flex: 1; color: var(--text); }
+  .timeline-fid { flex-shrink: 0; font-size: 8px; text-transform: uppercase; letter-spacing: 0.3px; }
+  .timeline-fid.verified { color: var(--green); }
+  .timeline-fid.provisional { color: var(--amber); }
   .progress-fill.amber { background: var(--amber); }
   .progress-fill.red { background: var(--red); }
   .invoice-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 12px; pointer-events: auto; }
@@ -619,11 +638,11 @@
         </div>
         <div class="panel-tabs" id="panelTabs">
           <div class="panel-tab active tooltip" data-tooltip="Headline, key threads, and quick actions" data-tab="overview" onclick="selectTab('overview')">Overview</div>
-          <div class="panel-tab tooltip" data-tooltip="Savings counterfactual, variance, and calculation versioning" data-tab="performance" onclick="selectTab('performance')">Performance</div>
-          <div class="panel-tab tooltip" data-tooltip="Condition monitoring, maintenance board and work orders" data-tab="fix" onclick="selectTab('fix')">FastFix</div>
+          <div class="panel-tab tooltip" data-tooltip="FastReport · Savings counterfactual, variance, and calculation versioning" data-tab="performance" onclick="selectTab('performance')">Performance</div>
+          <div class="panel-tab tooltip" data-tooltip="FastFix · Condition monitoring, maintenance board and work orders" data-tab="fix" onclick="selectTab('fix')">Condition</div>
           <div class="panel-tab tooltip" data-tooltip="Contract terms, PAYS invoicing, and business case" data-tab="commercial" onclick="selectTab('commercial')">Commercial</div>
-          <div class="panel-tab tooltip" data-tooltip="CII rating, EEXI, and regulator submissions" data-tab="regs" onclick="selectTab('regs')">FastRegs</div>
-          <div class="panel-tab tooltip" data-tooltip="Current voyage route and weather" data-tab="optimise" onclick="selectTab('optimise')">FastRoute</div>
+          <div class="panel-tab tooltip" data-tooltip="FastRegs · CII rating, EEXI, and regulator submissions" data-tab="regs" onclick="selectTab('regs')">Compliance</div>
+          <div class="panel-tab tooltip" data-tooltip="FastRoute · Current voyage route and weather" data-tab="optimise" onclick="selectTab('optimise')">Route</div>
           <div class="panel-tab tooltip" data-tooltip="What-if scenario planning and comparisons" data-tab="scenarios" onclick="selectTab('scenarios')">Scenarios</div>
           <div class="panel-tab tooltip" data-tooltip="Object-model details for this vessel" data-tab="details" onclick="selectTab('details')">Details</div>
         </div>
@@ -770,49 +789,26 @@
             </div>
             <div class="sub-lens active" id="fix-board">
               <div class="kanban">
-                <div class="kanban-col"><h4>Open</h4><div class="kanban-card" onclick="openWorkOrderFromBoard('HPU-014')">HPU-014<br><span class="amber">Amber</span><br>accumulator</div></div>
-                <div class="kanban-col"><h4>Scheduled</h4><div class="kanban-card">Slew-092<br><span class="amber">Amber</span><br>Rotterdam 4d</div></div>
-                <div class="kanban-col"><h4>In progress</h4><div class="kanban-card">Flap-031<br><span class="green">Green</span><br>sensor swap</div></div>
-                <div class="kanban-col"><h4>Closed</h4><div class="kanban-card">Wing-004<br><span class="green">Green</span><br>NDT passed</div></div>
+                <div class="kanban-col"><h4>Open</h4><div id="fixBoardOpen"></div></div>
+                <div class="kanban-col"><h4>Scheduled</h4><div id="fixBoardScheduled"></div></div>
+                <div class="kanban-col"><h4>In progress</h4><div id="fixBoardProgress"></div></div>
+                <div class="kanban-col"><h4>Closed</h4><div id="fixBoardClosed"></div></div>
               </div>
             </div>
             <div class="sub-lens" id="fix-rul">
-              <div class="card">
-                <div class="mini-list-item"><span>HPU accumulator</span><span class="red">41 days</span></div>
-                <div class="progress-bar"><div class="progress-fill red" style="width:92%"></div></div>
-                <div class="mini-list-item" style="margin-top:12px;"><span>Slew bearing</span><span class="green">120 days</span></div>
-                <div class="progress-bar"><div class="progress-fill" style="width:45%"></div></div>
-                <div class="mini-list-item" style="margin-top:12px;"><span>Hydraulic pump</span><span class="green">210 days</span></div>
-                <div class="progress-bar"><div class="progress-fill" style="width:22%"></div></div>
-              </div>
+              <div class="card" id="fixRulList"></div>
             </div>
             <div class="sub-lens" id="fix-parts">
-              <div class="card">
-                <table>
-                  <tr><th>Part</th><th>Stock</th><th>Lead</th></tr>
-                  <tr><td>HPU accumulator</td><td class="green">2</td><td>3d</td></tr>
-                  <tr><td>Slew bearing seal</td><td class="amber">1</td><td>14d</td></tr>
-                  <tr><td>Flap sensor</td><td class="green">5</td><td>7d</td></tr>
-                </table>
-              </div>
+              <div class="card" id="fixPartsList"></div>
             </div>
             <div class="sub-lens" id="fix-history">
-              <div class="card">
-                <div class="mini-list-item"><span>2026-05-12</span><span>Wing NDT</span></div>
-                <div class="mini-list-item"><span>2026-03-28</span><span>HPU filter</span></div>
-                <div class="mini-list-item"><span>2026-01-15</span><span>Slew bearing</span></div>
-              </div>
+              <div class="card" id="fixHistoryList"></div>
             </div>
             <div class="sub-lens" id="fix-cert">
-              <div class="card">
-                <div class="mini-list-item"><span>HPU service</span><span class="green">Within 2 yr</span></div>
-                <div class="mini-list-item"><span>Slew bearing inspect</span><span class="amber">Due in 45d</span></div>
-                <div class="mini-list-item"><span>E-stop test</span><span class="green">Within 1 yr</span></div>
-                <div class="mini-list-item"><span>Load test</span><span class="green">Within 5 yr</span></div>
-              </div>
+              <div class="card" id="fixCertList"></div>
             </div>
             <button class="btn" id="fixCreateBtn" onclick="openWorkOrder()">Create work order</button>
-            <button class="btn secondary" onclick="showLens('overview')">Back</button>
+            <button class="btn secondary" onclick="selectTab('overview')">Back</button>
           </div>
 
           <div class="lens" id="lens-fixdetail">
@@ -945,21 +941,6 @@
               </div>
             </div>
             <button class="btn demo-flow-trigger" id="routeDeviationTrigger" style="display:none;" onclick="startRouteDeviationWizard()">Open route deviation wizard</button>
-            <div class="card" id="routeWeatherCard">
-              <div class="panel-title" style="margin-top:0;">Route weather</div>
-              <div class="weather-card-header">
-                <span class="weather-card-icon" id="routeWeatherIcon">—</span>
-                <div>
-                  <div class="weather-card-title">Current conditions</div>
-                  <div class="weather-card-subtitle" id="routeWeatherPosition">Select a vessel to view local weather</div>
-                </div>
-              </div>
-              <div class="weather-card-grid">
-                <div class="weather-card-metric"><span class="weather-card-label">Wind</span><span class="weather-card-value" id="routeWeatherWind">—</span></div>
-                <div class="weather-card-metric"><span class="weather-card-label">Direction</span><span class="weather-card-value" id="routeWeatherDir">—</span></div>
-                <div class="weather-card-metric"><span class="weather-card-label">Sea state</span><span class="weather-card-value" id="routeWeatherSea">—</span></div>
-              </div>
-            </div>
             <div class="card" style="background:transparent;border-style:dashed;">
               <div class="panel-title" style="margin-top:0;">Recent voyages</div>
               <div id="historicalVoyages" style="font-size:11px;color:var(--muted);line-height:1.5;">
@@ -968,16 +949,16 @@
             </div>
             <div class="rig-schematic">[Live route + weather overlay]</div>
             <button class="btn" onclick="alert('Recommendation sent to bridge')">Endorse recommendation</button>
-            <button class="btn secondary" onclick="showLens('overview')">Back</button>
+            <button class="btn secondary" onclick="selectTab('overview')">Back</button>
           </div>
 
           <div class="lens" id="lens-regs">
-            <div class="panel-title">FastRegs</div>
+            <div class="panel-title">Compliance</div>
             <div class="card">
-              <div class="metric"><div class="metric-value">D</div><div class="metric-label">Current CII rating</div></div>
-              <div class="mini-list-item"><span>Target</span><span>C</span></div>
-              <div class="mini-list-item"><span>CO₂ reduction</span><span class="green">8.3%</span></div>
-              <div class="mini-list-item"><span>Verified data</span><span class="green">100%</span></div>
+              <div class="metric"><div class="metric-value" id="regsCiiValue">—</div><div class="metric-label">Current CII rating</div></div>
+              <div class="mini-list-item"><span>Target</span><span id="regsCiiTarget">—</span></div>
+              <div class="mini-list-item"><span>CO₂ reduction</span><span class="green" id="regsCo2">—</span></div>
+              <div class="mini-list-item"><span>Verified data</span><span class="green" id="regsVerified">—</span></div>
             </div>
             <div class="card">
               <div class="panel-title" style="margin-top:0">CII trajectory</div>
@@ -1646,6 +1627,19 @@ const STATIC_ROUTES = {
   function renderHistoricalVoyages(s) {
     const el = document.getElementById('historicalVoyages');
     if (!el) return;
+    const opsVoyages = s.ops && s.ops.historicalVoyages ? s.ops.historicalVoyages : null;
+    if (opsVoyages && opsVoyages.length) {
+      el.innerHTML = opsVoyages.map(v => `
+        <div class="historic-route-row">
+          <div class="historic-route-route">${v.route} ${badgeHtml[v.trust] || ''}</div>
+          <div class="historic-route-stats">
+            <span class="mono">${v.date} · ${v.days} days</span>
+            <span class="historic-route-saved mono">${v.savingsPct !== null ? v.savingsPct + '% saving' : 'no data'}${v.baselineTd ? ` · ${v.actualTd} vs ${v.baselineTd} t/d baseline` : ''}</span>
+          </div>
+        </div>
+      `).join('');
+      return;
+    }
     if (!s.details || !s.details.historicalVoyages || s.details.historicalVoyages.length === 0) {
       el.innerHTML = '<div class="historic-route-placeholder">No recent voyage history.</div>';
       return;
@@ -1833,9 +1827,9 @@ const STATIC_ROUTES = {
       <circle cx="22" cy="22" r="20" fill="rgba(0,0,0,0.42)" stroke="currentColor" stroke-width="2.5" opacity="0.95"/>
       <line x1="22" y1="22" x2="22" y2="2" stroke="currentColor" stroke-width="2" opacity="0.9"/>
       <path d="M22 3 L19 9 L25 9 Z" fill="currentColor"/>
-      <path d="M15 32 L15 23 L17 18 L17 15 L27 15 L27 18 L29 23 L29 32 C29 35 22 37 22 37 C22 37 15 35 15 32 Z" fill="white" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
-      <rect x="17" y="28" width="10" height="4" fill="currentColor" rx="0.5"/>
-      <line x1="17" y1="24" x2="27" y2="24" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M22 8 L19.8 13.5 L18.5 20 L18.5 29 Q18.5 33.5 22 33.5 Q25.5 33.5 25.5 29 L25.5 20 L24.2 13.5 Z" fill="white" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
+      <rect x="20.2" y="25" width="3.6" height="3.4" fill="currentColor" rx="0.5"/>
+      <line x1="20" y1="21" x2="24" y2="21" stroke="currentColor" stroke-width="1.2"/>
     </svg>`
   };
 
@@ -2392,30 +2386,204 @@ const STATIC_ROUTES = {
   setViewMode(initialView, true);
 
   const tabTitles = {
-    overview: 'Fast Fleet · Wind as a Service',
-    details: 'Fast Fleet · Ship details',
-    fix: 'FastFix · Condition & maintenance',
-    report: 'FastReport · Techno-economic case',
-    regs: 'FastRegs · Compliance reporting',
-    optimise: 'FastRoute · Voyage routes',
-    scenarios: 'Scenarios · What-if planning'
+    overview: 'Wind as a Service',
+    performance: 'Performance',
+    details: 'Ship details',
+    fix: 'Condition & maintenance',
+    commercial: 'Commercial',
+    regs: 'Compliance',
+    optimise: 'Route',
+    scenarios: 'What-if planning'
   };
 
   function computeHeadline(s) {
     const role = document.getElementById('roleSelect').value;
-    if (s.status === 'grey') return { text: 'No telemetry for 18 hours', status: 'grey', action: 'Investigate data gap', lens: 'cbm' };
-    if (s.status === 'blue') return { text: `Predicted ${s.savings} fuel saving on typical route`, status: 'blue', action: 'Build business case', lens: 'predict' };
-    if (role === 'regulator' && s.status === 'amber' && s.cii !== '—') return { text: `CII rating ${s.cii} · target ${s.ciiTarget} · compliance at risk`, status: 'amber', action: 'Open FastRegs', lens: 'regs' };
-    if (role === 'financier' && s.status === 'blue') return { text: `Predicted ${s.savings} saving · no contract in place`, status: 'blue', action: 'Build business case', lens: 'predict' };
-    if (s.status === 'red') return { text: `${s.alert} · RUL ${s.alertData.rul}`, status: 'red', action: 'Create work order', lens: 'cbm' };
+    if (s.status === 'grey') return { text: 'No telemetry for 18 hours', status: 'grey', action: 'Investigate data gap', lens: 'fix' };
+    if (s.status === 'blue') return { text: `Predicted ${s.savings} fuel saving on typical route`, status: 'blue', action: 'Build business case', lens: 'performance' };
+    if (role === 'regulator' && s.status === 'amber' && s.cii !== '—') return { text: `CII rating ${s.cii} · target ${s.ciiTarget} · compliance at risk`, status: 'amber', action: 'Open Compliance', lens: 'regs' };
+    if (role === 'financier' && s.status === 'blue') return { text: `Predicted ${s.savings} saving · no contract in place`, status: 'blue', action: 'Build business case', lens: 'performance' };
+    if (s.status === 'red') return { text: `${s.alert} · RUL ${s.alertData.rul}`, status: 'red', action: 'Create work order', lens: 'fix' };
     if (s.status === 'cyan') return { text: `Live route advice: ${s.alertData.action}`, status: 'cyan', action: 'Endorse recommendation', lens: 'optimise' };
-    if (s.status === 'amber') return { text: `Savings ${s.savings} vs ${s.guarantee} guarantee · variance ${s.variance}`, status: 'amber', action: 'Investigate variance', lens: 'savings' };
-    if (s.voyagesReady > 0) return { text: `${s.voyagesReady} voyage ready for PAYS invoicing · verified`, status: 'green', action: 'Preview invoice', lens: 'invoice' };
-    return { text: `Savings ${s.savings} vs ${s.guarantee} guarantee · all systems nominal`, status: 'green', action: 'View performance', lens: 'savings' };
+    if (s.status === 'amber') return { text: `Savings ${s.savings} vs ${s.guarantee} guarantee · variance ${s.variance}`, status: 'amber', action: 'Investigate variance', lens: 'performance' };
+    if (s.voyagesReady > 0) return { text: `${s.voyagesReady} voyage ready for PAYS invoicing · verified`, status: 'green', action: 'Preview invoice', lens: 'commercial' };
+    return { text: `Savings ${s.savings} vs ${s.guarantee} guarantee · all systems nominal`, status: 'green', action: 'View performance', lens: 'performance' };
   }
 
   function sparkline(values, colourClass) {
     return `<div class="sparkline">${values.map(v => `<div class="sparkbar ${colourClass}" style="height:${v}%"></div>`).join('')}</div>`;
+  }
+
+  function renderPerformance(s) {
+    const el = document.getElementById('performanceContent');
+    if (!el) return;
+    const o = s.ops || {};
+    const calc = o.calculation || {};
+    const rep = o.report || {};
+    const pct = t => (t === null || t === undefined) ? '—' : t + '%';
+    const td = v => (v === null || v === undefined) ? '—' : v + ' t/d';
+    const money = n => (n === null || n === undefined || isNaN(n)) ? '—' : '£' + Math.round(n).toLocaleString();
+    const trustBadge = badgeHtml[s.perfTrust] || badgeHtml.nodata;
+    const reasonAttr = o.provisionalReason ? ` data-tooltip="${o.provisionalReason}"` : '';
+
+    if (s.contract === 'Prospect') {
+      el.innerHTML = `
+        <div class="card">
+          <div class="metric"><div class="metric-value green">${s.savings}</div><div class="metric-label">Predicted fuel saving <span class="tooltip"${reasonAttr}>${trustBadge}</span></div></div>
+          <div class="metric"><div class="metric-value amber">±1.1%</div><div class="metric-label">95% confidence</div></div>
+          <div class="mini-list-item"><span>Simulations</span><span class="mono">1,247</span></div>
+          <div class="mini-list-item"><span>Baseline source</span><span class="mono">${calc.baselineSource || 'hindcast'}</span></div>
+        </div>
+        <div class="card">
+          <div class="panel-title" style="margin-top:0">Savings distribution</div>
+          <div style="height:52px;background:linear-gradient(90deg,var(--red),var(--amber),var(--green),var(--green));border-radius:var(--radius-sm);position:relative;margin:8px 0;">
+            <div style="position:absolute;left:64%;top:0;bottom:0;width:2px;background:var(--text);"></div>
+          </div>
+          <div class="mini-list-item"><span>Mean</span><span class="mono green">${s.savings}</span></div>
+          <div class="mini-list-item"><span>P10 / P90</span><span class="mono">4.2% / 8.1%</span></div>
+        </div>
+        <div class="alert alert-amber"><div class="alert-icon">i</div><div class="alert-text">Provisional estimate — not admissible for PAYS invoicing, guarantees, or regulatory filings.</div></div>
+        <button class="btn" onclick="selectTab('commercial')">Build business case</button>`;
+      return;
+    }
+
+    const breakdownRows = o.varianceBreakdown ? Object.entries(o.varianceBreakdown).map(([k, v]) => {
+      const width = Math.min(100, Math.abs(v) / 1.5 * 100);
+      const cls = v >= 0 ? 'green' : 'red';
+      const sign = v >= 0 ? '+' : '';
+      return `<div class="mini-list-item"><span style="text-transform:capitalize;">${k}</span><span class="mono ${cls}">${sign}${v}%</span></div>
+        <div class="progress-bar"><div class="progress-fill ${cls === 'green' ? '' : 'red'}" style="width:${width}%;${v < 0 ? 'background:var(--red);' : ''}"></div></div>`;
+    }).join('') : '';
+
+    el.innerHTML = `
+      <div class="card">
+        <div class="mini-list-item" style="font-weight:700;"><span>Fuel saving (counterfactual)</span><span class="tooltip"${reasonAttr}>${trustBadge}</span></div>
+        <div class="metric" style="margin-top:6px;"><div class="metric-value green">${s.savings}</div><div class="metric-label">actual vs baseline · ${td(o.actualFuelTd)} of ${td(o.baselineFuelTd)}</div></div>
+        <div class="baseline-compare">
+          <div class="baseline-bar-row"><span class="baseline-bar-label">Baseline</span><div class="baseline-bar-track"><div class="baseline-bar baseline" style="width:100%"></div></div><span class="mono">${td(o.baselineFuelTd)}</span></div>
+          <div class="baseline-bar-row"><span class="baseline-bar-label">Actual</span><div class="baseline-bar-track"><div class="baseline-bar actual" style="width:${o.baselineFuelTd ? (o.actualFuelTd / o.baselineFuelTd * 100).toFixed(0) : 0}%"></div></div><span class="mono">${td(o.actualFuelTd)}</span></div>
+        </div>
+        <div class="mini-list-item"><span>Expected (guarantee)</span><span class="mono">${pct(o.expectedPct)}</span></div>
+        <div class="mini-list-item"><span>Variance (actual − expected)</span><span class="mono ${o.variancePp >= 0 ? 'green' : 'red'}">${o.variancePp >= 0 ? '+' : ''}${o.variancePp}%</span></div>
+      </div>
+      ${breakdownRows ? `<div class="card"><div class="panel-title" style="margin-top:0">Variance attribution</div>${breakdownRows}</div>` : ''}
+      <div class="card">
+        <div class="panel-title" style="margin-top:0">Calculation provenance</div>
+        <div class="mini-list-item"><span>Method</span><span class="mono">${calc.methodVersion}</span></div>
+        <div class="mini-list-item"><span>Input snapshot</span><span class="mono">${calc.inputSnapshotRef}</span></div>
+        <div class="mini-list-item"><span>Computed</span><span class="mono">${calc.computedAt}</span></div>
+        <div class="mini-list-item"><span>Scenario type</span><span class="mono">${calc.scenarioType}</span></div>
+        <div class="mini-list-item"><span>Fidelity</span><span class="mono">${calc.fidelity}</span></div>
+        <div class="mini-list-item"><span>Valid</span><span class="mono">${calc.validFrom} → ${calc.validTo}</span></div>
+      </div>
+      <div class="card">
+        <div class="panel-title" style="margin-top:0">Techno-economic case</div>
+        <div class="metric"><div class="metric-value green">${rep.paybackYears ? rep.paybackYears + ' yr' : '—'}</div><div class="metric-label">Payback</div></div>
+        <div class="metric"><div class="metric-value green">${money(rep.npv10)}</div><div class="metric-label">NPV (10 yr)</div></div>
+        <div class="metric"><div class="metric-value green">${rep.co2AvoidedYr ? rep.co2AvoidedYr.toLocaleString() + ' t' : '—'}</div><div class="metric-label">CO₂ avoided / yr</div></div>
+        <div class="mini-list-item"><span>Design baseline</span><span class="mono">${rep.designBaseline.polarRef}</span></div>
+        <div class="mini-list-item"><span>Validation</span><span class="mono">${rep.designBaseline.validationRef} · ${rep.designBaseline.correlation} corr.</span></div>
+      </div>
+      <button class="btn secondary" onclick="selectTab('commercial')">View contract & invoices</button>`;
+  }
+
+  function renderCommercial(s) {
+    const el = document.getElementById('commercialContent');
+    if (!el) return;
+    const o = s.ops || {};
+    const rep = o.report || {};
+    const money = n => (n === null || n === undefined || isNaN(n)) ? '—' : '£' + Math.round(n).toLocaleString();
+
+    if (s.contract === 'Prospect') {
+      el.innerHTML = `
+        <div class="card">
+          <div class="mini-list-item"><span>Contract type</span><span>Prospect — no contract in place</span></div>
+          <div class="mini-list-item"><span>Prediction</span><span class="green">${s.savings}</span> ${badgeHtml[s.perfTrust]}</div>
+          <div class="mini-list-item"><span>Est. payback</span><span class="mono">${rep.paybackYears ? rep.paybackYears + ' yr' : '—'}</span></div>
+          <div class="mini-list-item"><span>Est. NPV (10 yr)</span><span class="mono">${money(rep.npv10)}</span></div>
+        </div>
+        <button class="btn" onclick="alert('Contract draft generated from business case')">Convert to contract draft</button>`;
+      return;
+    }
+
+    const invoiceRows = (o.invoices || []).map(inv => `
+      <div class="invoice-row${inv.trust === 'provisional' ? ' disabled' : ''}">
+        <div><span class="checkbox${inv.trust === 'verified' ? ' checked' : ''}">${inv.trust === 'verified' ? '✓' : ''}</span>${inv.voyage} · ${inv.date} ${badgeHtml[inv.trust]}</div>
+        <div class="${inv.trust === 'verified' ? 'green' : 'amber'} mono">${money(inv.amount)}</div>
+      </div>`).join('');
+    const totalVerified = (o.invoices || []).filter(i => i.trust === 'verified').reduce((a, i) => a + i.amount, 0);
+    const c = s.details && s.details.contract;
+
+    el.innerHTML = `
+      <div class="card">
+        <div class="mini-list-item" style="font-weight:700;"><span>Contract</span><span>${badgeHtml[s.contractTrust]}</span></div>
+        <div class="mini-list-item"><span>Type</span><span>${s.contract}</span></div>
+        <div class="mini-list-item"><span>PAYS rate</span><span class="mono">${c ? c.paysRate : '—'}</span></div>
+        <div class="mini-list-item"><span>Guarantee floor</span><span class="mono">${s.guarantee}</span></div>
+        <div class="mini-list-item"><span>Period</span><span class="mono">${c ? c.startDate + ' → ' + c.endDate : '—'}</span></div>
+        <div class="mini-list-item"><span>Next invoice</span><span class="mono">${s.nextInvoice}</span></div>
+        <div class="mini-list-item"><span>Est. annual value</span><span class="mono green">${money(rep.annualSavingsT * rep.fuelPrice)}</span></div>
+      </div>
+      <div class="card">
+        <div class="panel-title" style="margin-top:0">PAYS invoices</div>
+        ${invoiceRows || '<div style="font-size:12px;color:var(--muted);">No voyages recorded yet.</div>'}
+        <div class="mini-list-item" style="margin-top:10px;border-top:1px solid var(--border);font-weight:700;">
+          <span>Total verified</span><span class="mono green">${money(totalVerified)}</span>
+        </div>
+      </div>
+      <div class="alert alert-amber"><div class="alert-icon">!</div><div class="alert-text">Provisional voyages are excluded from invoicing until batch verification (L3).</div></div>
+      <button class="btn" onclick="alert('Verified invoice generated')">Generate verified invoice</button>`;
+  }
+
+  function renderRegs(s) {
+    const ciiVal = document.getElementById('regsCiiValue');
+    if (!ciiVal) return;
+    const c = s.details && s.details.cii;
+    ciiVal.textContent = s.cii === '—' ? '—' : s.cii;
+    document.getElementById('regsCiiTarget').textContent = s.ciiTarget;
+    document.getElementById('regsCo2').textContent = s.co2;
+    document.getElementById('regsVerified').textContent = c ? c.verifiedDataPct : '—';
+    const eexi = s.details && s.details.eexi;
+    document.getElementById('eexiValue').textContent = eexi ? eexi.withFastRig : '—';
+    document.getElementById('eexiBaseline').textContent = eexi ? eexi.baseline : '—';
+    document.getElementById('eexiLimit').textContent = eexi ? eexi.requiredLimit : '—';
+    document.getElementById('eexiImprovement').textContent = eexi ? '-' + eexi.improvement + ' g/t·nm' : '—';
+    document.getElementById('eexiStatus').textContent = eexi ? eexi.status : '—';
+  }
+
+  function renderFixBoard(s) {
+    const o = s.ops || {};
+    const board = o.fixBoard || { open: [], scheduled: [], inProgress: [], closed: [] };
+    const card = c => `<div class="kanban-card" onclick="openWorkOrderFromBoard('${c.id}')">${c.id}<br><span class="${c.sev === 'red' ? 'red' : c.sev === 'amber' ? 'amber' : 'green'}">${c.sev === 'red' ? 'Critical' : c.sev === 'amber' ? 'Amber' : 'Green'}</span><br>${c.note}</div>`;
+    const setCol = (id, items) => { const el = document.getElementById(id); if (el) el.innerHTML = items.length ? items.map(card).join('') : '<div style="font-size:11px;color:var(--muted);padding:6px;">None</div>'; };
+    setCol('fixBoardOpen', board.open);
+    setCol('fixBoardScheduled', board.scheduled);
+    setCol('fixBoardProgress', board.inProgress);
+    setCol('fixBoardClosed', board.closed);
+
+    const rulEl = document.getElementById('fixRulList');
+    if (rulEl) rulEl.innerHTML = (o.rulList || []).map(r => `
+      <div class="mini-list-item"><span>${r.name}</span><span class="${r.pct > 80 ? 'red' : 'green'}">${r.rul}</span></div>
+      <div class="progress-bar"><div class="progress-fill ${r.pct > 80 ? 'red' : ''}" style="width:${r.pct}%"></div></div>`).join('') || '<div style="font-size:12px;color:var(--muted);">No components.</div>';
+
+    const partsEl = document.getElementById('fixPartsList');
+    if (partsEl) partsEl.innerHTML = `<table><tr><th>Part</th><th>Stock</th><th>Lead</th></tr>${(o.partsStock || []).map(p =>
+      `<tr><td>${p.part}</td><td class="${p.stock > 1 ? 'green' : 'amber'}">${p.stock}</td><td>${p.lead}</td></tr>`).join('')}</table>`;
+
+    const histEl = document.getElementById('fixHistoryList');
+    if (histEl) {
+      const rngHist = mulberry32(s.id * 331 + 7);
+      const items = ['Wing NDT', 'HPU filter', 'Slew bearing', 'Flap actuator test'];
+      histEl.innerHTML = items.map((it, i) => `<div class="mini-list-item"><span>2026-0${5 - Math.floor(i / 2)}-${String(28 - i * 6 - Math.floor(rngHist() * 5)).padStart(2, '0')}</span><span>${it}</span></div>`).join('');
+    }
+    const certEl = document.getElementById('fixCertList');
+    if (certEl) {
+      const due = s.status === 'amber' || s.status === 'red';
+      certEl.innerHTML = `
+        <div class="mini-list-item"><span>HPU service</span><span class="green">Within 2 yr</span></div>
+        <div class="mini-list-item"><span>Slew bearing inspect</span><span class="${due ? 'amber' : 'green'}">${due ? 'Due in 45d' : 'Within 1 yr'}</span></div>
+        <div class="mini-list-item"><span>E-stop test</span><span class="green">Within 1 yr</span></div>
+        <div class="mini-list-item"><span>Load test</span><span class="green">Within 5 yr</span></div>`;
+    }
   }
 
   function openShip(s) {
@@ -2439,14 +2607,6 @@ const STATIC_ROUTES = {
     const seaEl = document.getElementById('shipWeatherSea');
     seaEl.textContent = w.seaState;
     seaEl.className = 'weather-card-value ' + (w.seaState === 'High' || w.seaState === 'Rough' ? 'weather-rough' : 'weather-calm');
-
-    document.getElementById('routeWeatherIcon').innerHTML = weatherIcon(w.icon);
-    document.getElementById('routeWeatherPosition').textContent = `${s.lat.toFixed(1)}°, ${Math.abs(s.lon).toFixed(1)}° ${s.lon > 0 ? 'E' : 'W'}`;
-    document.getElementById('routeWeatherWind').textContent = `${w.windSpeed} kt`;
-    document.getElementById('routeWeatherDir').textContent = w.windDir;
-    const routeSeaEl = document.getElementById('routeWeatherSea');
-    routeSeaEl.textContent = w.seaState;
-    routeSeaEl.className = 'weather-card-value ' + (w.seaState === 'High' || w.seaState === 'Rough' ? 'weather-rough' : 'weather-calm');
 
     renderHistoricalVoyages(s);
 
@@ -2480,48 +2640,10 @@ const STATIC_ROUTES = {
     document.getElementById('contractBadge').innerHTML = badgeHtml[s.contractTrust];
     document.getElementById('contractSpark').innerHTML = sparkline([10, 25, 35, 45, 55, 65, 70], '');
 
-    document.getElementById('savingValue').textContent = s.savings;
-    document.getElementById('guaranteeValue').textContent = s.guarantee;
-    document.getElementById('varianceValue').textContent = s.variance;
-    document.getElementById('trendSpark').innerHTML = sparkline([40, 55, 50, 60, 58, 62, 54], s.perfTrust === 'verified' ? '' : 'amber');
-
-    document.getElementById('ciiValue').textContent = s.cii;
-    document.getElementById('ciiTarget').textContent = s.ciiTarget;
-    document.getElementById('co2Value').textContent = s.co2;
-
-    const eexi = s.details && s.details.eexi;
-    document.getElementById('eexiValue').textContent = eexi ? eexi.withFastRig : '—';
-    document.getElementById('eexiBaseline').textContent = eexi ? eexi.baseline : '—';
-    document.getElementById('eexiLimit').textContent = eexi ? eexi.requiredLimit : '—';
-    document.getElementById('eexiImprovement').textContent = eexi ? '-' + eexi.improvement + ' g/t·nm' : '—';
-    document.getElementById('eexiStatus').textContent = eexi ? eexi.status : '—';
-
-    const contractContent = document.getElementById('contractContent');
-    if (s.contract === 'Prospect') {
-      contractContent.innerHTML = `
-        <div class="card">
-          <div class="mini-list-item"><span>Contract type</span><span>Prospect</span></div>
-          <div class="mini-list-item"><span>Prediction</span><span class="green">${s.savings}</span> ${badgeHtml[s.perfTrust]}</div>
-        </div>
-        <button class="btn" onclick="showLens('predict')">Build business case</button>
-        <button class="btn secondary" onclick="showLens('overview')">Back</button>`;
-    } else {
-      const invoiceDisabled = s.contractTrust !== 'verified' || s.voyagesReady === 0;
-      const btnClass = invoiceDisabled ? 'btn disabled' : 'btn';
-      const btnAction = invoiceDisabled ? '' : `onclick="showLens('invoice')"`;
-      contractContent.innerHTML = `
-        <div class="card">
-          <div class="mini-list-item"><span>Contract type</span><span>${s.contract}</span></div>
-          <div class="mini-list-item"><span>Guarantee floor</span><span>${s.guarantee}</span></div>
-          <div class="mini-list-item"><span>YTD performance</span><span class="green">${s.savings}</span></div>
-          <div class="mini-list-item"><span>Next invoice</span><span>${s.nextInvoice}</span></div>
-          <div class="mini-list-item"><span>Voyages ready</span><span>${s.voyagesReady}</span></div>
-          <div class="mini-list-item"><span>Data trust</span><span>${badgeHtml[s.contractTrust]}</span></div>
-        </div>
-        <button class="${btnClass}" ${btnAction}>Preview PAYS invoice</button>
-        ${invoiceDisabled ? '<div style="font-size:11px;color:var(--muted);margin-top:8px;">No verified voyages ready for invoicing.</div>' : ''}
-        <button class="btn secondary" onclick="showLens('overview')">Back</button>`;
-    }
+    renderPerformance(s);
+    renderCommercial(s);
+    renderRegs(s);
+    renderFixBoard(s);
 
     const cbmContent = document.getElementById('cbmContent');
     if (s.alert && s.alertData) {
@@ -2557,7 +2679,6 @@ const STATIC_ROUTES = {
     }
 
     document.getElementById('shipPanel').classList.add('open');
-    renderInvoiceRoi(s);
     document.getElementById('topbarTitle').innerHTML = tabTitles.overview + ' <span style="color:var(--muted);font-weight:400;">· ' + s.name + '</span>';
     selectTab('overview');
   }
@@ -2700,12 +2821,24 @@ const STATIC_ROUTES = {
       html += '</table></div>';
     });
     if (perf) {
-      html += section('PerformanceMetric', 'PerformanceMetric', `perf-${s.imo}`, 'PerformanceMetric', [
+      html += section('PerformanceData (Silver)', 'PerformanceData', `perf-${s.imo}`, 'PerformanceData', [
         { label: 'Avg thrust', value: perf.avgThrust },
         { label: 'Peak power', value: perf.peakPower },
         { label: 'Power contribution', value: perf.powerContribution },
         { label: 'Load-band hours', value: perf.loadBandHours.toLocaleString() },
-        { label: 'Fuel flow', value: perf.fuelFlow }
+        { label: 'Fuel flow', value: perf.fuelFlow },
+        { label: 'Fidelity', value: s.ops ? s.ops.calculation.fidelity : '—' }
+      ]);
+    }
+    if (s.ops && s.ops.calculation && s.ops.variancePp !== null && s.ops.variancePp !== undefined) {
+      const calc = s.ops.calculation;
+      html += section('CalculationEngine (Gold)', 'CalculationEngine', calc.inputSnapshotRef, 'CalculationEngine', [
+        { label: 'Method version', value: calc.methodVersion },
+        { label: 'Input snapshot', value: calc.inputSnapshotRef },
+        { label: 'Computed at', value: calc.computedAt },
+        { label: 'Scenario type', value: calc.scenarioType },
+        { label: 'Valid window', value: `${calc.validFrom} → ${calc.validTo}` },
+        { label: 'Baseline source', value: calc.baselineSource }
       ]);
     }
     if (voyage) {
@@ -2754,6 +2887,24 @@ const STATIC_ROUTES = {
         { label: 'Control events', value: events.controlEvents24h.toLocaleString() },
         { label: 'Diagnostic events', value: events.diagnosticEvents24h.toLocaleString() },
         { label: 'Downtime (30d)', value: events.downtimeHours30d + ' h' }
+      ]);
+    }
+    if (s.ops && s.ops.eventTimeline && s.ops.eventTimeline.length) {
+      html += '<div class="card"><div class="panel-title" style="margin-top:0">Event timeline (append-only)</div>' +
+        s.ops.eventTimeline.map(e => `
+          <div class="timeline-row">
+            <span class="timeline-ts mono">${e.ts}</span>
+            <span class="timeline-lane lane-${e.lane.toLowerCase()}">${e.lane}</span>
+            <span class="timeline-msg">${e.msg}</span>
+            <span class="timeline-fid ${e.fidelity}">${e.fidelity}</span>
+          </div>`).join('') + '</div>';
+    }
+    if (s.contract !== 'Prospect') {
+      html += section('Document register', 'Document', `docs-${s.imo}`, 'Document', [
+        { label: 'Deployment certificate', value: `DEP-CERT-${s.imo}.pdf` },
+        { label: 'Commissioning report', value: `COMM-${s.imo}-2023.pdf` },
+        { label: 'Class approval', value: d.installDate ? `CLASS-APP-${s.imo.slice(-3)}.pdf` : '—' },
+        { label: 'Storage', value: 'object storage · metadata + lineage only' }
       ]);
     }
     document.getElementById('detailsContent').innerHTML = html;
@@ -2890,7 +3041,8 @@ const STATIC_ROUTES = {
       }
       case 'Contract': return d.contract;
       case 'Voyage': return d.voyage;
-      case 'PerformanceMetric': return d.performanceMetrics;
+      case 'PerformanceData': return d.performanceMetrics;
+      case 'CalculationEngine': return selectedShip.ops ? selectedShip.ops.calculation : null;
       case 'CIIRecord': return d.cii;
       case 'Maintenance': return d.cbm;
       case 'EventLayer': return d.events;
@@ -2997,12 +3149,10 @@ const STATIC_ROUTES = {
   function headlineAction() {
     if (!selectedShip) return;
     const headline = computeHeadline(selectedShip);
-    if (headline.lens === 'cbm' && selectedShip.alert && selectedShip.alertData && selectedShip.status === 'red') {
+    if (headline.lens === 'fix' && selectedShip.alert && selectedShip.alertData && selectedShip.status === 'red') {
       openWorkOrder();
-    } else if (headline.lens === 'invoice') {
-      showLens('invoice');
     } else {
-      showLens(headline.lens);
+      selectTab(headline.lens);
     }
   }
 
@@ -3017,8 +3167,6 @@ const STATIC_ROUTES = {
   function showLens(name) {
     document.querySelectorAll('.lens').forEach(l => l.classList.remove('active'));
     document.getElementById('lens-' + name).classList.add('active');
-    if (name === 'predict') renderPredictLens();
-    if (name === 'invoice') renderInvoiceRoi(selectedShip);
   }
 
   function openWorkOrder() {
