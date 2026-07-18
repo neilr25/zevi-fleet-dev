@@ -1346,6 +1346,8 @@
     selectedShip = s;
     clearRoutes();
     updateMarkerStyles();
+    // Route tab's fitBounds takes over when the user opens it.
+    map.flyTo([s.lat, s.lon], map.getZoom(), { animate: true, duration: 0.7 });
     document.getElementById('shipName').textContent = s.name;
     document.getElementById('shipMeta').textContent = `${s.imo} · ${s.type}`;
     document.getElementById('deployStatus').textContent = s.deploy;
