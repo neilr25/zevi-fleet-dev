@@ -589,17 +589,16 @@
 
   // Single-world map: lock panning/zoom so users never see duplicated ship markers
   // or routes across the antimeridian/world copies.
-  const WORLD_BOUNDS = [[-90, -180], [90, 180]];
   const map = L.map('map', {
     center: [20, 10],
     zoom: 3,
     zoomControl: false,
     minZoom: 2,
-    maxBounds: WORLD_BOUNDS,
+    maxBounds: [[-85, -1080], [85, 1080]],
     maxBoundsViscosity: 1.0,
     worldCopyJump: true
   });
-  // minZoom formula: world width (256*2^z) must cover the container, or noWrap tiles expose empty gutters.
+  // minZoom formula: world width (256*2^z) must cover the container, or wrapped tiles show duplicate worlds.
   function applyMinZoom() {
     const w = map.getContainer().clientWidth;
     if (!w) return;
@@ -622,7 +621,7 @@
       ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
       : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
     if (currentTileLayer) map.removeLayer(currentTileLayer);
-    currentTileLayer = L.tileLayer(url, { attribution: '&copy; CARTO', noWrap: true, bounds: WORLD_BOUNDS }).addTo(map);
+    currentTileLayer = L.tileLayer(url, { attribution: '&copy; CARTO' }).addTo(map);
   }
   refreshTileLayer();
   L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -665,51 +664,25 @@
   // Role state (declared early because renderFleetSummary reads it during initial view setup)
   let currentRole = localStorage.getItem('fastFleet_role') || 'owner';
 
-  // Antimeridian-safe polyline splitter: unwraps longitudes, splits at each
-  // ±180° (plus 360k) crossing with an interpolated boundary point, then shifts
-  // each segment back into a single [-180, 180] world so no segment wraps the globe.
-  function splitAntimeridian(points) {
-    if (!points || points.length < 2) return [points];
-    // 1) unwrap to continuous longitudes
+  // Triple-offset unwrapped routes: continuous across the dateline; dynamic minZoom guarantees only one copy is ever in view.
+  function unwrapRoute(points) {
+    if (!points || points.length < 2) return points || [];
     let offset = 0;
-    const un = [[points[0][0], points[0][1]]];
+    const out = [[points[0][0], points[0][1]]];
     for (let i = 1; i < points.length; i++) {
       const lat = points[i][0], lon = points[i][1];
-      const rawDelta = lon - (un[i - 1][1] - offset);
+      const rawDelta = lon - (out[i - 1][1] - offset);
       if (rawDelta > 180) offset -= 360;
       else if (rawDelta < -180) offset += 360;
-      un.push([lat, lon + offset]);
+      out.push([lat, lon + offset]);
     }
-    // 2) split at every boundary crossing (lon = 180 + 360k)
-    const segments = [];
-    let cur = [un[0]];
-    for (let i = 1; i < un.length; i++) {
-      const lat0 = cur[cur.length - 1][0], lon0 = cur[cur.length - 1][1];
-      const lat1 = un[i][0], lon1 = un[i][1];
-      const b0 = Math.floor((lon0 + 180) / 360);
-      const b1 = Math.floor((lon1 + 180) / 360);
-      if (b0 !== b1 && lon1 !== lon0) {
-        const boundary = 360 * Math.max(b0, b1) - 180;
-        const t = (boundary - lon0) / (lon1 - lon0);
-        const latB = lat0 + (lat1 - lat0) * t;
-        cur.push([latB, boundary]);
-        segments.push(cur);
-        cur = [[latB, boundary], [lat1, lon1]];
-      } else {
-        cur.push([lat1, lon1]);
-      }
-    }
-    if (cur.length > 1) segments.push(cur);
-    // 3) shift each segment into [-180, 180]
-    return segments.map(seg => {
-      const shift = -360 * Math.round(seg[0][1] / 360);
-      return seg.map(([lat, lon]) => {
-        let l = lon + shift;
-        if (l > 180) l -= 360;
-        if (l < -180) l += 360;
-        return [lat, l];
-      });
-    });
+    return out;
+  }
+  function addWrappedPolylines(points, options) {
+    const un = unwrapRoute(points);
+    return [-360, 0, 360].map(dx =>
+      L.polyline(un.map(([lat, lon]) => [lat, lon + dx]), options).addTo(map)
+    );
   }
 
   // Route context: all active voyages drawn faintly; dimmed when filtered out or another ship is selected
@@ -745,8 +718,7 @@
       }
       const existing = contextRoutes.get(s.id);
       if (existing) existing.forEach(l => map.removeLayer(l));
-      const segments = splitAntimeridian(pts);
-      contextRoutes.set(s.id, segments.map(seg => L.polyline(seg, { color, weight, opacity, dashArray, interactive: false }).addTo(map)));
+      contextRoutes.set(s.id, addWrappedPolylines(pts, { color, weight, opacity, dashArray, interactive: false }));
     });
     // remove any stale routes
     for (const [id, lines] of contextRoutes) {
@@ -1465,17 +1437,13 @@
     if (!s || !s.route) return;
     const r = s.route;
     const routeColor = statusColors[s.status] || statusColors.cyan;
-    const segments = splitAntimeridian(r.points);
-    segments.forEach(seg => {
-      const poly = L.polyline(seg, {
-        color: routeColor,
-        opacity: 0.95,
-        weight: 4,
-        lineJoin: 'round',
-        lineCap: 'round'
-      }).addTo(map);
-      routeLayers.push(poly);
-    });
+    addWrappedPolylines(r.points, {
+      color: routeColor,
+      opacity: 0.95,
+      weight: 4,
+      lineJoin: 'round',
+      lineCap: 'round'
+    }).forEach(poly => routeLayers.push(poly));
     const portIcon = (label, kind) => L.divIcon({
       className: 'port-marker',
       html: `<div style="display:flex;flex-direction:column;align-items:center;pointer-events:none;">
