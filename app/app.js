@@ -592,12 +592,28 @@
   const WORLD_BOUNDS = [[-90, -180], [90, 180]];
   const map = L.map('map', {
     center: [20, 10],
-    zoom: 2,
+    zoom: 3,
     zoomControl: false,
     minZoom: 2,
     maxBounds: WORLD_BOUNDS,
     maxBoundsViscosity: 1.0,
     worldCopyJump: true
+  });
+  // minZoom formula: world width (256*2^z) must cover the container, or noWrap tiles expose empty gutters.
+  function applyMinZoom() {
+    const w = map.getContainer().clientWidth;
+    if (!w) return;
+    const z = Math.max(2, Math.ceil(Math.log2(w / 256)));
+    if (z !== map.getMinZoom()) {
+      map.setMinZoom(z);
+      if (map.getZoom() < z) map.setView(map.getCenter(), z, { animate: false });
+    }
+  }
+  requestAnimationFrame(() => { map.invalidateSize(); applyMinZoom(); });
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => { map.invalidateSize(); applyMinZoom(); }, 150);
   });
   let currentTileLayer = null;
   function refreshTileLayer() {
