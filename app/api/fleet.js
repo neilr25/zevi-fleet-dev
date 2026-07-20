@@ -311,7 +311,7 @@ function deriveFlatVessel(vessel) {
       score: '0.34',
       rul: '—',
       stock: '—',
-      action: 'Deviate 12nm north, save 0.8t fuel'
+      action: 'Accept optimised route, save 0.8t fuel'
     };
   }
 
