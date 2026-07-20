@@ -996,11 +996,13 @@
     { key: 'status', label: 'Status', hideable: false },
     { key: 'savings', label: 'Savings', hideable: false },
     { key: 'trust', label: 'Trust', hideable: false },
+    { key: 'payback', label: 'Payback', hideable: true },
+    { key: 'npv', label: 'NPV 10yr', hideable: true },
     { key: 'voyage', label: 'Voyage', hideable: true },
     { key: 'contract', label: 'Contract', hideable: true }
   ];
   let listSort = { key: 'name', dir: 1 };
-  let listCols = { dwt: true, dwtBand: true, voyage: true, contract: true };
+  let listCols = { dwt: true, dwtBand: true, payback: true, npv: true, voyage: true, contract: true };
   try { Object.assign(listCols, JSON.parse(localStorage.getItem('zevi.listCols') || '{}')); } catch (e) {}
   function sortListBy(key) {
     if (listSort.key === key) listSort.dir *= -1;
@@ -1016,6 +1018,8 @@
       case 'status': return s.status || '';
       case 'savings': return s.savings && s.savings !== '—' ? parseFloat(s.savings) : -Infinity;
       case 'trust': return s.perfTrust || '';
+      case 'payback': return s.ops && s.ops.report && s.ops.report.paybackYears !== null ? s.ops.report.paybackYears : Infinity;
+      case 'npv': return s.ops && s.ops.report && s.ops.report.npv10 !== null ? s.ops.report.npv10 : -Infinity;
       case 'voyage': return (s.voyage || '').toLowerCase();
       case 'contract': return s.contract || '';
       default: return '';
@@ -1038,6 +1042,8 @@
       case 'status': return `<td><span class="status-pill ${s.status}">${statusLabels[s.status] || s.status}</span></td>`;
       case 'savings': return `<td class="mono">${s.savings || '—'}</td>`;
       case 'trust': return `<td>${badgeHtml[s.perfTrust] || badgeHtml.nodata}</td>`;
+      case 'payback': return `<td class="mono">${s.ops && s.ops.report && s.ops.report.paybackYears ? s.ops.report.paybackYears + ' yr' : '—'}</td>`;
+      case 'npv': return `<td class="mono">${s.ops && s.ops.report && s.ops.report.npv10 ? '£' + (s.ops.report.npv10 / 1e6).toFixed(2) + 'M' : '—'}</td>`;
       case 'voyage': return `<td>${s.voyage || '—'}</td>`;
       case 'contract': return `<td>${s.contract || '—'}</td>`;
       default: return '<td>—</td>';
@@ -1248,6 +1254,23 @@
         <div class="mini-list-item"><span>Variance (actual − expected)</span><span class="mono ${o.variancePp >= 0 ? 'green' : 'red'}">${o.variancePp >= 0 ? '+' : ''}${o.variancePp}%</span></div>
       </div>
       ${breakdownRows ? `<div class="card"><div class="panel-title" style="margin-top:0">Variance attribution</div>${breakdownRows}</div>` : ''}
+      ${(() => {
+        const rows = ships.filter(x => x.ops && x.ops.variancePp !== null && x.ops.variancePp !== undefined)
+          .sort((a, b) => b.ops.variancePp - a.ops.variancePp);
+        if (!rows.length) return '';
+        const maxAbs = Math.max(...rows.map(x => Math.abs(x.ops.variancePp)), 0.5);
+        const bars = rows.map(x => {
+          const v = x.ops.variancePp;
+          const w = Math.abs(v) / maxAbs * 50;
+          const isCur = x.id === s.id;
+          return `<div class="fleet-var-row${isCur ? ' current' : ''}">
+            <span class="fleet-var-name">${x.name.replace(/^MV\s+/, '')}</span>
+            <span class="fleet-var-track"><span class="fleet-var-zero"></span><span class="fleet-var-bar ${v >= 0 ? 'pos' : 'neg'}" style="${v >= 0 ? `left:50%;width:${w}%` : `right:50%;width:${w}%`}"></span></span>
+            <span class="mono ${v >= 0 ? 'green' : 'red'}" style="width:52px;text-align:right;">${v >= 0 ? '+' : ''}${v}%</span>
+          </div>`;
+        }).join('');
+        return `<div class="card"><div class="panel-title" style="margin-top:0">Fleet variance (actual − expected)</div>${bars}</div>`;
+      })()}
       <div class="card">
         <div class="panel-title" style="margin-top:0">Calculation provenance</div>
         <div class="mini-list-item"><span>Method</span><span class="mono">${calc.methodVersion}</span></div>
@@ -1671,6 +1694,19 @@
         { label: 'Valid window', value: `${calc.validFrom} → ${calc.validTo}` },
         { label: 'Baseline source', value: calc.baselineSource }
       ]);
+      const lineageEvents = (s.ops.eventTimeline || []).filter(e => e.type === 'sensor_batch' || e.type === 'savings_calc').slice(0, 3);
+      html += `<div class="card">
+        <div class="panel-title" style="margin-top:0">Lineage</div>
+        <div class="lineage-chain">${calc.baselineSource} → PerformanceData (${calc.fidelity}) → ${calc.methodVersion} → Gold (${calc.scenarioType})</div>
+        <div class="mini-list-item"><span>Input snapshot</span><span class="mono">${calc.inputSnapshotRef}</span></div>
+        ${lineageEvents.map(e => `
+          <div class="timeline-row">
+            <span class="timeline-ts mono">${e.ts}</span>
+            <span class="timeline-lane lane-${e.lane.toLowerCase()}">${e.lane}</span>
+            <span class="timeline-msg">${e.msg}</span>
+            <span class="timeline-fid ${e.fidelity}">${e.fidelity}</span>
+          </div>`).join('')}
+      </div>`;
     }
     if (voyage) {
       html += section('Voyage', 'Voyage', voyage.voyageId, 'Voyage', [
