@@ -2478,9 +2478,9 @@
     const roleTabs = {
       all: ['overview', 'performance', 'fix', 'commercial', 'regs', 'optimise', 'scenarios', 'details'],
       service: ['overview', 'fix', 'details'],
-      tech: ['overview', 'performance', 'regs', 'optimise', 'details'],
-      commercial: ['overview', 'performance', 'commercial', 'scenarios'],
-      owner: ['overview', 'performance', 'regs', 'commercial']
+      tech: ['overview', 'performance', 'regs', 'optimise', 'scenarios', 'details'],
+      commercial: ['overview', 'performance', 'commercial', 'regs', 'scenarios'],
+      owner: ['overview', 'performance', 'regs', 'commercial', 'optimise']
     };
     const visibleTabs = roleTabs[role] || roleTabs.all;
     const tabs = Array.from(document.querySelectorAll('.panel-tab'));
