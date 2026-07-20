@@ -1349,7 +1349,8 @@
           <div class="mini-list-item" style="font-weight:700;"><span>Corrective action (SEEMP III)</span><span class="badge badge-provisional">${o.correctiveAction.status}</span></div>
           <div class="mini-list-item"><span>Action ID</span><span class="mono">${o.correctiveAction.actionId}</span></div>
           <div class="mini-list-item"><span>Trigger</span><span class="mono">${o.correctiveAction.trigger} (${s.cii} vs target ${s.ciiTarget})</span></div>
-          <div class="mini-list-item"><span>Plan</span><span>${o.correctiveAction.description}</span></div>
+          <div style="font-size:11px;color:var(--muted);margin:6px 0 2px;">Plan</div>
+          <div style="font-size:11px;line-height:1.4;">${o.correctiveAction.description}</div>
           <div class="mini-list-item"><span>Due</span><span class="mono">${o.correctiveAction.dueDate}</span></div>
           <div class="mini-list-item"><span>Closure</span><span>requires evidence document</span></div>
         </div>`;
