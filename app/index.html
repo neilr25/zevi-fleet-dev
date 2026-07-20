@@ -75,7 +75,7 @@
             <option value="onboarding">Onboarding tour</option>
             <option value="add-ship">Add ship</option>
             <option value="sales-case">Create sales case</option>
-            <option value="route-deviation">Route deviation</option>
+            <option value="arrival-window">Arrival window optimiser</option>
             <option value="maintenance">Maintenance response</option>
             <option value="invoice">Verified invoice</option>
             <option value="regulatory">Regulatory submission</option>
@@ -413,25 +413,35 @@
               <div class="alert-icon">i</div>
               <div class="alert-text">Advisory only. Shore does not command the rig.</div>
             </div>
-            <div class="card demo-flow-card" id="routeDeviationCard" style="display:none;">
-              <div class="panel-title" style="margin-top:0;">Route deviation wizard</div>
+            <div class="card demo-flow-card" id="arrivalWindowCard" style="display:none;">
+              <div class="panel-title" style="margin-top:0;">Arrival window optimiser</div>
               <div class="wizard-steps">
                 <div class="wizard-step active"></div>
                 <div class="wizard-step"></div>
                 <div class="wizard-step"></div>
               </div>
-              <div class="wizard-form" id="routeDeviationForm">
+              <div class="wizard-form" id="arrivalWindowForm">
+                <div class="mini-list-item"><span>Current plan</span><span id="awCurrent" class="mono">—</span></div>
                 <label>
-                  Deviation (nm north/south)
-                  <input type="range" id="routeDeviationSlider" min="-50" max="50" step="1" value="0" oninput="updateRouteDeviationPreview()">
+                  Target arrival (hours from now)
+                  <input type="range" id="awSlider" min="24" max="240" step="1" value="120" oninput="updateArrivalWindowPreview()">
                 </label>
-                <div class="mini-list-item"><span>Added distance</span><span id="routeDeviationExtra">0 nm</span></div>
-                <div class="mini-list-item"><span>Predicted fuel saving</span><span id="routeDeviationSaving" class="green">0%</span></div>
-                <div class="mini-list-item"><span>ETA change</span><span id="routeDeviationEta">0h</span></div>
+                <label>
+                  Window width
+                  <select id="awWidth" onchange="updateArrivalWindowPreview()">
+                    <option value="1">±1 hour</option>
+                    <option value="2" selected>±2 hours</option>
+                    <option value="3">±3 hours</option>
+                  </select>
+                </label>
+                <div class="mini-list-item"><span>Required speed</span><span id="awReqSpeed" class="mono">—</span></div>
+                <div class="mini-list-item"><span>Fuel vs plan</span><span id="awFuel" class="mono">—</span></div>
+                <div class="mini-list-item"><span>Arrival window</span><span id="awWindow" class="mono">—</span></div>
+                <div class="mini-list-item"><span>Feasibility</span><span id="awFeasible">—</span></div>
               </div>
               <div class="wizard-actions">
-                <button class="btn secondary" onclick="cancelRouteDeviationWizard()">Cancel</button>
-                <button class="btn" onclick="endRouteDeviationWizard()">Endorse recommendation</button>
+                <button class="btn secondary" onclick="cancelArrivalWindowWizard()">Cancel</button>
+                <button class="btn" onclick="endArrivalWindowWizard()">Endorse recommendation</button>
               </div>
             </div>
             <div class="card" style="background:transparent;border-style:dashed;">

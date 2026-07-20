@@ -2270,7 +2270,7 @@
     else if (name === 'add-ship') openAddShipWizard();
     else if (name === 'sales-case') openSalesCaseWizard();
     else if (name === 'scenario') { openShipById(ships[0].id); selectTab('scenarios'); }
-    else if (name === 'route-deviation') startRouteDeviationWizard();
+    else if (name === 'arrival-window') startArrivalWindowWizard();
     else if (name === 'maintenance') startMaintenanceWizard();
     else if (name === 'invoice') startInvoiceWizard();
     else if (name === 'regulatory') startRegulatoryWizard();
@@ -2424,29 +2424,49 @@
     }
   }
 
-  // Route deviation wizard
-  function startRouteDeviationWizard() {
+  // Arrival window optimiser: required speed for a target arrival, fuel impact via admiralty cubic (fuel ∝ v³).
+  let awVoyage = null;
+  function startArrivalWindowWizard() {
     if (!selectedShip) { openShipById(ships.find(s => s.sailing && s.status !== 'blue')?.id || ships[0].id); }
     selectTab('optimise');
-    document.getElementById('routeDeviationCard').style.display = 'block';
-    updateRouteDeviationPreview();
+    const v = selectedShip.details && selectedShip.details.voyage;
+    const distNm = v ? parseFloat(String(v.distanceRemaining).replace(/[^0-9.]/g, '')) : (selectedShip.route ? selectedShip.route.distanceNm : 2000);
+    const speedKt = v ? parseFloat(String(v.speed).replace(/[^0-9.]/g, '')) : 12;
+    const etaH = Math.max(4, Math.round(distNm / speedKt));
+    awVoyage = { distNm, speedKt, etaH };
+    const slider = document.getElementById('awSlider');
+    slider.min = Math.max(4, etaH - 48);
+    slider.max = etaH + 48;
+    slider.value = etaH;
+    document.getElementById('awCurrent').textContent = `${speedKt} kt · ${distNm.toLocaleString()} nm · ETA ${etaH}h`;
+    document.getElementById('arrivalWindowCard').style.display = 'block';
+    updateArrivalWindowPreview();
   }
-  function updateRouteDeviationPreview() {
-    const dev = parseInt(document.getElementById('routeDeviationSlider').value) || 0;
-    const extra = Math.abs(dev) * 0.8;
-    const saving = Math.max(0, (dev > 0 ? dev * 0.08 : 0));
-    const eta = dev === 0 ? 0 : dev > 0 ? Math.round(extra / 12) : -Math.round(extra / 12);
-    document.getElementById('routeDeviationExtra').textContent = `${extra.toFixed(1)} nm`;
-    document.getElementById('routeDeviationSaving').textContent = `${saving.toFixed(1)}%`;
-    document.getElementById('routeDeviationEta').textContent = `${eta >= 0 ? '+' : ''}${eta}h`;
+  function updateArrivalWindowPreview() {
+    if (!awVoyage) return;
+    const targetH = parseInt(document.getElementById('awSlider').value, 10);
+    const widthH = parseInt(document.getElementById('awWidth').value, 10);
+    const reqSpeed = awVoyage.distNm / targetH;
+    const fuelPct = (Math.pow(reqSpeed / awVoyage.speedKt, 3) - 1) * 100;
+    const feasible = reqSpeed >= 8 && reqSpeed <= 16;
+    const saving = fuelPct < 0;
+    document.getElementById('awReqSpeed').textContent = `${reqSpeed.toFixed(1)} kt (plan ${awVoyage.speedKt} kt)`;
+    const fuelEl = document.getElementById('awFuel');
+    fuelEl.textContent = `${saving ? '' : '+'}${fuelPct.toFixed(1)}% ${saving ? 'saving' : 'cost'}`;
+    fuelEl.className = 'mono ' + (saving ? 'green' : 'red');
+    document.getElementById('awWindow').textContent = `${Math.max(0, targetH - widthH)}h – ${targetH + widthH}h from now`;
+    const feasEl = document.getElementById('awFeasible');
+    feasEl.textContent = feasible ? 'Within engine envelope' : 'Outside engine envelope (8–16 kt)';
+    feasEl.className = feasible ? 'green' : 'red';
   }
-  function endRouteDeviationWizard() {
-    const dev = document.getElementById('routeDeviationSlider').value;
-    alert(`Route deviation of ${dev} nm endorsed. Recommendation logged and sent to bridge.`);
-    document.getElementById('routeDeviationCard').style.display = 'none';
+  function endArrivalWindowWizard() {
+    const req = document.getElementById('awReqSpeed').textContent;
+    const win = document.getElementById('awWindow').textContent;
+    alert(`Recommendation endorsed: proceed at ${req} for arrival window ${win}. Logged as advisory — bridge confirms execution.`);
+    document.getElementById('arrivalWindowCard').style.display = 'none';
   }
-  function cancelRouteDeviationWizard() {
-    document.getElementById('routeDeviationCard').style.display = 'none';
+  function cancelArrivalWindowWizard() {
+    document.getElementById('arrivalWindowCard').style.display = 'none';
   }
 
   // Maintenance response wizard
@@ -2643,7 +2663,7 @@
     filterAlerts, acknowledgeAllAlerts, runScenario, saveScenario, clearScenarios,
     runWizard, loadScenario, ackAlert,
     openSettings, closeSettings, toggleDemoMode, setRolePreset, startTour, nextTourStep, endTour,
-    startRouteDeviationWizard, updateRouteDeviationPreview, endRouteDeviationWizard, cancelRouteDeviationWizard,
+    startArrivalWindowWizard, updateArrivalWindowPreview, endArrivalWindowWizard, cancelArrivalWindowWizard,
     startMaintenanceWizard, nextMaintenanceStep, prevMaintenanceStep, endMaintenanceWizard, cancelMaintenanceWizard,
     startInvoiceWizard, nextInvoiceStep, prevInvoiceStep, endInvoiceWizard, cancelInvoiceWizard,
     startRegulatoryWizard, nextRegulatoryStep, prevRegulatoryStep, endRegulatoryWizard, cancelRegulatoryWizard,

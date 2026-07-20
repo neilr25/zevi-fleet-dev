@@ -311,7 +311,7 @@ function deriveFlatVessel(vessel) {
       score: '0.34',
       rul: '—',
       stock: '—',
-      action: 'Accept optimised route, save 0.8t fuel'
+      action: 'Slow to 11.5 kt for 06:00–12:00 arrival window, save 0.8 t fuel'
     };
   }
 
