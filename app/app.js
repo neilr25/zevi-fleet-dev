@@ -170,7 +170,45 @@
       shoreRole: 'advisory only — shore cannot command the rig'
     } : null;
 
-    return { baselineFuelTd, actualFuelTd, expectedPct, variancePp, varianceBreakdown, calculation, provisionalReason, voyageSource, eventTimeline, invoices, fixBoard, rulList, partsStock, report, historicalVoyages, alertProvenance };
+    const verifiedStatement = verified ? {
+      statementId: `VS-${s.imo}-2026H1`,
+      period: '2026-01-01 → 2026-06-30',
+      outputRef: calculation.inputSnapshotRef,
+      hash: '0x' + Array.from({ length: 8 }, () => '0123456789abcdef'[Math.floor(rng() * 16)]).join(''),
+      signedBy: 'R. Okafor (Verification Lead)',
+      signedAt: '2026-07-04 09:12 UTC'
+    } : null;
+    const fuelEuBalanceT = Math.round((rng() - 0.45) * 380);
+    const fuelEU = {
+      balanceT: fuelEuBalanceT,
+      penaltyEst: fuelEuBalanceT < 0 ? Math.round(Math.abs(fuelEuBalanceT) * 240) : 0,
+      status: fuelEuBalanceT >= 0 ? 'none' : 'estimated',
+      year: 2026,
+      verified: s.compTrust === 'verified'
+    };
+    const ciiBelowTarget = s.cii !== '—' && s.ciiTarget !== '—' && s.cii > s.ciiTarget;
+    const correctiveAction = ciiBelowTarget ? {
+      actionId: `CA-${s.imo}-001`,
+      trigger: 'cii_below_target',
+      description: `Reduce average speed 0.5 kt on next two voyages and connect shore power at all berth calls.`,
+      dueDate: '2026-09-30',
+      status: 'open',
+      evidenceRequired: true
+    } : null;
+    const flagList = ['Liberia', 'Marshall Is.', 'Panama', 'Singapore', 'Malta', 'Greece', 'Norway', 'UK', 'Hong Kong', 'Cyprus'];
+    const flag = flagList[s.id - 1];
+    const allocated = 3800 + Math.floor(rng() * 2200);
+    const surrendered = Math.floor(allocated * (0.3 + rng() * 0.4));
+    const etsAccount = (s.contract !== 'Prospect' && s.cii !== '—') ? {
+      scheme: flag === 'UK' ? 'UK ETS' : 'EU ETS',
+      holder: `${s.name.replace(/^MV\s+/, '')} Maritime Ltd`,
+      allocationYear: 2026,
+      allocated,
+      surrendered,
+      remaining: allocated - surrendered
+    } : null;
+
+    return { baselineFuelTd, actualFuelTd, expectedPct, variancePp, varianceBreakdown, calculation, provisionalReason, voyageSource, eventTimeline, invoices, fixBoard, rulList, partsStock, report, historicalVoyages, alertProvenance, verifiedStatement, fuelEU, correctiveAction, etsAccount };
   }
 
   async function loadFleetData() {
@@ -1275,6 +1313,15 @@
         </div>
       </div>
       <div class="alert alert-amber"><div class="alert-icon">!</div><div class="alert-text">Provisional voyages are excluded from invoicing until batch verification (L3).</div></div>
+      ${o.verifiedStatement ? `
+      <div class="card">
+        <div class="mini-list-item" style="font-weight:700;"><span>Verified statement</span><span class="badge badge-verified">Verified</span></div>
+        <div class="mini-list-item"><span>Statement ID</span><span class="mono">${o.verifiedStatement.statementId}</span></div>
+        <div class="mini-list-item"><span>Period</span><span class="mono">${o.verifiedStatement.period}</span></div>
+        <div class="mini-list-item"><span>Output ref</span><span class="mono">${o.verifiedStatement.outputRef}</span></div>
+        <div class="mini-list-item"><span>Hash</span><span class="mono">${o.verifiedStatement.hash}…</span></div>
+        <div class="mini-list-item"><span>Signed</span><span class="mono">${o.verifiedStatement.signedBy} · ${o.verifiedStatement.signedAt}</span></div>
+      </div>` : ''}
       <button class="btn" onclick="alert('Verified invoice generated')">Generate verified invoice</button>`;
   }
 
@@ -1292,6 +1339,44 @@
     document.getElementById('eexiLimit').textContent = eexi ? eexi.requiredLimit : '—';
     document.getElementById('eexiImprovement').textContent = eexi ? '-' + eexi.improvement + ' g/t·nm' : '—';
     document.getElementById('eexiStatus').textContent = eexi ? eexi.status : '—';
+    const extras = document.getElementById('regsExtras');
+    if (!extras) return;
+    const o = s.ops || {};
+    let html = '';
+    if (o.correctiveAction) {
+      html += `
+        <div class="card" style="border-left:3px solid var(--amber);">
+          <div class="mini-list-item" style="font-weight:700;"><span>Corrective action (SEEMP III)</span><span class="badge badge-provisional">${o.correctiveAction.status}</span></div>
+          <div class="mini-list-item"><span>Action ID</span><span class="mono">${o.correctiveAction.actionId}</span></div>
+          <div class="mini-list-item"><span>Trigger</span><span class="mono">${o.correctiveAction.trigger} (${s.cii} vs target ${s.ciiTarget})</span></div>
+          <div class="mini-list-item"><span>Plan</span><span>${o.correctiveAction.description}</span></div>
+          <div class="mini-list-item"><span>Due</span><span class="mono">${o.correctiveAction.dueDate}</span></div>
+          <div class="mini-list-item"><span>Closure</span><span>requires evidence document</span></div>
+        </div>`;
+    }
+    if (o.fuelEU) {
+      const f = o.fuelEU;
+      html += `
+        <div class="card">
+          <div class="mini-list-item" style="font-weight:700;"><span>FuelEU Maritime ${f.year}</span><span class="badge ${f.verified ? 'badge-verified' : 'badge-provisional'}">${f.verified ? 'Verified' : 'Provisional'}</span></div>
+          <div class="mini-list-item"><span>Compliance balance</span><span class="mono ${f.balanceT >= 0 ? 'green' : 'red'}">${f.balanceT >= 0 ? '+' : ''}${f.balanceT} t CO₂e</span></div>
+          <div class="mini-list-item"><span>Penalty exposure (est.)</span><span class="mono ${f.penaltyEst > 0 ? 'amber' : ''}">${f.penaltyEst > 0 ? '€' + f.penaltyEst.toLocaleString() : '—'}</span></div>
+          <div class="mini-list-item"><span>Penalty status</span><span class="mono">${f.status}</span></div>
+        </div>`;
+    }
+    if (o.etsAccount) {
+      const a = o.etsAccount;
+      html += `
+        <div class="card">
+          <div class="mini-list-item" style="font-weight:700;"><span>${a.scheme} account</span><span class="mono" style="color:var(--muted);">read-only tracking</span></div>
+          <div class="mini-list-item"><span>Holder</span><span>${a.holder}</span></div>
+          <div class="mini-list-item"><span>Allocation year</span><span class="mono">${a.allocationYear}</span></div>
+          <div class="mini-list-item"><span>Allocated</span><span class="mono">${a.allocated.toLocaleString()} t</span></div>
+          <div class="mini-list-item"><span>Surrendered</span><span class="mono">${a.surrendered.toLocaleString()} t</span></div>
+          <div class="mini-list-item"><span>Remaining</span><span class="mono ${a.remaining > 0 ? 'green' : 'red'}">${a.remaining.toLocaleString()} t</span></div>
+        </div>`;
+    }
+    extras.innerHTML = html;
   }
 
   function renderFixBoard(s) {
