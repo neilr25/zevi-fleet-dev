@@ -82,11 +82,14 @@
             <option value="scenario">New scenario</option>
           </select>
         </div>
-        <div class="tooltip tooltip-bottom" data-tooltip="Switch between Ship Owner and SGS Internal views">
+        <div class="tooltip tooltip-bottom" data-tooltip="Tailor the dashboard to your role">
           <span class="topbar-group-label">Role</span>
           <select class="role-select" id="roleSelect">
-            <option value="owner">Ship Owner</option>
-            <option value="internal">SGS Internal</option>
+            <option value="all">All Access</option>
+            <option value="service">Service Desk</option>
+            <option value="tech">Performance & Compliance</option>
+            <option value="commercial">Commercial</option>
+            <option value="owner">Owner / Charterer</option>
           </select>
         </div>
         <button class="theme-toggle tooltip tooltip-bottom" id="themeToggle" data-tooltip="Toggle light/dark mode">🌙</button>
@@ -644,21 +647,25 @@
       <div class="settings-group">
         <div class="settings-label">Role presets</div>
         <div class="demo-list" id="rolePresetList">
+          <div class="role-card" data-role="all" onclick="setRolePreset('all')">
+            <div class="role-card-title">All Access</div>
+            <div class="role-card-desc">Super-user: every tab, every control</div>
+          </div>
+          <div class="role-card" data-role="service" onclick="setRolePreset('service')">
+            <div class="role-card-title">Service Desk</div>
+            <div class="role-card-desc">Condition monitoring, alerts, work orders, map</div>
+          </div>
+          <div class="role-card" data-role="tech" onclick="setRolePreset('tech')">
+            <div class="role-card-title">Performance & Compliance</div>
+            <div class="role-card-desc">Savings, variance, CII, ETS, route, lineage</div>
+          </div>
+          <div class="role-card" data-role="commercial" onclick="setRolePreset('commercial')">
+            <div class="role-card-title">Commercial</div>
+            <div class="role-card-desc">Contracts, PAYS invoicing, business cases, scenarios</div>
+          </div>
           <div class="role-card" data-role="owner" onclick="setRolePreset('owner')">
-            <div class="role-card-title">Ship Owner</div>
-            <div class="role-card-desc">Savings, guarantees, invoices, CII</div>
-          </div>
-          <div class="role-card" data-role="internal" onclick="setRolePreset('internal')">
-            <div class="role-card-title">SGS Internal</div>
-            <div class="role-card-desc">Alerts, diagnostics, route advice, work orders</div>
-          </div>
-          <div class="role-card" data-role="regulator" onclick="setRolePreset('regulator')">
-            <div class="role-card-title">Regulator</div>
-            <div class="role-card-desc">Compliance, verified data, EEXI, submissions</div>
-          </div>
-          <div class="role-card" data-role="prospect" onclick="setRolePreset('prospect')">
-            <div class="role-card-title">Prospect / Charterer</div>
-            <div class="role-card-desc">Scenario planning, sales case, predicted savings</div>
+            <div class="role-card-title">Owner / Charterer</div>
+            <div class="role-card-desc">Fleet savings, compliance status, invoices — no SGS internals</div>
           </div>
         </div>
       </div>

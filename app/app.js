@@ -399,11 +399,12 @@
         <div class="kpi-value" data-kpi="${key}"></div>
       </div>`;
     const roleKpiOrder = {
-      owner: ['fuel', 'saving', 'co2', 'power'],
-      internal: ['power', 'saving', 'fuel', 'co2'],
-      regulator: ['co2', 'saving', 'fuel', 'power'],
-      prospect: ['saving', 'fuel', 'co2', 'power']
-    }[typeof currentRole !== 'undefined' ? currentRole : 'owner'] || ['fuel', 'co2', 'power', 'saving'];
+      all: ['fuel', 'co2', 'power', 'saving'],
+      service: ['power', 'saving', 'fuel', 'co2'],
+      tech: ['co2', 'saving', 'fuel', 'power'],
+      commercial: ['fuel', 'saving', 'co2', 'power'],
+      owner: ['fuel', 'saving', 'co2', 'power']
+    }[typeof currentRole !== 'undefined' ? currentRole : 'all'] || ['fuel', 'co2', 'power', 'saving'];
     const kpiLabels = { fuel: 'Fuel saved', co2: 'CO₂ saved', power: 'Power now', saving: 'Avg saving' };
     document.getElementById('statsBar').innerHTML = `
       <div class="stats-title">Fleet performance${filtered ? ' <span class="kpi-filtered-note">· filtered</span>' : ''}</div>
@@ -700,7 +701,7 @@
   }
   let filterState = emptyFilterState();
   // Role state (declared early because renderFleetSummary reads it during initial view setup)
-  let currentRole = localStorage.getItem('fastFleet_role') || 'owner';
+  let currentRole = localStorage.getItem('fastFleet_role') || 'all';
 
   // Triple-offset unwrapped routes: continuous across the dateline; dynamic minZoom guarantees only one copy is ever in view.
   function unwrapRoute(points) {
@@ -1188,12 +1189,12 @@
     const role = document.getElementById('roleSelect').value;
     if (s.status === 'grey') return { text: 'No telemetry for 18 hours', status: 'grey', action: 'Investigate data gap', lens: 'fix' };
     if (s.status === 'blue') return { text: `Predicted ${s.savings} fuel saving on typical route`, status: 'blue', action: 'Build business case', lens: 'performance' };
-    if (role === 'regulator' && s.status === 'amber' && s.cii !== '—') return { text: `CII rating ${s.cii} · target ${s.ciiTarget} · compliance at risk`, status: 'amber', action: 'Open Compliance', lens: 'regs' };
-    if (role === 'financier' && s.status === 'blue') return { text: `Predicted ${s.savings} saving · no contract in place`, status: 'blue', action: 'Build business case', lens: 'performance' };
+    if ((role === 'tech' || role === 'owner') && s.status === 'amber' && s.cii !== '—') return { text: `CII rating ${s.cii} · target ${s.ciiTarget} · compliance at risk`, status: 'amber', action: 'Open Compliance', lens: 'regs' };
+    if (role === 'commercial' && s.status === 'blue') return { text: `Predicted ${s.savings} saving · no contract in place`, status: 'blue', action: 'Build business case', lens: 'performance' };
     if (s.status === 'red') return { text: `${s.alert} · RUL ${s.alertData.rul}`, status: 'red', action: 'Create work order', lens: 'fix' };
     if (s.status === 'cyan') return { text: `Live route advice: ${s.alertData.action}`, status: 'cyan', action: 'Endorse recommendation', lens: 'optimise' };
     if (s.status === 'amber') return { text: `Savings ${s.savings} vs ${s.guarantee} guarantee · variance ${s.variance}`, status: 'amber', action: 'Investigate variance', lens: 'performance' };
-    if (s.voyagesReady > 0) return { text: `${s.voyagesReady} voyage ready for PAYS invoicing · verified`, status: 'green', action: 'Preview invoice', lens: 'commercial' };
+    if (s.voyagesReady > 0 && (role === 'all' || role === 'commercial' || role === 'owner')) return { text: `${s.voyagesReady} voyage ready for PAYS invoicing · verified`, status: 'green', action: 'Preview invoice', lens: 'commercial' };
     return { text: `Savings ${s.savings} vs ${s.guarantee} guarantee · all systems nominal`, status: 'green', action: 'View performance', lens: 'performance' };
   }
 
@@ -2079,6 +2080,11 @@
   }
 
   async function selectTab(name) {
+    const targetTab = document.querySelector(`.panel-tab[data-tab="${name}"]`);
+    if (targetTab && targetTab.classList.contains('panel-hidden')) {
+      const firstVisible = document.querySelector('.panel-tab:not(.panel-hidden)');
+      if (firstVisible) name = firstVisible.dataset.tab;
+    }
     showLens(name);
     document.querySelectorAll('.panel-tab').forEach(t => {
       t.classList.toggle('active', t.dataset.tab === name);
@@ -2096,8 +2102,8 @@
     }
   }
 
-  document.getElementById('roleSelect').addEventListener('change', () => {
-    if (selectedShip) openShip(selectedShip);
+  document.getElementById('roleSelect').addEventListener('change', (e) => {
+    setRolePreset(e.target.value);
   });
 
   // Tooltip system
@@ -2457,46 +2463,60 @@
   function setRolePreset(role) {
     currentRole = role;
     localStorage.setItem('fastFleet_role', role);
-    document.getElementById('roleSelect').value = role === 'prospect' ? 'owner' : role;
+    document.getElementById('roleSelect').value = role;
     document.querySelectorAll('#rolePresetList .role-card').forEach(c => c.classList.toggle('active', c.dataset.role === role));
     applyRolePreset();
     renderFleetSummary();
     if (selectedShip) {
       openShip(selectedShip);
-      const defaultTab = { owner: 'overview', internal: 'fix', regulator: 'regs', prospect: 'scenarios' }[role] || 'overview';
+      const defaultTab = { all: 'overview', service: 'fix', tech: 'performance', commercial: 'commercial', owner: 'overview' }[role] || 'overview';
       selectTab(defaultTab);
     }
   }
   function applyRolePreset() {
     const role = currentRole;
-    document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('panel-hidden', 'panel-dimmed'));
-    const order = {
-      owner: ['overview', 'performance', 'commercial', 'regs', 'details', 'fix', 'optimise', 'scenarios'],
-      internal: ['overview', 'fix', 'optimise', 'performance', 'regs', 'commercial', 'details', 'scenarios'],
-      regulator: ['regs', 'performance', 'overview', 'details', 'fix', 'optimise', 'commercial', 'scenarios'],
-      prospect: ['scenarios', 'performance', 'overview', 'optimise', 'details', 'fix', 'regs', 'commercial']
-    }[role] || ['overview', 'performance', 'fix', 'commercial', 'regs', 'optimise', 'scenarios', 'details'];
+    const roleTabs = {
+      all: ['overview', 'performance', 'fix', 'commercial', 'regs', 'optimise', 'scenarios', 'details'],
+      service: ['overview', 'fix', 'details'],
+      tech: ['overview', 'performance', 'regs', 'optimise', 'details'],
+      commercial: ['overview', 'performance', 'commercial', 'scenarios'],
+      owner: ['overview', 'performance', 'regs', 'commercial']
+    };
+    const visibleTabs = roleTabs[role] || roleTabs.all;
     const tabs = Array.from(document.querySelectorAll('.panel-tab'));
     const container = document.getElementById('panelTabs');
-    tabs.sort((a, b) => order.indexOf(a.dataset.tab) - order.indexOf(b.dataset.tab));
-    tabs.forEach(t => container.appendChild(t));
-    const dim = {
-      owner: ['fix', 'optimise'],
-      internal: ['commercial', 'scenarios'],
-      regulator: ['fix', 'optimise', 'scenarios'],
-      prospect: ['fix', 'regs']
-    }[role] || [];
     tabs.forEach(t => {
-      t.classList.toggle('panel-dimmed', dim.includes(t.dataset.tab));
+      const visible = visibleTabs.includes(t.dataset.tab);
+      t.classList.toggle('panel-hidden', !visible);
+      t.classList.remove('panel-dimmed');
     });
+    tabs.sort((a, b) => {
+      const ia = visibleTabs.indexOf(a.dataset.tab);
+      const ib = visibleTabs.indexOf(b.dataset.tab);
+      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    });
+    tabs.forEach(t => container.appendChild(t));
+    const topbarRole = {
+      all: { simulate: true, wizards: true, alerts: true },
+      service: { simulate: false, wizards: false, alerts: true },
+      tech: { simulate: true, wizards: true, alerts: true },
+      commercial: { simulate: false, wizards: true, alerts: false },
+      owner: { simulate: false, wizards: false, alerts: false }
+    }[role] || { simulate: true, wizards: true, alerts: true };
+    const liveControls = document.querySelector('.live-controls');
+    if (liveControls) liveControls.style.display = topbarRole.simulate ? '' : 'none';
+    const wizardSelect = document.getElementById('wizardSelect');
+    if (wizardSelect) wizardSelect.parentElement.style.display = topbarRole.wizards ? '' : 'none';
+    const alertsBtn = document.getElementById('alertsBtn');
+    if (alertsBtn) alertsBtn.style.display = topbarRole.alerts ? '' : 'none';
   }
 
   // Onboarding tour
   const tourSteps = [
     { target: '.left-panel', title: 'Fleet summary', body: 'Filter by status, alert type, or name. The fleet performance counter shows fuel saved, CO₂ saved, and current power generation.', position: 'right' },
     { target: '#map', title: 'Live map', body: 'Click any vessel to open its detail panel. Selected ships are highlighted; others are dimmed.', position: 'center' },
-    { target: '#shipPanel', title: 'Detail lenses', body: 'Switch between Overview, Performance, Condition, Commercial, Compliance, Route, Scenarios, and Details.', position: 'left' },
-    { target: '#liveBtn', title: 'Live simulation', body: 'Toggle live mode to watch vessels move along their routes. Choose speed and see the last update time.', position: 'bottom' },
+    { target: '#shipPanel', title: 'Role-tailored lenses', body: 'Tabs adapt to your role. All Access sees everything; other roles see only what matters to them.', position: 'left' },
+    { target: '#liveBtn', title: 'Simulate', body: 'Toggle to watch vessels move along routes. Hidden for roles that don\u2019t need simulation.', position: 'bottom' },
     { target: '#alertsBtn', title: 'Alerts centre', body: 'Open the alerts centre to see critical, attention, route, and offline alerts across the fleet.', position: 'bottom' },
     { target: '#settingsBtn', title: 'Settings & demos', body: 'Enable demo mode to access guided wizards and role presets.', position: 'bottom' }
   ];
