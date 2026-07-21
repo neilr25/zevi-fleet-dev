@@ -411,10 +411,18 @@
       ${roleKpiOrder.map((k, i) => kpi(k, kpiLabels[k], i === 0)).join('')}
     `;
     const bar = document.getElementById('statsBar');
-    animateKpiValue(bar.querySelector('[data-kpi="fuel"]'), prev.fuel, next.fuel, v => v.toFixed(1) + ' t', 350);
-    animateKpiValue(bar.querySelector('[data-kpi="co2"]'), prev.co2, next.co2, v => Math.round(v).toLocaleString() + ' t', 350);
-    animateKpiValue(bar.querySelector('[data-kpi="power"]'), prev.power, next.power, v => Math.round(v).toLocaleString() + ' kW', 350);
-    animateKpiValue(bar.querySelector('[data-kpi="saving"]'), prev.saving, next.saving, v => (next.saving || savingsVals.length ? v.toFixed(1) + '%' : '—'), 350);
+    if (liveMode && bar.querySelector('[data-kpi="fuel"]')) {
+      bar.querySelector('[data-kpi="fuel"]').textContent = next.fuel.toFixed(1) + ' t';
+      bar.querySelector('[data-kpi="co2"]').textContent = Math.round(next.co2).toLocaleString() + ' t';
+      bar.querySelector('[data-kpi="power"]').textContent = Math.round(next.power).toLocaleString() + ' kW';
+      const savingEl = bar.querySelector('[data-kpi="saving"]');
+      if (savingEl) savingEl.textContent = (next.saving || savingsVals.length ? next.saving.toFixed(1) + '%' : '—');
+    } else {
+      animateKpiValue(bar.querySelector('[data-kpi="fuel"]'), prev.fuel, next.fuel, v => v.toFixed(1) + ' t', 350);
+      animateKpiValue(bar.querySelector('[data-kpi="co2"]'), prev.co2, next.co2, v => Math.round(v).toLocaleString() + ' t', 350);
+      animateKpiValue(bar.querySelector('[data-kpi="power"]'), prev.power, next.power, v => Math.round(v).toLocaleString() + ' kW', 350);
+      animateKpiValue(bar.querySelector('[data-kpi="saving"]'), prev.saving, next.saving, v => (next.saving || savingsVals.length ? v.toFixed(1) + '%' : '—'), 350);
+    }
   }
 
   function renderHistoricalVoyages(s) {
