@@ -411,7 +411,7 @@
       ${roleKpiOrder.map((k, i) => kpi(k, kpiLabels[k], i === 0)).join('')}
     `;
     const bar = document.getElementById('statsBar');
-    if (liveMode && bar.querySelector('[data-kpi="fuel"]')) {
+    if (typeof liveMode !== 'undefined' && liveMode && bar.querySelector('[data-kpi="fuel"]')) {
       bar.querySelector('[data-kpi="fuel"]').textContent = next.fuel.toFixed(1) + ' t';
       bar.querySelector('[data-kpi="co2"]').textContent = Math.round(next.co2).toLocaleString() + ' t';
       bar.querySelector('[data-kpi="power"]').textContent = Math.round(next.power).toLocaleString() + ' kW';
