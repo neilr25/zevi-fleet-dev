@@ -411,7 +411,7 @@
       ${roleKpiOrder.map((k, i) => kpi(k, kpiLabels[k], i === 0)).join('')}
     `;
     const bar = document.getElementById('statsBar');
-    if (typeof liveMode !== 'undefined' && liveMode && bar.querySelector('[data-kpi="fuel"]')) {
+    if (liveMode && bar.querySelector('[data-kpi="fuel"]')) {
       bar.querySelector('[data-kpi="fuel"]').textContent = next.fuel.toFixed(1) + ' t';
       bar.querySelector('[data-kpi="co2"]').textContent = Math.round(next.co2).toLocaleString() + ' t';
       bar.querySelector('[data-kpi="power"]').textContent = Math.round(next.power).toLocaleString() + ' kW';
@@ -708,6 +708,8 @@
     return { search: '', statuses: [], types: [], bands: [], contracts: [], trusts: [], alerts: [] };
   }
   let filterState = emptyFilterState();
+  let liveMode = false;
+  let liveSpeed = 1;
   // Role state (declared early because renderFleetSummary reads it during initial view setup)
   let currentRole = localStorage.getItem('fastFleet_role') || 'all';
 
@@ -2165,9 +2167,7 @@
   }
 
   // Live vessel position simulation
-  let liveMode = false;
   let liveInterval = null;
-  let liveSpeed = 1;
   const baseProgressPerTick = 0.0005;
   let simAccumulators = null;
   function setLiveSpeed(speed) {
