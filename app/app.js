@@ -2161,6 +2161,7 @@
   let liveInterval = null;
   let liveSpeed = 1;
   const baseProgressPerTick = 0.0005;
+  let simAccumulators = null;
   function setLiveSpeed(speed) {
     liveSpeed = parseFloat(speed) || 1;
   }
@@ -2171,6 +2172,9 @@
     if (liveMode) {
       btn.classList.add('active');
       if (simBadge) simBadge.style.display = '';
+      if (!simAccumulators) {
+        simAccumulators = ships.map(s => ({ id: s.id, fuelSaved: s.fuelSaved || 0, co2Saved: s.co2Saved || 0, currentPower: s.currentPower || 0 }));
+      }
       ships.forEach(s => { if (s.route && s.route.points && s.route.points.length >= 2 && s.sailing && !s.atPort && s.status !== 'blue' && s.status !== 'grey') { if (s.routeProgress == null) s.routeProgress = 0.2 + Math.random() * 0.4; } });
       liveInterval = setInterval(simulateLiveTick, 1000);
       simulateLiveTick();
@@ -2198,6 +2202,18 @@
       s.lat = lat; s.lon = lon; s.heading = Math.round(bearing(a[0], a[1], b[0], b[1]));
       m.setLatLng([lat, lon]);
       m.setIcon(shipIcon(s, selectedShip && selectedShip.id === s.id ? 'selected' : (selectedShip ? 'dimmed' : null), !filteredIds.has(s.id)));
+      const acc = simAccumulators.find(a => a.id === s.id);
+      if (acc) {
+        const savingsPct = s.savings && s.savings !== '—' ? parseFloat(s.savings) : 0;
+        const fuelFlowTd = [24.2, 31.5, 28.0, 26.1, 21.8, 30.2, 29.4, 25.5, 32.1, 22.4][s.id - 1] || 25;
+        const hoursPerTick = liveSpeed / 24;
+        acc.fuelSaved += fuelFlowTd * (savingsPct / 100) * hoursPerTick;
+        acc.co2Saved += fuelFlowTd * (savingsPct / 100) * hoursPerTick * 3.15;
+        acc.currentPower = [420, 510, 450, 530, 390, 480, 470, 430, 500, 410][s.id - 1] * (0.5 + Math.random() * 0.3);
+        s.fuelSaved = acc.fuelSaved;
+        s.co2Saved = acc.co2Saved;
+        s.currentPower = acc.currentPower;
+      }
     });
     if (selectedShip) {
       const m = markers.find(m => m.ship.id === selectedShip.id);
