@@ -661,14 +661,17 @@
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => { map.invalidateSize(); applyMinZoom(); }, 150);
   });
+  // Light-only tile style: the dark theme comes from --map-filter in styles.css.
+  const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+  const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors';
   let currentTileLayer = null;
   function refreshTileLayer() {
-    const isLight = document.body.classList.contains('light-mode');
-    const url = isLight
-      ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-      : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-    if (currentTileLayer) map.removeLayer(currentTileLayer);
-    currentTileLayer = L.tileLayer(url, { attribution: '&copy; CARTO' }).addTo(map);
+    if (currentTileLayer) return;
+    currentTileLayer = L.tileLayer(TILE_URL, {
+      attribution: TILE_ATTRIBUTION,
+      maxZoom: 19,
+      referrerPolicy: 'strict-origin-when-cross-origin'
+    }).addTo(map);
   }
   refreshTileLayer();
   L.control.zoom({ position: 'bottomright' }).addTo(map);
