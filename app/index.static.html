@@ -24,7 +24,7 @@
     --blue: #6366F1;
     --cyan: #06B6D4;
     --shadow: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -2px rgba(0,0,0,0.2);
-    --map-filter: brightness(0.95) contrast(1.1);
+    --map-filter: invert(1) hue-rotate(180deg) brightness(0.86) contrast(0.92) saturate(0.75);
     --radius-sm: 4px;
     --radius-md: 6px;
     --radius-lg: 8px;
@@ -63,7 +63,7 @@
     --blue: #4F46E5;
     --cyan: #0891B2;
     --shadow: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -2px rgba(0,0,0,0.04);
-    --map-filter: brightness(1.05) contrast(0.98);
+    --map-filter: none;
     --status-green: #059669;
     --status-green-bg: rgba(5,150,105,0.12);
     --status-green-border: rgba(5,150,105,0.35);
@@ -1199,14 +1199,17 @@
   };
 
   const map = L.map('map', { center: [20, 10], zoom: 2, zoomControl: false });
+  // Light-only tile style: the dark theme comes from --map-filter below.
+  const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+  const TILE_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors';
   let currentTileLayer = null;
   function refreshTileLayer() {
-    const isLight = document.body.classList.contains('light-mode');
-    const url = isLight
-      ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-      : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-    if (currentTileLayer) map.removeLayer(currentTileLayer);
-    currentTileLayer = L.tileLayer(url, { attribution: '&copy; CARTO' }).addTo(map);
+    if (currentTileLayer) return;
+    currentTileLayer = L.tileLayer(TILE_URL, {
+      attribution: TILE_ATTRIBUTION,
+      maxZoom: 19,
+      referrerPolicy: 'strict-origin-when-cross-origin'
+    }).addTo(map);
   }
   refreshTileLayer();
   L.control.zoom({ position: 'bottomright' }).addTo(map);
